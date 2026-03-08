@@ -1,78 +1,51 @@
-# AGENTS.md — Governance Template
+# AGENTS.md — agent-governance Repository Contract
 
-Version: 1.0.0
-Status: Normative / Reusable
+Version: 1.1.0
+Status: Normative / Local
 Scope: `./**`
 
-This file is the short operational contract.
+This repository maintains the reusable shared governance base for other
+projects. The canonical reusable contract lives in `PARENT-AGENTS.md`.
 Deep procedures live in `docs/governance/**`.
 
 ## 0) Order Of Precedence
 
-Agents MUST follow this order:
+Agents MUST follow this order in this repository:
 
 1. `AGENTS.md`
-2. `docs/governance/execution-policy.md`
-3. `docs/governance/how-to-code-review.md`
-4. `docs/governance/how-to-coding-standards.md`
-5. `docs/governance/how-to-document.md`
-6. `docs/governance/release-and-rollback-policy.md`
-7. `TODO.md`
-8. `BUGS.md`
-9. `README.md`
-10. `docs/**`
+2. `PARENT-AGENTS.md`
+3. `docs/governance/execution-policy.md`
+4. `docs/governance/how-to-code-review.md`
+5. `docs/governance/how-to-coding-standards.md`
+6. `docs/governance/how-to-document.md`
+7. `docs/governance/release-and-rollback-policy.md`
+8. `README.md`
+9. `scaffolds/**`
 
-If documents conflict, higher priority wins.
-Record unresolved conflict in `TODO.md` or `BUGS.md`.
+## 1) Local Rules
 
-## 1) Non-Negotiable Rules
+1. Keep `PARENT-AGENTS.md` generic and reusable across unrelated projects.
+2. Do not hardcode product-specific runtime paths, toolchains, or release tools
+   into the parent contract.
+3. If an example is needed, put it in `scaffolds/**` or `README.md`, not in the
+   parent contract.
+4. Keep this repository understandable as a copy source:
+   - parent contract in `PARENT-AGENTS.md`
+   - local child example in `scaffolds/AGENTS.md`
+   - reusable deep rules in `docs/governance/**`
+5. Prefer subtraction over expansion. If a rule can move out of the parent and
+   still work, move it out.
 
-1. Execution mode is strict: implement and validate; no stealth redesign.
-2. One responsibility, one implementation: duplicate truth is forbidden.
-3. Security first: do not weaken runtime or secret handling without explicit approval.
-4. Backlog ownership:
-   - planned work belongs in `TODO.md`
-   - defects, regressions, and risks belong in `BUGS.md`
-5. Evidence is mandatory: no evidence means incomplete work.
-6. Production docs must use simple English.
-7. DoD = implementation + validation + evidence + backlog update.
+## 2) Completion Criteria
 
-## 2) Canonical Commands
+A change here is complete only when:
 
-Each adopting repository MUST define:
+1. the parent contract remains generic
+2. the local repository contract remains short
+3. README adoption instructions still match the file layout
+4. scaffold files still reflect the documented precedence model
 
-- the canonical validation entrypoint
-- the canonical release entrypoint
-- the canonical local development entrypoint
-
-Those commands must be documented in the adopting repository `README.md`.
-
-## 3) Delivery Flow
-
-1. Classify lane.
-2. Map to the correct backlog file.
-3. Implement the minimal safe delta.
-4. Run required validation.
-5. Record evidence.
-6. Update backlog state.
-7. Commit and publish unless publication is explicitly blocked.
-
-## 4) Git And Publish Contract
-
-- Commit subject format: `<type>: <simple english summary>`
-- Allowed types: `chore`, `release`, `hardening`, `feat`, `fix`, `hotfix`
-- Prefer small scoped commits.
-- Publish only after the change is validated and the backlog is in sync.
-
-## 5) Navigation Map
-
-- Execution policy: `docs/governance/execution-policy.md`
-- Code review: `docs/governance/how-to-code-review.md`
-- Coding standards: `docs/governance/how-to-coding-standards.md`
-- Documentation standard: `docs/governance/how-to-document.md`
-- Release and rollback: `docs/governance/release-and-rollback-policy.md`
-
-## 6) Offload Output Contract
+## 3) Offload Output Contract
 
 Final user-facing responses must include one short offload note:
 
