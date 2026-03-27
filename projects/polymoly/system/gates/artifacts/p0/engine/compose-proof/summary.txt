@@ -1,0 +1,9 @@
+Compose Proof Gate
+checks_total: 5
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/p0/engine/compose-proof/checks.tsv
+- system/gates/artifacts/p0/engine/compose-proof/summary.md
+- system/gates/artifacts/p0/engine/compose-proof/core-tests.log

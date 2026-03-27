@@ -1,0 +1,4905 @@
+=== AGENTS.md ===
+# Baraba - Governance & Architecture (AGENTS.md)
+
+Ovaj dokument je kanonski standard za ljude i AI agente koji rade nad **Baraba** bibliotekom.
+
+## 1. Glavna arhitektura
+
+Repo je biblioteka za modernu izgradnju i orkestraciju web komponenti.
+
+Glavne root celine su:
+- **`engine/`**: Core logika, lifecycle, state management i render loop. Tajna moć Barabe.
+- **`tests/`**: Automatizovani testovi koji osiguravaju stabilnost engine-a.
+- **Root fajlovi**: Direktne komponente ili entry points (npr. `baraba.js`, `baraba.js`).
+
+Arhitektura je **capability-driven** i **vertical slice** orijentisana. Svaki deo engine-a ili složena komponenta treba da bude autonomna celina.
+
+## 2. Kanonska navigacija kroz kod
+
+Pravilo je:
+
+**folder kaže tok, file kaže odgovornost, function kaže tačnu akciju**
+
+Čovek treba iz putanje da pogodi odgovornost svakog dela sistema bez otvaranja fajla.
+Ako putanja ne zvuči kao jasna rečenica, naming nije dovoljno dobar.
+
+## 3. Lokalna organizacija složenog foldera
+
+Svi složeni delovi (uključujući `engine/`) moraju pratiti "Holy Trinity" podelu:
+
+- `state/`: Ne zna za DOM, čuva jedini izvor istine.
+- `render/`: Samo prikazuje stanje na osnovu promena, ne menja stanje direktno.
+- `actions/`: Sadrži logiku koja menja stanje i izvršava side-effect-e.
+
+Ovaj raspored je obavezan za `engine/` i sve veće komponente.
+
+## 4. Obavezni naming zakon
+
+Izbegavati generičke nazive koji kriju nameru:
+- `manager`, `service`, `helpers`, `utils`, `orchestrator`, `controller`.
+
+Dozvoljeni su samo kada nema boljeg domenskog naziva.
+Poželjni nazivi su glagolski i direktni:
+- `render-engine.js`
+- `define-component.js`
+- `update-core-state.js`
+- `apply-styles.js`
+
+## 5. Pravila za `baraba.js`
+
+`baraba.js` je isključivo javna fasada slice-a.
+- Mora biti mali (obično samo exporti).
+- Ne sme sadržati tešku logiku.
+- Služi da poveže unutrašnje foldere (`state`, `render`, `actions`) u jedan modul.
+
+## 6. Native i Zero-Dependency
+
+- Nema UI frameworka (React, Vue, itd).
+- Nema CSS frameworka (Tailwind, Bootstrap).
+- Koristiti isključivo native Baraba standarde i ES module.
+- Svaka komponenta mora biti self-contained.
+
+## 7. Pravila za `how-this-works` dokumente
+
+`how-this-works.md` dokumenti su edukativni artefakti, ne automatski generisani inventory.
+- Dokument mora da objasni **životni ciklus** podataka i rendera.
+- Mermaid dijagrame koristiti za vizuelizaciju kompleksnih interakcija.
+- Dokument mora biti pisan tako da i novi član tima odmah razume "zašto", a ne samo "kako".
+
+## 8. Disciplina završetka zadatka
+
+Svaki zadatak se OBAVEZNO završava ovom sekvencom:
+1. **Commit**: Snimiti promene sa smislenom porukom.
+2. **Push**: Podići na remote.
+3. **Merge**: Izvršiti `./merge-files.sh .` iz root-a projekta.
+
+Ovo osigurava da je `baraba.txt` (tekstualni snapshot) uvek ažuran.
+
+=== baraba.js ===
+export { css, define, html } from "./engine/index.js"
+
+=== engine/actions/create-actions.js ===
+export function createActions(host, actionDefinitions) {
+  const nextActions = {}
+
+  for (const [name, fn] of Object.entries(actionDefinitions)) {
+    const action = async (...args) => {
+      return await fn.call(host, host._state, host.props, ...args)
+    }
+
+    nextActions[name] = action
+
+    Object.defineProperty(host, name, {
+      value: action,
+      configurable: true,
+      enumerable: false,
+      writable: false
+    })
+  }
+
+  return nextActions
+}
+
+=== engine/actions/how-this-works.md ===
+---
+title: baraba-engine-actions-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Actions How This Works
+
+## Sta je ovaj folder
+
+`actions/` je mesto gde engine uzima akcije iz `define(...)` i od njih pravi
+stvarne funkcije koje zive na instanci komponente.
+
+To je vazno zato sto autor komponente u definiciji pise samo:
+
+- koje akcije postoje
+- kako treba da menjaju `state`
+- kako treba da koriste `props`
+
+Ali browser ne moze da radi direktno sa tom idejom dok engine ne odradi svoj
+deo posla.
+
+Upravo to radi `actions/`:
+
+- primi opis akcija
+- veze ih za konkretnu instancu komponente
+- da ih `render()` kasnije moze bezbedno proslediti u event logiku
+
+Najkrace:
+
+- `render()` pokazuje sta korisnik vidi
+- `actions/` sprema sta komponenta radi kada korisnik nesto uradi
+
+## Likovi u ovoj prici
+
+Ovde je korisno da ceo tok zamislis kao malu pricu sa nekoliko likova.
+
+- 👨‍💻 **Autor**: programer koji pise `define(...)`
+- 🧠 **Engine**: unutrasnji sistem koji povezuje delove komponente
+- 🧩 **Komponenta**: konkretna instanca koju browser napravi
+- 🌐 **Browser**: okruzenje koje prikazuje komponentu i salje evente
+- 👤 **Korisnik**: osoba koja klikne, kuca ili menja input
+
+Kad god citas ovaj dokument, zamišljaj sledecu scenu:
+
+- 👨‍💻 autor kaze sta komponenta ume
+- 🧠 engine to pretvori u stvarne funkcije
+- 🧩 komponenta dobije te funkcije na sebi
+- 🌐 browser prikaze UI
+- 👤 korisnik klikne
+- 🧩 komponenta pozove pravu akciju
+- 🧠 sistem trazi novi prikaz ako se `state` promenio
+
+## Dve velike price koje treba da vidis odjednom
+
+Ovaj dokument je najlakse razumeti kada ga citas kroz dve paralelne price:
+
+- 👨‍💻 **prica autora**: "Zelim da napravim web komponentu"
+- 👤 **prica korisnika**: "Zelim da koristim tu komponentu u browseru"
+
+Te dve price nisu iste.
+
+Autor razmislja ovako:
+
+- kako da definisem komponentu
+- kako da joj dam `state`
+- kako da joj dam `actions`
+- kako da `render()` zna sta da prikaze
+
+Korisnik razmislja potpuno drugacije:
+
+- gde je dugme
+- sta se desi kad kliknem
+- zasto se broj promenio
+- zasto sada na ekranu vidim novi rezultat
+
+`actions/` je most izmedju te dve price.
+
+To je mesto gde se autorova namera pretvara u korisnicku interakciju.
+
+## Story 1: 👨‍💻 Autor zeli da napravi web komponentu
+
+Zamisli programera Milosa.
+
+- 👨‍💻 Milos sedi za laptopom
+- zeli da napravi malu web komponentu
+- ne zeli samo staticki HTML
+- zeli da napravi nesto sto korisnik moze da koristi
+
+Recimo da Milos zeli da napravi:
+
+- `<mini-calculator>`
+
+Njegova ideja je prosta:
+
+- komponenta treba da prikaze ekran
+- treba da prikaze dugmad
+- treba da ume da doda cifru
+- treba da ume da obrisi unos
+- treba da ume da izracuna rezultat
+
+Drugim recima, Milos ne zeli samo "kutiju na ekranu".
+
+On zeli komponentu koja ima ponasanje.
+
+### Sta Milos zapravo pise
+
+Milos koristi javni ulaz iz
+[`../../baraba.js`](../../baraba.js), koji dalje izvozi `define(...)`.
+
+On mentalno radi ovako:
+
+ ```js
+define("mini-calculator", {
+  state: {
+    expression: "",
+    result: "0"
+  },
+
+  actions: {
+    addDigit(state, props, digit) {
+      state.expression += digit
+    },
+
+    clear(state) {
+      state.expression = ""
+      state.result = "0"
+    },
+
+    calculate(state) {
+      state.result = String(eval(state.expression || "0"))
+    }
+  },
+
+  render({ state, actions }) {
+    return html`
+      <div class="calculator">
+        <div class="screen">${state.result}</div>
+        <button @click=${() => actions.addDigit("7")}>7</button>
+        <button @click=${actions.clear}>C</button>
+        <button @click=${actions.calculate}>=</button>
+      </div>
+    `
+  }
+})
+ ```
+
+Ovo nije vazno zbog `eval`.
+
+Vazno je zbog strukture razmisljanja.
+
+Milos ovde razdvaja tri pitanja:
+
+- 🧠 **sta pamtim**: `state`
+- ⚡ **sta umem da uradim**: `actions`
+- 🎨 **kako to izgleda**: `render()`
+
+### Sta je za Milosa najveci problem
+
+Kad je pocetnik, Milos obicno ne zna gde se desi ovaj prelaz:
+
+- "ja sam napisao funkciju u objektu"
+- "browser sada ima pravo dugme koje poziva tu funkciju"
+
+Bas tu zivi `actions/`.
+
+`actions/` uzima ono sto je Milos napisao i pretvara ga u nesto sto stvarno
+zivi na instanci komponente.
+
+### Autorova mini prica u jednoj recenici
+
+> 👨‍💻 "Ja zelim da napisemo sta komponenta ume."  
+> 🧠 Engine odgovara: "U redu. Ja cu od toga napraviti stvarne funkcije koje
+> browser moze da koristi."
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Milos zeli da napravi <mini-calculator>"] --> B["🧾 Pise define(...)"]
+    B --> C["💾 Opise state"]
+    C --> D["⚡ Opise actions"]
+    D --> E["🎨 Napise render()"]
+    E --> F["🧠 Engine kasnije pretvara actions u runtime funkcije"]
+    F --> G["🧩 Komponenta postaje spremna za browser"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Milos** pocinje od poslovne ideje: "treba mi kalkulator".
+- **🧾 `define(...)`** je mesto gde tu ideju formalizuje.
+- **💾 `state`** cuva istinu komponente.
+- **⚡ `actions`** opisuju koje operacije kalkulator ume.
+- **🎨 `render()`** opisuje interfejs kalkulatora.
+- **🧠 Engine** radi tezak posao povezivanja.
+- **🧩 Komponenta** zatim postaje prava stvar koju browser moze da koristi.
+
+## Story 2: 👤 Korisnik zeli da koristi komponentu u browseru
+
+Sada zamisli drugu osobu.
+
+To nije autor.
+
+To je Ana, korisnica aplikacije.
+
+- 👤 Ana otvara stranicu
+- vidi mali kalkulator
+- ne zanima je `define(...)`
+- ne zanima je `constructor()`
+- ne zanima je `host._actions`
+
+Nju zanima samo:
+
+- da li vidi brojeve
+- da li klik radi
+- da li rezultat izgleda tacno
+
+Iz njenog ugla sve mora da deluje prirodno.
+
+### Kako Ana dozivljava sistem
+
+Ana vidi:
+
+- ekran sa rezultatom
+- dugmad `7`, `+`, `3`, `=`
+
+Ona radi:
+
+1. klikne `7`
+2. klikne `+`
+3. klikne `3`
+4. klikne `=`
+
+Iz njene perspektive to je samo niz normalnih klikova.
+
+Ali ispod haube sistem prolazi kroz precizan mehanizam.
+
+### Sta se zapravo desava dok Ana klikce
+
+- 🌐 browser registruje klik
+- `bind-events.js` je ranije povezao dugme sa odgovarajucom akcijom
+- pozove se odgovarajuca runtime funkcija
+- akcija promeni `state`
+- reaktivni sloj trazi novi prikaz
+- `render()` vrati novo stanje na ekranu
+
+Ana ne zna za te korake.
+
+I to je dobro.
+
+Ako je engine dobro napravljen, korisnik ne treba da misli o unutrasnjosti
+sistema.
+
+### Korisnicka mini prica u jednoj recenici
+
+> 👤 "Ja samo hocu da kliknem i dobijem rezultat."  
+> 🧠 Engine odgovara: "U redu. Tvoj klik ce stici do prave akcije i ekran ce se
+> osveziti."
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana otvori stranicu"] --> B["🌐 Browser prikaze <mini-calculator>"]
+    B --> C["👀 Ana vidi ekran i dugmad"]
+    C --> D["👆 Klikne broj ili operaciju"]
+    D --> E["⚡ Akcija promeni state"]
+    E --> F["🔄 Engine trazi novi render"]
+    F --> G["🎨 Ekran pokazuje nov rezultat"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Ana** ne razmislja o kodu, nego o rezultatu.
+- **🌐 Browser** prikazuje vec spremnu komponentu.
+- **👀 UI** postaje mesto interakcije.
+- **👆 Klik** je spoljasnji signal.
+- **⚡ Akcija** je unutrasnji odgovor sistema na taj signal.
+- **🔄 Update** obezbedjuje da promena postane vidljiva.
+- **🎨 Novi ekran** je ono sto korisnik stvarno oseca kao "radi".
+
+## Gde se ove dve price spajaju
+
+Najvazniji trenutak nije ni kod autora, ni kod korisnika pojedinacno.
+
+Najvazniji trenutak je most izmedju njih.
+
+Taj most izgleda ovako:
+
+- 👨‍💻 autor napise `actions`
+- 🧠 engine ih pretvori u runtime funkcije
+- 👤 korisnik klikne UI
+- ⚡ runtime funkcija odgovori na klik
+
+Tu autorova zamisao postaje korisnicko iskustvo.
+
+Zato je `actions/` toliko vazan.
+
+On nije samo "jos jedan folder".
+
+On je tacno mesto gde sistem kaze:
+
+> "Ono sto je autor zamislio, sada moze da se desi stvarnom korisniku."
+
+## Najkraca intuicija
+
+Zamisli da komponenta ima dugme:
+
+ ```js
+<button @click=${actions.increment}>Dodaj</button>
+ ```
+
+To dugme lepo izgleda tek kada `render()` napravi HTML.
+
+Ali samo dugme ne zna samo od sebe:
+
+- sta znaci klik
+- gde je `state`
+- ko je prava komponenta
+- sta treba da se desi posle klika
+
+`actions/` resava bas taj problem.
+
+On kaze:
+
+- ovo su operacije koje komponenta ume
+- evo ih u obliku koji moze odmah da se pozove
+- kada korisnik klikne, pozovi bas ovu funkciju
+
+To je trenutak kada ponasanje prestaje da bude samo ideja iz definicije i
+postaje prava funkcija na zivoj komponenti.
+
+## Prvo gledaj ovu jednu banalnu scenu
+
+Zamisli mali brojac.
+
+Autor napise:
+
+ ```js
+define("counter-card", {
+  state: { count: 0 },
+  actions: {
+    increment(state) {
+      state.count += 1
+    }
+  },
+  render({ state, actions }) {
+    return html`
+      <button @click=${actions.increment}>
+        Klikovi: ${state.count}
+      </button>
+    `
+  }
+})
+ ```
+
+Za pocetnika je najvaznije da razdvoji ove dve stvari:
+
+- `render()` opisuje izgled
+- `actions` opisuju ponasanje
+
+Drugim recima:
+
+- `render()` kaze: "Prikazi dugme."
+- `actions.increment` kaze: "Kad dodje klik, povecaj broj."
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- `actions: { ... }` iz `define(...)`
+- `constructor()` u [`../define/create-defined-component.js`](../define/create-defined-component.js)
+- sama instanca komponente, koja se u kodu zove `host`
+
+U stvarnom kodu se desava ovo:
+
+1. autor u `define(...)` prosledi `actions`
+2. engine kasnije u `constructor()` pozove `createActions(this, actionDefinitions)`
+3. `create-actions.js` od tih definicija napravi bound akcije
+4. te akcije se cuvaju kao `host._actions`
+5. iste akcije se upisuju i direktno na instancu komponente
+
+To mozes videti ovde:
+
+- [`create-defined-component.js`](../define/create-defined-component.js)
+- [`create-actions.js`](./create-actions.js)
+
+## U kom trenutku se `actions/` desava
+
+`actions/` ima dva velika trenutka.
+
+### 1. 🏗️ Setup trenutak
+
+Tokom `constructor()` engine pravi akcije i veze ih za instancu komponente.
+
+To znaci:
+
+- komponenta jos nije ni potpuno prikazana
+- korisnik jos nije kliknuo nista
+- ali komponenta vec dobija ono sto ce kasnije moci da radi
+
+To je priprema.
+
+### 2. 👆 User trenutak
+
+Kasnije, kada korisnik klikne dugme ili se desi drugi event:
+
+- `render()` je vec ranije prosledio akciju u template
+- engine je vec ranije povezao event handler
+- ta pripremljena akcija sada stvarno bude pozvana
+
+To je trenutak stvarnog zivota u browseru.
+
+Drugim recima:
+
+- setup trenutak pravi alat
+- user trenutak koristi taj alat
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Autor: define(...) primi actions objekat"] --> B["🧠 Engine: constructor() pozove createActions(...)"]
+    B --> C["🧩 Komponenta: dobije host._actions i metode na instanci"]
+    C --> D["🎨 render(): dobije actions i stavi ih u template"]
+    D --> E["🌐 Browser: bind-events poveze klik sa handler-om"]
+    E --> F["👤 Korisnik: klikne dugme"]
+    F --> G["⚡ Action: promeni state"]
+    G --> H["🔄 Reactive state: trazi novi prikaz"]
+ ```
+
+### Objasnjenje crteza
+
+- **👨‍💻 Autor** ne pravi jos zivu funkciju na instanci. On samo prijavi koje
+  akcije postoje.
+- **🧠 Engine** u `constructor()` odradjuje tehnicki posao i pretvara definicije
+  u konkretne funkcije.
+- **🧩 Komponenta** dobija te funkcije kao deo sopstvenog runtime identiteta.
+- **🎨 render()** vise ne razmislja kako da pravi akcije. On samo koristi
+  spremne akcije.
+- **🌐 Browser** kasnije povezuje DOM event sa konkretnim handlerom.
+- **👤 Korisnik** uradi klik, input ili change.
+- **⚡ Action** menja `state`.
+- **🔄 Reactive state** zove update mehanizam, pa korisnik vidi novo stanje.
+
+## Prava prica sa likovima
+
+Ovde je isto objasnjeno kao mala prica.
+
+### Scena 1: 👨‍💻 Autor sedi za kompjuterom
+
+Autor pise:
+
+ ```js
+actions: {
+  increment(state) {
+    state.count += 1
+  }
+}
+ ```
+
+On ovim nije napravio "klik koji vec radi".
+
+On je samo rekao:
+
+- komponenta ume da `increment`
+- kad se `increment` pozove, treba promeniti `state`
+
+To je i dalje opis.
+
+### Scena 2: 🧠 Engine ulazi u posao
+
+Kada browser pravi instancu komponente, `constructor()` radi setup.
+
+U [`../define/create-defined-component.js`](../define/create-defined-component.js)
+engine radi:
+
+ ```js
+this._actions = createActions(this, actionDefinitions)
+ ```
+
+To je jako vazna linija.
+
+To znaci:
+
+- uzmi ovu konkretnu instancu komponente
+- uzmi sve prijavljene akcije iz definicije
+- od njih napravi stvarne akcije za bas ovu instancu
+
+### Scena 3: 🧩 Komponenta dobija svoje ponasanje
+
+U [`create-actions.js`](./create-actions.js) engine prolazi kroz svaku akciju i
+za svaku pravi wrapper funkciju.
+
+Ta wrapper funkcija radi:
+
+ ```js
+fn.call(host, host._state, host.props, ...args)
+ ```
+
+To je srce cele price.
+
+To znaci:
+
+- `this` postaje prava instanca komponente
+- `state` postaje trenutni interni state te instance
+- `props` postaju trenutni props te instance
+- svi dodatni argumenti dolaze iz event logike ili ručnog poziva
+
+Drugim recima:
+
+autor nije ostavljen sa "golom funkcijom".
+
+Engine mu daje funkciju koja zna:
+
+- gde zivi
+- nad cim radi
+- sa kojim podacima radi
+
+### Scena 4: 🎨 Render koristi vec spremne akcije
+
+Kasnije [`render-display.js`](../render/render-display.js) zove korisnicki
+`render()` i prosledjuje:
+
+- `state`
+- `props`
+- `actions`
+
+To znaci da `render()` ne mora da izmišlja ponasanje.
+
+On samo koristi ono sto je `actions/` vec spremio:
+
+ ```js
+render({ state, actions }) {
+  return html`
+    <button @click=${actions.increment}>
+      Klikovi: ${state.count}
+    </button>
+  `
+}
+ ```
+
+### Scena 5: 🌐 Browser i engine povezuju klik
+
+`process-template.js` prepoznaje sintaksu:
+
+ ```js
+@click=${actions.increment}
+ ```
+
+I od toga pravi internu event mapu.
+
+Posle [`bind-events.js`](../render/bind-events.js) uzima tu mapu i povezuje
+stvarni DOM event sa stvarnom funkcijom.
+
+### Scena 6: 👤 Korisnik klikne
+
+Tek sada dolazimo do vidljive interakcije.
+
+Korisnik klikne dugme.
+
+Klik ne ide "u prazno".
+
+On dolazi do prave funkcije koju je engine ranije pripremio.
+
+### Scena 7: ⚡ Akcija menja stanje
+
+Kada se pozove `increment(state)`, ona promeni `state.count`.
+
+### Scena 8: 🔄 Sistem trazi novi prikaz
+
+Zbog toga sto je `state` napravljen kao reaktivan u
+[`../define/create-defined-component.js`](../define/create-defined-component.js),
+promena stanja trazi novi update.
+
+To je vazna preciznost:
+
+- nije `actions/` taj koji sam renderuje
+- `actions/` menja `state`
+- reaktivni sloj zatim trazi novi prikaz
+
+## Jedna kompletna sekvenca od autora do korisnika
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Define as 🧾 define(...)
+    participant Constructor as 🏗️ constructor()
+    participant ActionsFile as ⚙️ create-actions.js
+    participant Instance as 🧩 Instance
+    participant Render as 🎨 render()
+    participant Template as 🗺️ process-template.js
+    participant Browser as 🌐 Browser
+    participant User as 👤 Korisnik
+    participant State as 💾 state
+
+    Author->>Define: prijavi actions objekat
+    Define->>Constructor: engine pravi klasu i pokrece setup
+    Constructor->>ActionsFile: prosledi actionDefinitions i host
+    ActionsFile->>Instance: upise host._actions i metode na instanci
+    Instance->>Render: render() dobije spremne actions
+    Render->>Template: template sadrzi @click=${actions.increment}
+    Template->>Browser: napravi eventMap i DOM slot
+    User->>Browser: klikne dugme
+    Browser->>Instance: handler pozove actions.increment
+    Instance->>State: akcija menja state
+ ```
+
+### Objasnjenje crteza
+
+- **Korak 1:** autor prijavi sta komponenta ume.
+- **Korak 2:** engine od definicije pravi stvarnu klasu.
+- **Korak 3:** `constructor()` predaje akcije u `create-actions.js`.
+- **Korak 4:** sirove definicije postaju runtime funkcije.
+- **Korak 5:** `render()` dobija vec gotove akcije.
+- **Korak 6:** template sistem prepoznaje event binding sintaksu.
+- **Korak 7:** browser dobije stvarno dugme.
+- **Korak 8:** korisnik uradi interakciju.
+- **Korak 9:** akcija bude pozvana na pravoj instanci.
+- **Korak 10:** akcija promeni stanje.
+
+## Sta `create-actions.js` zaista radi
+
+Glavni fajl ovog foldera je:
+
+- [`create-actions.js`](./create-actions.js)
+
+Njegova jedna odgovornost je:
+
+**pretvori sirove action definicije u stvarne bound akcije za konkretnu
+instancu komponente**
+
+U tom fajlu se desavaju cetiri važne stvari.
+
+### 1. Pravi `nextActions`
+
+ ```js
+const nextActions = {}
+ ```
+
+To je objekat u koji ce engine spakovati sve gotove akcije.
+
+### 2. Prolazi kroz sve definicije
+
+ ```js
+for (const [name, fn] of Object.entries(actionDefinitions)) {
+ ```
+
+To znaci:
+
+- uzmi ime akcije, na primer `increment`
+- uzmi originalnu funkciju koju je autor napisao
+
+### 3. Pravi wrapper funkciju
+
+ ```js
+const action = async (...args) => {
+  return await fn.call(host, host._state, host.props, ...args)
+}
+ ```
+
+Ova linija je sustina.
+
+Ona radi tri velika posla odjednom:
+
+- vezuje `this` za `host`
+- ubacuje `host._state` kao prvi argument
+- ubacuje `host.props` kao drugi argument
+
+Zbog toga autor moze da pise akcije kao da su prirodni deo komponente.
+
+### 4. Izlaze akciju na dva mesta
+
+Prvo:
+
+ ```js
+nextActions[name] = action
+ ```
+
+To sluzi da `render()` kasnije dobije `actions.increment`.
+
+Zatim:
+
+ ```js
+Object.defineProperty(host, name, {
+  value: action,
+  configurable: true,
+  enumerable: false,
+  writable: false
+})
+ ```
+
+To znaci da akcija postoji i direktno na instanci.
+
+Prakticno:
+
+- postoji `host._actions.increment`
+- postoji i `host.increment`
+
+To je korisno jer komponenta kasnije moze da koristi akcije i preko internog
+skupa i kao metode instance.
+
+## Visual file flow: `create-actions.js`
+
+ ```mermaid
+flowchart TD
+    A["📥 Step 1: createActions(host, actionDefinitions) primi ulaze"] --> B["🔍 Step 2: prodje kroz svako ime i fn"]
+    B --> C["🧶 Step 3: napravi wrapper funkciju action(...args)"]
+    C --> D["🧠 Step 4: fn.call(host, host._state, host.props, ...args)"]
+    D --> E["📦 Step 5: upise akciju u nextActions"]
+    E --> F["🧩 Step 6: Object.defineProperty(host, name, action)"]
+    F --> G["✅ Step 7: vrati nextActions"]
+ ```
+
+### Objasnjenje crteza
+
+- **📥 Step 1:** fajl prima konkretnu instancu i sirove definicije akcija.
+- **🔍 Step 2:** engine gleda akciju po akciju.
+- **🧶 Step 3:** za svaku akciju pravi novu funkciju koja ce ziveti u runtime-u.
+- **🧠 Step 4:** originalna funkcija se poziva sa pravim kontekstom.
+- **📦 Step 5:** akcija se cuva u objektu koji ide ka `render()` sloju.
+- **🧩 Step 6:** ista akcija se izlaže i direktno na komponenti.
+- **✅ Step 7:** na kraju engine vraca gotov skup akcija.
+
+## Zasto je binding ovde toliko bitan
+
+Ovo je jedno od najvaznijih mesta za pocetnika.
+
+Autor pise:
+
+ ```js
+actions: {
+  increment(state) {
+    state.count += 1
+  }
+}
+ ```
+
+Ali browser sam od sebe ne zna:
+
+- ko je `this`
+- koji je pravi `state`
+- koji su pravi `props`
+- da li je ova funkcija pozvana nad pravom instancom
+
+Zato engine pravi wrapper.
+
+Bez wrapper-a bi autor mnogo cesce imao probleme tipa:
+
+- funkcija nema pravi kontekst
+- `this` ne pokazuje na komponentu
+- `state` nije onaj koji komponenta stvarno koristi
+- ista definicija se ne ponasa ispravno na vise instanci
+
+Sa wrapper-om engine kaze:
+
+> "Ne brini. Kad god se akcija pozove, dobices pravi host, pravi state i prave
+> props za bas ovu komponentu."
+
+## Kako `render()` i `actions` saradjuju
+
+Ovo je veoma vazno za mentalni model.
+
+`render()` i `actions` nisu ista stvar.
+
+### `render()` odgovara na pitanje:
+
+**"Kako komponenta trenutno izgleda?"**
+
+### `actions` odgovaraju na pitanje:
+
+**"Sta komponenta radi kada se nesto desi?"**
+
+To je kao razlika izmedju:
+
+- 🎭 scene na pozornici
+- 🎬 instrukcije glumcu sta da uradi kada dodje red
+
+UI bez akcija je slika.
+
+Akcije bez UI-ja su skup operacija bez lica.
+
+Tek zajedno daju pravu interakciju.
+
+## Kako klik zapravo stize do akcije
+
+Za potpune pocetnike, ovo je deo koji obicno deluje magicno.
+
+Ali u ovom engine-u putanja je vrlo konkretna.
+
+### Korak 1: `render()` vrati template
+
+ ```js
+html`
+  <button @click=${actions.increment}>Dodaj</button>
+`
+ ```
+
+### Korak 2: `process-template.js` prepozna event sintaksu
+
+On vidi:
+
+- `@click=`
+- vrednost je funkcija
+
+I od toga pravi:
+
+- `data-baraba-on-click="e0"` u HTML-u
+- `eventMap` koji pamti da `e0` znaci `click -> actions.increment`
+
+### Korak 3: `render-display.js` upise HTML u `shadowRoot`
+
+### Korak 4: `bind-events.js` nadje taj DOM element
+
+On uzme `eventMap`, nadje element i uradi:
+
+- `addEventListener("click", listener)`
+
+### Korak 5: kad korisnik klikne, listener pozove handler
+
+U `bind-events.js` handler se poziva preko:
+
+ ```js
+config.handler.call(host, event)
+ ```
+
+Zbog toga klik dolazi do prave funkcije u pravom kontekstu komponente.
+
+## Dva kanonska primera koja treba da nosis u glavi
+
+Ako hoces da brzo osetis razliku izmedju `render()` i `actions`, nosi u glavi
+ova dva primera.
+
+Jedan je digitalni i direktno lici na UI.
+
+Drugi je fizicki i laksi je za maštu.
+
+## Primer 1: 🧮 Kalkulator na ekranu
+
+Ovo je prvi i najdirektniji primer.
+
+Zamisli malu kalkulator komponentu u browseru.
+
+Korisnik vidi:
+
+- ekran sa rezultatom
+- dugme `7`
+- dugme `+`
+- dugme `3`
+- dugme `=`
+
+Ovde `render()` radi vizuelni deo:
+
+- crta ekran
+- crta raspored dugmadi
+- prikazuje trenutni rezultat
+
+Ovde `actions` rade operativni deo:
+
+- `addDigit` doda cifru u izraz
+- `addOperator` doda operator
+- `calculate` izracuna rezultat
+- `clear` vrati stanje na pocetak
+
+Najkrace:
+
+- 🎨 `render()` pokazuje kako kalkulator izgleda
+- ⚡ `actions` govore sta se desi kad kliknes `7`, `+`, `3` ili `=`
+
+Ako korisnik klikne `7`, a nista se ne promeni na ekranu, problem nije u
+samom crtanju dugmeta.
+
+Problem je sto ponasanje iza tog dugmeta nije stiglo do prave akcije.
+
+Ako akcija radi, ali ekran ne menja prikaz, onda je problem dalje u update ili
+render delu.
+
+To je razlog zasto je ovaj primer dobar:
+
+- vrlo je vizuelan
+- vrlo je prost
+- odmah pokazuje razliku izmedju "vidim dugme" i "dugme nesto radi"
+
+ ```mermaid
+flowchart TD
+    A["👤 Korisnik vidi kalkulator na ekranu"] --> B["👆 Klikne `7` ili `=`"]
+    B --> C["⚡ Odgovarajuca action se pozove"]
+    C --> D["💾 State izraza ili rezultata se promeni"]
+    D --> E["🔄 Engine trazi novi render"]
+    E --> F["🎨 Ekran kalkulatora prikaze novo stanje"]
+ ```
+
+### Objasnjenje kalkulator price
+
+- **👤 Korisnik** vidi samo UI.
+- **👆 Klik** je spoljasnji signal.
+- **⚡ Action** je pravo ponasanje iza tog klika.
+- **💾 State** cuva unutrasnju istinu kalkulatora.
+- **🔄 Update** je most izmedju promene i novog prikaza.
+- **🎨 Ekran** je dokaz da je sistem stvarno odradio posao.
+
+## Primer 2: 📺 Daljinski i ekran
+
+Ovo je drugi primer, jos jednostavniji za intuiciju.
+
+Zamisli televizor i daljinski upravljac.
+
+Korisnik vidi:
+
+- 📺 ekran televizora
+- 🔘 dugme `Volume +`
+- 🔘 dugme `Channel Next`
+- 🔘 dugme `Mute`
+
+Sad razdvoji dve stvari.
+
+### Ono sto korisnik vidi
+
+To je deo koji liči na `render()`:
+
+- ekran pokazuje trenutni kanal
+- ekran pokazuje indikator jacine zvuka
+- korisnik vidi dugmad koja postoje
+
+### Ono sto sistem radi kada dugme bude pritisnuto
+
+To je deo koji liči na `actions`:
+
+- `increaseVolume`
+- `goToNextChannel`
+- `toggleMute`
+
+Drugim recima:
+
+- natpis `Volume +` je deo prikaza
+- stvarna komanda "pojacaj zvuk" je deo akcije
+
+Ako hoces najkracu mogucu recenicu:
+
+> `render()` je ono sto je nacrtano i vidljivo.  
+> `actions` su ono sto sistem uradi kad pritisnes dugme.
+
+### Zasto je ovaj primer tako dobar
+
+Zato sto skoro svako intuitivno razume ovu razliku:
+
+- lepo nacrtano dugme nije isto sto i radno dugme
+- ekran koji pokazuje stanje nije isto sto i komanda koja to stanje menja
+
+Bez `actions/`, korisnik bi imao lep daljinski sa lepim natpisima, ali
+pritiskanje dugmadi ne bi radilo nista.
+
+To je isto kao u komponenti:
+
+- bez `render()` nemas sta da vidis
+- bez `actions` nemas pravo ponasanje
+
+ ```mermaid
+flowchart TD
+    A["👤 Korisnik pritisne `Volume +`"] --> B["⚡ Action `increaseVolume` se pokrene"]
+    B --> C["💾 State jacine zvuka se promeni"]
+    C --> D["🔄 Sistem trazi osvezavanje prikaza"]
+    D --> E["📺 Ekran pokaze novi nivo zvuka"]
+ ```
+
+### Objasnjenje price sa daljinskim
+
+- **👤 Pritisak dugmeta** je spoljasnja radnja korisnika.
+- **⚡ Action** je prava naredba koju sistem razume.
+- **💾 State** je nova unutrasnja istina, na primer `volume = 18`.
+- **🔄 Osvezavanje** pretvara tu novu istinu u vidljiv rezultat.
+- **📺 Ekran** je ono sto korisniku govori: "da, dugme je stvarno odradilo posao".
+
+## Zasto je dobro imati oba primera
+
+Kalkulator i daljinski ne rade isti posao, ali uce istu stvar.
+
+### Kalkulator uci:
+
+- kako UI dugmad menjaju digitalno stanje
+- kako se broj ili rezultat vraca na ekran
+- kako komponenta deluje kao mali interaktivni alat
+
+### Daljinski uci:
+
+- da prikaz i komanda nisu ista stvar
+- da lepo dugme nije dovoljno bez pravog ponasanja
+- da rezultat interakcije mora posle da se vidi na ekranu
+
+Ako pocetnik razume oba primera, mnogo lakse razume i pravi engine tok:
+
+- 🎨 `render()` daje vidljivi svet
+- ⚡ `actions` daju operativni svet
+- 💾 `state` je unutrasnja istina
+- 🔄 update povezuje promenu i novi prikaz
+
+## Primer sa vise akcija
+
+ ```js
+actions: {
+  increment(state) {
+    state.count += 1
+  },
+
+  decrement(state) {
+    state.count -= 1
+  },
+
+  reset(state) {
+    state.count = 0
+  }
+}
+ ```
+
+Ovde `actions/` ne zanima da li su to dugmad, gesture, keyboard shortcut ili
+neki interni poziv.
+
+Njega zanima samo sledece:
+
+- svaka akcija mora da postane stvarna funkcija
+- svaka akcija mora biti vezana za pravu instancu
+- svaka akcija mora imati pristup pravom `state` i pravim `props`
+
+## Sta `actions/` ne radi
+
+Ovo je bitno da se ne pomesaju odgovornosti.
+
+`actions/` ne radi:
+
+- crtanje DOM-a
+- registraciju custom elementa
+- obradu template stringova
+- parsing `@click` sintakse
+- upis u `shadowRoot`
+- zakazivanje frame-a
+- koerciju props vrednosti
+
+To rade drugi delovi engine-a:
+
+- `define/` sastavlja klasu
+- `render/` pravi HTML i veze evente
+- `state/` cuva istinu i reaguje na promene
+
+`actions/` radi samo jednu usku, ali presudnu stvar:
+
+**pretvara opis ponasanja u runtime funkcije koje UI moze da pozove**
+
+## Gde da gledas kada debagujes
+
+Ovo je prvi checklist ako interakcija ne radi.
+
+### Gledaj [`create-actions.js`](./create-actions.js) ako:
+
+- `actions.increment` postoji u definiciji, ali ne radi u runtime-u
+- akcija nema pristup `state`
+- akcija nema pristup `props`
+- `this` ne pokazuje na komponentu
+
+### Gledaj [`../define/create-defined-component.js`](../define/create-defined-component.js) ako:
+
+- sumnjas da se `createActions(...)` uopste nije pozvao
+- komponenta nije dobila `_actions`
+- problem nastaje vec u `constructor()` fazi
+
+### Gledaj [`../render/process-template.js`](../render/process-template.js) ako:
+
+- `@click=${actions.increment}` deluje dobro, ali klik ne dolazi do handlera
+- sumnjas da se event binding sintaksa nije pravilno prepoznala
+
+### Gledaj [`../render/bind-events.js`](../render/bind-events.js) ako:
+
+- eventMap postoji, ali klik ipak ne radi
+- problem je izmedju event slota u DOM-u i stvarnog `addEventListener`
+
+## Sta treba da zapamtis
+
+Ako zaboravis sve detalje, zapamti ovih 7 recenica:
+
+- 👨‍💻 autor samo opisuje akcije
+- 🧠 engine u `constructor()` pretvara opis u runtime funkcije
+- 🧩 komponenta dobija te funkcije kao svoje akcije
+- 🎨 `render()` ih samo koristi, ne pravi ih
+- 🌐 template i event binding povezuju UI sa akcijom
+- 👤 korisnik pokrece interakciju
+- 🔄 promena `state` vodi ka novom prikazu
+
+## Recnik
+
+- **`action`**: funkcija koja predstavlja namernu promenu ili reakciju u
+  komponenti.
+- **`actionDefinitions`**: sirove definicije akcija koje autor prosledi kroz
+  `define(...)`.
+- **`host`**: konkretna instanca komponente nad kojom engine radi.
+- **`instance`**: ziva verzija komponente koju je browser napravio.
+- **`constructor()`**: prvi setup trenutak komponente.
+- **`render()`**: funkcija koja opisuje kako komponenta izgleda sa trenutnim
+  podacima.
+- **`event handler`**: funkcija koja reaguje na klik, input, change ili drugi
+  event.
+- **`state`**: unutrasnje promenljivo stanje komponente.
+- **`props`**: spoljasnji ulazi komponente.
+- **`engine`**: unutrasnji sistem koji spaja `define/`, `state/`, `actions/`,
+  `render/`, `lifecycle/` i `styling/`.
+- **`define(...)`**: ulazno mesto gde autor opisuje komponentu i njeno
+  ponasanje.
+
+## Jedna poslednja recenica za totalnog pocetnika
+
+Ako sve ovo hoces da svedes na jednu sliku u glavi, zapamti ovo:
+
+> 👨‍💻 Autor napise sta komponenta ume.  
+> 🧠 Engine od toga napravi prave funkcije.  
+> 👤 Korisnik klikne.  
+> 🧩 Komponenta uradi ono sto je autor zamislio.
+
+=== engine/define/create-defined-component.js ===
+import { createActions } from "../actions/create-actions.js"
+import { runCleanup } from "../lifecycle/run-cleanup.js"
+import { renderDisplay } from "../render/render-display.js"
+import { requestUpdate } from "../render/request-update.js"
+import { html } from "../render/template.js"
+import { createDeepReactive } from "../state/create-deep-reactive.js"
+import {
+  cloneValue,
+  coerceValue,
+  findPropNameByAttribute,
+  getObservedAttributes,
+  initPropertyAccessors,
+  readInitialProps
+} from "../state/sync-properties.js"
+
+export function createDefinedComponent(definition) {
+  const {
+    props: propDefaults = {},
+    state: stateDefaults = {},
+    actions: actionDefinitions = {},
+    styles = null,
+    render = () => html`Baraba`,
+    onConnect = () => {},
+    onCleanup = () => {},
+    onPropsChanged = () => {}
+  } = definition
+
+  const observedAttributes = getObservedAttributes(propDefaults)
+
+  return class DefinedComponent extends HTMLElement {
+    static observedAttributes = observedAttributes
+
+    constructor() {
+      super()
+      this.attachShadow({ mode: "open" })
+
+      this._scheduled = false
+      this._frameId = 0
+      this._mounted = false
+      this._isReflectingProp = false
+      this._cleanupStack = []
+
+      this._propDefaults = cloneValue(propDefaults)
+      this._rawProps = readInitialProps(this, this._propDefaults)
+      this._state = createDeepReactive(cloneValue(stateDefaults), () => {
+        this._requestUpdate()
+      })
+
+      this._actions = createActions(this, actionDefinitions)
+      initPropertyAccessors(this)
+      this._requestUpdate()
+    }
+
+    get props() {
+      return Object.freeze({ ...this._rawProps })
+    }
+
+    get state() {
+      return this._state
+    }
+
+    emit(name, detail, init = {}) {
+      return this.dispatchEvent(
+        new CustomEvent(name, {
+          detail,
+          bubbles: true,
+          composed: true,
+          cancelable: false,
+          ...init
+        })
+      )
+    }
+
+    onCleanup(cleanup) {
+      this._cleanupStack.push(cleanup)
+    }
+
+    _requestUpdate() {
+      requestUpdate(this, () => this._renderDisplay())
+    }
+
+    _renderDisplay() {
+      renderDisplay(this, render, styles)
+    }
+
+    connectedCallback() {
+      this._mounted = true
+      this._renderDisplay()
+      onConnect.call(this, this._state, this.props, this._actions)
+    }
+
+    disconnectedCallback() {
+      this._mounted = false
+
+      if (this._frameId) {
+        cancelAnimationFrame(this._frameId)
+        this._frameId = 0
+      }
+
+      void Promise.resolve(onCleanup.call(this, this._state, this.props, this._actions))
+        .finally(() => runCleanup(this._cleanupStack))
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (oldValue === newValue || this._isReflectingProp) return
+
+      const propName = findPropNameByAttribute(this._propDefaults, name)
+      if (!propName) return
+
+      const previousProps = this.props
+      const defaultValue = this._propDefaults[propName]
+      this._rawProps[propName] = coerceValue(newValue, defaultValue)
+
+      void Promise.resolve(
+        onPropsChanged.call(this, previousProps, this.props, {
+          name,
+          oldValue,
+          newValue
+        })
+      )
+
+      if (this._mounted) this._requestUpdate()
+    }
+  }
+}
+
+=== engine/define/how-this-works.md ===
+---
+title: baraba-engine-define-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Define How This Works
+
+## Sta je ovaj folder
+
+`define/` je mesto gde authoring opis komponente postaje prava browser klasa.
+
+Ovo je prevodilački sloj.
+
+Autor piše:
+
+- tag
+- `props`
+- `state`
+- `actions`
+- `render`
+- `styles`
+
+A `define/` od toga pravi:
+
+- `class DefinedComponent extends HTMLElement`
+
+Najkraće:
+
+- autor piše opis
+- `define/` pravi klasu koju browser može da instancira
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: piše `define("hello-card", definition)`
+- 🧠 **Define sloj**: uzima authoring opis i pretvara ga u klasu
+- 🧩 **Komponenta**: klasa i kasnije instanca koja nastaje iz te klase
+- 🌐 **Browser**: registruje tag i kasnije pravi instancu
+- 👤 **Korisnik**: na kraju vidi gotovu komponentu
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor želi da napiše opis komponente u malom authoring jeziku.
+
+On ne želi da ručno sastavlja browser klasu.
+
+### 👤 Priča korisnika
+
+Korisnik kasnije želi da vidi komponentu na ekranu.
+
+Da bi korisnik uopšte imao šta da vidi, browser mora prvo da ima klasu koja zna kako da živi kao custom element.
+
+Tu `define/` radi svoj ključni posao.
+
+## Story 1: 👨‍💻 Autor zeli da napravi web komponentu
+
+Zamisli Milicu.
+
+Milica želi da napravi:
+
+- `<profile-badge>`
+
+Hoće malu komponentu koja prikazuje ime, avatar i status.
+
+Ona piše nešto ovako:
+
+ ```js
+define("profile-badge", {
+  props: { name: "Anonimno", online: false },
+  state: { expanded: false },
+  actions: {
+    toggle(state) {
+      state.expanded = !state.expanded
+    }
+  },
+  render({ props, state, actions }) {
+    return html`
+      <button @click=${actions.toggle}>
+        ${props.name} ${state.expanded ? "▲" : "▼"}
+      </button>
+    `
+  }
+})
+ ```
+
+Milica razmišlja u authoring terminima.
+
+Ne razmišlja:
+
+- kako da ručno piše `class extends HTMLElement`
+- kako da browser zove `connectedCallback()`
+- kako da poveže `attributeChangedCallback()`
+
+`define/` postoji baš zato da taj authoring nivo ostane ljudski.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Milica napiše definition objekat"] --> B["🧾 define(tag, definition) ga prosledi define/ sloju"]
+    B --> C["🏗️ createDefinedComponent(definition) sastavi klasu"]
+    C --> D["🧩 Rezultat je DefinedComponent koji browser može da koristi"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** daje authoring opis.
+- **🧾 `define(...)`** predaje taj opis nižem sloju.
+- **🏗️ `createDefinedComponent(...)`** pravi klasu.
+- **🧩 Rezultat** više nije samo ideja, nego browser-oblik komponente.
+
+## Story 2: 👤 Korisnik zeli da koristi komponentu u browseru
+
+Sada zamisli korisnika koji kasnije vidi:
+
+- `<profile-badge>`
+
+Korisnik ne zna da je negde postojala authoring definicija.
+
+Ali da bi browser umeo da napravi živ `<profile-badge>`, mora ranije da postoji klasa iza tog taga.
+
+To je upravo posao `define/`.
+
+Ako `define/` ne odradi svoj deo:
+
+- browser nema šta da registruje
+- tag ostaje samo nepoznat ili neaktivan element
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Autor napiše definition"] --> B["🏗️ define/ napravi DefinedComponent klasu"]
+    B --> C["🌐 Browser registruje tag"]
+    C --> D["🧩 Browser kasnije napravi instancu"]
+    D --> E["👤 Korisnik vidi pravu komponentu umesto mrtvog taga"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- korisnik ne vidi `define/`
+- ali bez `define/` ne bi postojala živa komponenta koju koristi
+
+## Najkraca intuicija
+
+Zamisli arhitektu i građevinski kalup.
+
+- 👨‍💻 autor nacrta plan
+- `define/` od plana pravi kalup po kome stvarna zgrada može da se podigne
+
+U toj slici:
+
+- `definition` je nacrt
+- `DefinedComponent` je kalup spreman za gradnju
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- `define(tag, definition)` iz [`../baraba.js`](../baraba.js)
+- [`create-defined-component.js`](./create-defined-component.js)
+
+Važne stvari koje ovde ulaze:
+
+- `props`
+- `state`
+- `actions`
+- `styles`
+- `render`
+- `onConnect`
+- `onCleanup`
+- `onPropsChanged`
+
+## U kom trenutku se `define/` desava
+
+`define/` se dešava rano.
+
+To je authoring/startup trenutak, a ne user-click trenutak.
+
+Tok izgleda ovako:
+
+- autor pozove `define(...)`
+- engine uđe u `define/`
+- `createDefinedComponent(...)` napravi klasu
+- tek zatim `engine/index.js` registruje tag
+
+To znači:
+
+- `define/` ne crta još UI
+- `define/` još ne reaguje na klikove
+- `define/` priprema formu komponente
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Authoring definition ulazi u define/"] --> B["🏗️ createDefinedComponent(...) čita props, state, actions, render i lifecycle"]
+    B --> C["🧩 Napravi class DefinedComponent extends HTMLElement"]
+    C --> D["🌐 engine/index.js registruje tag"]
+    D --> E["👤 Browser kasnije može da napravi živu komponentu"]
+ ```
+
+### Objasnjenje crteza
+
+- **👨‍💻 Authoring opis** je početni ulaz.
+- **🏗️ `createDefinedComponent(...)`** skuplja sve discipline u jednu klasu.
+- **🧩 Klasa** je pravi rezultat ovog foldera.
+- **🌐 Registracija** se radi iz parent engine ulaza.
+- **👤 Korisnik** tek mnogo kasnije vidi konkretan benefit te klase.
+
+## Prva vazna putanja
+
+Kada autor napiše:
+
+ ```js
+define("hello-card", {
+  props: { title: "Zdravo" },
+  state: { open: false },
+  actions: {
+    toggle(state) {
+      state.open = !state.open
+    }
+  },
+  render({ props, state }) {
+    return html`
+      <article>
+        <h3>${props.title}</h3>
+        <p>${state.open ? "Otvoreno" : "Zatvoreno"}</p>
+      </article>
+    `
+  }
+})
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Entry as 🧠 engine/index.js
+    participant DefineFile as 🏗️ create-defined-component.js
+    participant Result as 🧩 DefinedComponent
+    participant Registry as 🌐 customElements registry
+
+    Author->>Entry: Step 1: pozove define("hello-card", definition)
+    Entry->>DefineFile: Step 2: zatraži klasu iz definition objekta
+    DefineFile->>Result: Step 3: vrati class DefinedComponent extends HTMLElement
+    Entry->>Registry: Step 4: registruje tag u browser-u
+ ```
+
+- **Step 1:** Authoring opis ulazi kroz javni engine ulaz.
+- **Step 2:** `define/` preuzima authoring opis kao svoj glavni posao.
+- **Step 3:** Rezultat ovog foldera je klasa, ne gotov DOM.
+- **Step 4:** Registracija taga je sledeći korak izvan samog foldera.
+
+## Direktni fajlovi u ovom folderu
+
+### [`create-defined-component.js`](./create-defined-component.js)
+
+Ovo je glavni i direktni file ovog foldera.
+
+Njegova jedna velika odgovornost je:
+
+**od `definition` objekta napravi `DefinedComponent` klasu**
+
+U tom fajlu se:
+
+- attachuje `shadowRoot`
+- pripremaju `props`
+- pravi reaktivni `state`
+- stvaraju `actions`
+- povezuje request-update tok
+- implementiraju browser lifecycle metode
+
+## Prvo gledaj ovde kada debagujes
+
+- ako `define(...)` prima dobar input, ali komponenta nema pravo runtime ponašanje
+- ako sumnjaš da klasa nije dobro sastavljena
+- ako ne razumeš gde se svi engine delovi prvi put skupljaju u jednu `HTMLElement` klasu
+
+## Sta treba da zapamtis
+
+- `define/` je prevodilac iz authoring jezika u browser klasu
+- ne registruje tag direktno, nego vraća klasu parent sloju
+- ne crta sam DOM, nego pravi formu komponente koja kasnije to ume
+- ako te zanima "kako opis postane klasa", ovo je prvi pravi folder
+
+## Recnik
+
+- **`definition`**: authoring objekat koji opisuje komponentu
+- **`DefinedComponent`**: klasa koju browser može da koristi kao custom element
+- **`constructor()`**: prvi setup trenutak instance komponente
+- **`connectedCallback()`**: browser lifecycle trenutak kada komponenta uđe u DOM
+- **`attributeChangedCallback()`**: browser hook za observed atribute
+
+=== engine/how-this-works.md ===
+---
+title: baraba-engine-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Engine How This Works
+
+## Sta je ovaj folder
+
+`engine/` je mašinska soba Baraba sistema.
+
+Ako je `Baraba` recepcija, `engine/` je radionica iza recepcije.
+
+Ovde authoring opis komponente prestaje da bude samo ideja i postaje:
+
+- prava klasa
+- pravi state
+- prave actions
+- pravi render
+- pravi lifecycle
+
+Najkraće:
+
+- spolja autor vidi mali API
+- iznutra `engine/` radi sav ozbiljan posao
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: piše `define(...)` i authoring opis komponente
+- 🧠 **Engine**: sastavlja celu runtime mašineriju
+- 🧩 **Komponenta**: konkretna instanca koju browser kasnije pravi
+- 🌐 **Browser**: registruje tag, pravi instancu, zove lifecycle i prikazuje rezultat
+- 👤 **Korisnik**: vidi i koristi komponentu u aplikaciji
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor želi da napiše nešto poput:
+
+- `define("mini-calculator", { ... })`
+
+Njega zanima:
+
+- kako da opiše komponentu
+- kako da definiše `state`, `actions`, `render`, `styles`
+- kako da ne ulazi odmah u sve browser detalje
+
+### 👤 Priča korisnika
+
+Korisnik želi da vidi:
+
+- komponentu na ekranu
+- dugme koje radi
+- stanje koje se menja
+
+Njega ne zanima kako je engine složen.
+
+Ali engine mora upravo tu složenost da odradi kako bi iskustvo spolja delovalo jednostavno.
+
+## Story 1: 👨‍💻 Autor zeli da napravi web komponentu
+
+Zamisli Milosa koji želi da napravi:
+
+- `<mini-calculator>`
+
+Milos piše authoring opis:
+
+- `state` za izraz i rezultat
+- `actions` za unošenje cifara i računanje
+- `render()` za ekran i dugmad
+- `styles` za izgled kalkulatora
+
+Milos ne želi da ručno piše:
+
+- `class extends HTMLElement`
+- `attachShadow(...)`
+- `observedAttributes`
+- `requestAnimationFrame` update logiku
+- event binding mašineriju
+
+Tu engine ulazi kao ozbiljan radnik iza scene.
+
+Engine uzima Milosovu authoring priču i od nje pravi runtime priču.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Milos napiše define('mini-calculator', definition)"] --> B["🧠 engine/index.js primi tag i definition"]
+    B --> C["🏗️ define/ sastavi klasu komponente"]
+    C --> D["💾 state/ pripremi props i state"]
+    D --> E["⚡ actions/ pripremi runtime akcije"]
+    E --> F["🎨 render/ i styling/ budu spremni za prikaz"]
+    F --> G["🧩 Browser kasnije dobije kompletnu komponentu"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** polazi od authoring opisa, ne od browser klase.
+- **🧠 Engine** je mesto gde se authoring jezik prevodi u runtime strukturu.
+- **🏗️ `define/`** pravi klasu komponente.
+- **💾 `state/`** sprema unutrašnju istinu i prop sinhronizaciju.
+- **⚡ `actions/`** pravi ponašanje.
+- **🎨 `render/` i `styling/`** pripremaju ono što će korisnik kasnije videti.
+- **🧩 Rezultat** je radna komponenta koju browser može da živi.
+
+## Story 2: 👤 Korisnik zeli da koristi komponentu u browseru
+
+Sada zamisli Anu.
+
+Ana ne razmišlja o authoring opisu.
+
+Ona samo otvori stranicu i vidi:
+
+- kalkulator
+- dugmad
+- ekran sa rezultatom
+
+Kad klikne:
+
+- `7`
+- `+`
+- `3`
+- `=`
+
+Ana očekuje da sistem odmah vrati novo stanje na ekran.
+
+Engine mora da obezbedi da se ta spoljašnja jednostavnost stvarno dogodi.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana otvori stranicu"] --> B["🌐 Browser vidi registrovani custom tag"]
+    B --> C["🧩 Napravi instancu komponente"]
+    C --> D["🎨 Engine uradi prvi render"]
+    D --> E["👆 Ana klikne dugme"]
+    E --> F["⚡ Action promeni state"]
+    F --> G["🔄 Engine trazi update"]
+    G --> H["🎨 Browser prikaze novo stanje"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Ana** vidi samo gotov interaktivni alat.
+- **🌐 Browser** je izvršilac koji prati pravila custom elements sistema.
+- **🧩 Instanca** je konkretna komponenta sa svojim state-om i akcijama.
+- **🎨 Prvi render** pravi ono što Ana vidi.
+- **👆 Klik** pokreće unutrašnju logiku.
+- **⚡ Action** menja unutrašnje stanje.
+- **🔄 Update** zakazuje sledeći prikaz.
+- **🎨 Novi ekran** je korisnički dokaz da sistem radi.
+
+## Najkraca intuicija
+
+Ako želiš jednu jednostavnu sliku, zamisli restoran.
+
+- 👨‍💻 autor piše porudžbinu
+- `Baraba` je šalter
+- `engine/` je kuhinja
+- 👤 korisnik na kraju dobija gotovo jelo
+
+Korisnik ne vidi kuhinju.
+
+Ali bez kuhinje nema stvarnog rezultata.
+
+## Sta tacno ulazi u ovaj folder
+
+Glavni ulaz je:
+
+- [`index.js`](./baraba.js)
+
+U njemu se dešava:
+
+- `define(tag, definition)`
+- `createDefinedComponent(definition)`
+- `customElements.define(tag, DefinedComponent)`
+
+Browser zatim kasnije ulazi dalje kroz lifecycle:
+
+- `constructor()`
+- `connectedCallback()`
+- `attributeChangedCallback()`
+- `disconnectedCallback()`
+
+## U kom trenutku se engine desava
+
+Engine ulazi u priču u dva velika talasa.
+
+### 1. 🧾 Registracioni talas
+
+Kada se pozove `define(...)`:
+
+- authoring opis ulazi u engine
+- engine pravi klasu
+- browser registruje tag
+
+### 2. 🌐 Runtime talas
+
+Kasnije, kada browser vidi tag u DOM-u:
+
+- pravi instancu
+- zove `constructor()`
+- zove `connectedCallback()`
+- renderuje komponentu
+- reaguje na evente i attribute promene
+- kasnije čisti cleanup
+
+Važno:
+
+- `define(...)` ne crta UI
+- `define(...)` priprema pravila po kojima će UI kasnije oživeti
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Autor pozove define(tag, definition)"] --> B["🧠 engine/index.js primi authoring opis"]
+    B --> C["🏗️ define/ napravi klasu komponente"]
+    C --> D["🌐 customElements registry zapamti tag"]
+    D --> E["🧩 Browser kasnije pravi instancu"]
+    E --> F["💾 state + ⚡ actions + 🎨 render + 🎭 lifecycle rade zajedno"]
+    F --> G["👤 Korisnik vidi i koristi gotovu komponentu"]
+ ```
+
+### Objasnjenje crteza
+
+- **👨‍💻 Autor** unosi authoring istinu.
+- **🧠 Engine** preuzima tu istinu i organizuje je.
+- **🏗️ `define/`** pravi klasu koja može da živi kao custom element.
+- **🌐 Registry** je dogovor sa browserom.
+- **🧩 Instanca** je konkretna komponenta u DOM-u.
+- **💾/⚡/🎨/🎭** su unutrašnje discipline koje rade zajedno.
+- **👤 Korisnik** na kraju vidi samo ponašanje, ne mehaniku.
+
+## Prva vazna putanja
+
+Kada autor napiše:
+
+ ```js
+define("counter-card", {
+  state: { count: 0 },
+  actions: {
+    increment(state) {
+      state.count += 1
+    }
+  },
+  render({ state, actions }) {
+    return html`
+      <button @click=${actions.increment}>
+        Count: ${state.count}
+      </button>
+    `
+  }
+})
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Entry as 🧠 engine/index.js
+    participant Define as 🏗️ define/create-defined-component.js
+    participant Browser as 🌐 Browser
+    participant Render as 🎨 render/
+    participant User as 👤 Korisnik
+
+    Author->>Entry: Step 1: pozove define("counter-card", definition)
+    Entry->>Define: Step 2: zatrazi DefinedComponent klasu
+    Entry->>Browser: Step 3: registruje tag u customElements
+    Browser->>Browser: Step 4: vidi <counter-card> u DOM-u i pravi instancu
+    Browser->>Render: Step 5: connectedCallback pokrene prvi render
+    User->>Browser: Step 6: klikne dugme
+    Browser->>Render: Step 7: action promeni state i zatraži update
+    Render-->>User: Step 8: korisnik vidi novi broj na ekranu
+ ```
+
+- **Step 1:** Authoring priča ulazi u engine.
+- **Step 2:** `define/` pravi klasu iz authoring opisa.
+- **Step 3:** Browser uči značenje custom taga.
+- **Step 4:** Tek u DOM trenutku nastaje živa komponenta.
+- **Step 5:** Render sloj pravi prvi vidljivi rezultat.
+- **Step 6:** Korisnik pokreće interakciju.
+- **Step 7:** Engine obradi promenu kroz state/actions/update lanac.
+- **Step 8:** Novi rezultat postaje vidljiv.
+
+## Direktni fajlovi u ovom folderu
+
+### [`index.js`](./baraba.js)
+
+Glavni entry point engine-a.
+
+Drži:
+
+- `define(tag, definition)`
+- export `html`
+- export `css`
+
+To je mesto gde authoring ulaz zvanično ulazi u mašinski tok.
+
+### [`how-this-works.md`](./how-this-works.md)
+
+Mapa celog engine foldera.
+
+## Podfolderi u ovom folderu
+
+### `define/`
+
+Otvori [`define/how-this-works.md`](./define/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako authoring opis postaje klasa
+- kako nastaje `DefinedComponent`
+
+### `actions/`
+
+Otvori [`actions/how-this-works.md`](./actions/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako `actions` postaju runtime funkcije
+- kako klik dolazi do prave akcije
+
+### `render/`
+
+Otvori [`render/how-this-works.md`](./render/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako template postaje HTML u `shadowRoot`
+- kako event binding i update rade
+
+### `state/`
+
+Otvori [`state/how-this-works.md`](./state/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako atributi i props postaju pravi tipovi
+- kako reaktivni state pokreće update
+
+### `styling/`
+
+Otvori [`styling/how-this-works.md`](./styling/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako authoring `css` postaje `CSSStyleSheet` ili `<style>` fallback
+
+### `lifecycle/`
+
+Otvori [`lifecycle/how-this-works.md`](./lifecycle/how-this-works.md).
+
+Koristi ga kada hoćeš da razumeš:
+
+- kako cleanup radi kada komponenta izađe iz DOM-a
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`index.js`](./baraba.js) ako sumnjaš da problem počinje već na `define(...)` ulazu
+- otvori [`define/how-this-works.md`](./define/how-this-works.md) ako ne razumeš kako authoring opis postaje klasa
+- otvori [`render/how-this-works.md`](./render/how-this-works.md) ako se ništa ne vidi ili klik ne radi
+- otvori [`state/how-this-works.md`](./state/how-this-works.md) ako je problem u props/state tipu ili update-u
+- otvori [`lifecycle/how-this-works.md`](./lifecycle/how-this-works.md) ako side effect-i ostaju živi posle unmount-a
+
+## Sta treba da zapamtis
+
+- `engine/` je radionica u kojoj authoring opis postaje runtime komponenta
+- registracija taga i život instance nisu isti trenutak
+- engine je podeljen po odgovornostima: define, state, actions, render, styling, lifecycle
+- korisnik nikad ne vidi engine foldere, ali oseća njihov kvalitet kroz ponašanje komponente
+- ako znaš gde je simptom, child docs su mnogo brži put od širokog čitanja
+
+## Recnik
+
+- **`definition`**: authoring objekat koji autor prosledi u `define(...)`
+- **`DefinedComponent`**: klasa koju engine napravi iz authoring opisa
+- **`customElements registry`**: browser mesto gde se pamti koji tag pripada kojoj klasi
+- **`shadowRoot`**: izolovani DOM prostor komponente
+- **`lifecycle`**: skup browser trenutaka kao što su `connectedCallback()` i `disconnectedCallback()`
+- **`runtime`**: stvarni život komponente u browseru
+
+=== engine/index.js ===
+import { createDefinedComponent } from "./define/create-defined-component.js"
+import { html } from "./render/template.js"
+import { css } from "./styling/css.js"
+
+export { css, html }
+
+export function define(tag, definition) {
+  const DefinedComponent = createDefinedComponent(definition)
+
+  const existing = customElements.get(tag)
+  if (existing) return existing
+
+  customElements.define(tag, DefinedComponent)
+  return DefinedComponent
+}
+
+=== engine/lifecycle/how-this-works.md ===
+---
+title: baraba-engine-lifecycle-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Lifecycle How This Works
+
+## Sta je ovaj folder
+
+`lifecycle/` je mesto gde se priča komponente uredno završava.
+
+Ovde fokus nije na crtanju, nego na zatvaranju.
+
+Kad komponenta izađe iz DOM-a, engine mora da uradi dve važne stvari:
+
+- da ne ostavi zakazane frame-ove da vise
+- da ne ostavi cleanup poslove da nastave da žive bez komponente
+
+Najkraće:
+
+- `lifecycle/` čuva kraj priče od haosa
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: ponekad otvara intervale, listenere ili observere
+- 🎭 **Lifecycle sloj**: brine da se život komponente završi uredno
+- 🧩 **Komponenta**: ulazi i izlazi iz DOM-a
+- 🌐 **Browser**: zove `disconnectedCallback()`
+- 👤 **Korisnik**: zatvara modal, menja stranicu ili uklanja komponentu
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor često napravi neki side effect:
+
+- `setInterval`
+- `ResizeObserver`
+- globalni event listener
+
+Ako ga ne ugasi, napraviće curenje i haos.
+
+### 👤 Priča korisnika
+
+Korisnik samo vidi da je komponenta nestala:
+
+- zatvorio je modal
+- prešao je na drugi ekran
+- komponenta je uklonjena iz DOM-a
+
+On očekuje da sve što je vezano za tu komponentu prestane da radi.
+
+## Story 1: 👨‍💻 Autor zeli da otvori side effect, ali i da ga uredno ugasi
+
+Zamisli autora Petra.
+
+Petar pravi komponentu koja u `onConnect` pali interval:
+
+ ```js
+onConnect() {
+  const id = setInterval(() => {
+    console.log("kuca")
+  }, 1000)
+
+  this.onCleanup(() => clearInterval(id))
+}
+ ```
+
+Petar želi dve stvari:
+
+- da interval radi dok komponenta živi
+- da stane kada komponenta nestane
+
+Tu lifecycle priča postaje presudna.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Petar napravi side effect u onConnect"] --> B["🧩 Komponenta sačuva cleanup kroz this.onCleanup(...)"]
+    B --> C["🎭 Lifecycle kasnije sačuva cleanup u stack-u"]
+    C --> D["🧹 Kad komponenta ode, cleanup bude pozvan"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** napravi korisnu runtime stvar.
+- **🧩 Komponenta** pamti kako se ta stvar gasi.
+- **🎭 Lifecycle sloj** obezbeđuje da se to gašenje stvarno desi.
+- **🧹 Rezultat** je uredan kraj bez curenja resursa.
+
+## Story 2: 👤 Korisnik zeli da komponenta stvarno prestane da zivi kad nestane
+
+Sada zamisli Anu koja zatvara modal ili menja ekran.
+
+Komponenta nestaje iz DOM-a.
+
+Ana očekuje da:
+
+- više nema logova iz stare komponente
+- više nema aktivnih intervala
+- više nema starih listenera koji rade u pozadini
+
+Ako se to ne desi, korisnik možda neće odmah znati zašto, ali aplikacija će
+postajati nestabilna ili čudna.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana zatvori modal ili promeni ekran"] --> B["🌐 Browser ukloni komponentu iz DOM-a"]
+    B --> C["🎭 disconnectedCallback() pokrene cleanup tok"]
+    C --> D["🧹 run-cleanup.js ugasi sve zapamćene cleanup funkcije"]
+    D --> E["✅ Komponenta je stvarno završila svoj život"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Korisnik** vidi samo da je komponenta nestala.
+- **🌐 Browser** formalno objavi izlazak iz DOM-a.
+- **🎭 Lifecycle** reaguje na taj trenutak.
+- **🧹 Cleanup** gasi ono što više ne sme da živi.
+- **✅ Kraj** je tih i uredan, bez duhova stare komponente.
+
+## Najkraca intuicija
+
+Zamisli pozorišnu predstavu.
+
+- dok predstava traje, reflektori rade
+- muzika radi
+- glumci su na sceni
+
+Kad se predstava završi, neko mora da:
+
+- ugasi reflektore
+- ugasi muziku
+- očisti scenu
+
+`lifecycle/` je taj tim koji gasi svetla posle predstave.
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- `disconnectedCallback()` u [`../define/create-defined-component.js`](../define/create-defined-component.js)
+- `this.onCleanup(...)` koji autor koristi kroz komponentu
+
+Glavni direktni file je:
+
+- [`run-cleanup.js`](./run-cleanup.js)
+
+## U kom trenutku se `lifecycle/` desava
+
+Ovaj folder najjače ulazi u priču na kraju života komponente.
+
+To je trenutak kada:
+
+- komponenta izlazi iz DOM-a
+- browser zove `disconnectedCallback()`
+- engine mora da počisti sve što ne sme da ostane aktivno
+
+To nije startup tok.
+
+To je:
+
+- "završi uredno"
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["🧩 Komponenta izlazi iz DOM-a"] --> B["🌐 Browser zove disconnectedCallback()"]
+    B --> C["🎭 Engine gasi zakazani frame ako postoji"]
+    C --> D["🎭 Pozove author onCleanup"]
+    D --> E["🧹 run-cleanup.js prazni cleanup stack"]
+    E --> F["✅ Side effect-i prestaju da žive"]
+ ```
+
+### Objasnjenje crteza
+
+- **🧩 Komponenta** više nije na sceni.
+- **🌐 Browser** signalizira kraj njenog života.
+- **🎭 Engine** prvo zaustavlja zakazani render frame.
+- **🎭 Author cleanup** dobija šansu da uradi svoj deo posla.
+- **🧹 `run-cleanup.js`** čisti sve registrovane cleanup funkcije.
+- **✅ Rezultat** je uredno zatvaranje.
+
+## Prva vazna putanja
+
+Kada komponenta u `onConnect` uradi:
+
+ ```js
+onConnect() {
+  const id = setInterval(() => {
+    console.log("radi")
+  }, 1000)
+
+  this.onCleanup(() => clearInterval(id))
+}
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Component as 🧩 Komponenta
+    participant Browser as 🌐 Browser
+    participant Define as 🎭 create-defined-component.js
+    participant Cleanup as 🧹 run-cleanup.js
+
+    Author->>Component: Step 1: registruje cleanup kroz this.onCleanup(...)
+    Browser->>Define: Step 2: komponenta izlazi iz DOM-a i browser zove disconnectedCallback()
+    Define->>Define: Step 3: engine gasi frame i poziva author onCleanup
+    Define->>Cleanup: Step 4: prosledi cleanup stack
+    Cleanup-->>Cleanup: Step 5: cleanup funkcije se pozivaju obrnutim redom
+ ```
+
+- **Step 1:** Autor unapred kaže kako se side effect gasi.
+- **Step 2:** Browser javlja da je komponenta završila život u DOM-u.
+- **Step 3:** Engine radi svoj poslednji runtime housekeeping.
+- **Step 4:** Cleanup stack ide u izvršenje.
+- **Step 5:** `run-cleanup.js` radi stvarno gašenje resursa.
+
+## Direktni fajlovi u ovom folderu
+
+### [`run-cleanup.js`](./run-cleanup.js)
+
+Jedini direktni file ovog foldera.
+
+Njegova odgovornost je jednostavna, ali važna:
+
+**pozovi cleanup funkcije iz stack-a redom uklanjanja, dok stack ne bude prazan**
+
+Pošto koristi `pop()`, cleanup funkcije se izvršavaju obrnutim redom od dodavanja.
+
+To je često dobro jer poslednje registrovani resurs često treba prvi da se ugasi.
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`run-cleanup.js`](./run-cleanup.js) ako listener, timer ili observer ostaje živ posle unmount-a
+- otvori [`../define/create-defined-component.js`](../define/create-defined-component.js) ako sumnjaš da `disconnectedCallback()` uopšte ne pokreće cleanup tok
+- proveri gde autor registruje `this.onCleanup(...)` ako cleanup nikad nije ni dodat u stack
+
+## Sta treba da zapamtis
+
+- `lifecycle/` ne crta UI
+- `lifecycle/` ne odlučuje kako props postaju state
+- `lifecycle/` čuva kraj života komponente od curenja i haosa
+- komponenta koja nestane iz DOM-a mora i stvarno da prestane da radi u pozadini
+
+## Recnik
+
+- **`cleanup`**: funkcija koja gasi listener, timer, observer ili drugi resurs
+- **`cleanup stack`**: interna lista cleanup funkcija koje čekaju kraj života komponente
+- **`disconnectedCallback()`**: browser lifecycle hook koji se zove kad komponenta izađe iz DOM-a
+
+=== engine/lifecycle/run-cleanup.js ===
+export async function runCleanup(cleanupStack) {
+  while (cleanupStack.length > 0) {
+    const cleanup = cleanupStack.pop()
+    if (cleanup) await cleanup()
+  }
+}
+
+=== engine/render/bind-events.js ===
+export function bindEvents(shadowRoot, eventMap, host) {
+  for (const [eventId, config] of eventMap.entries()) {
+    const selector = `[data-baraba-on-${config.eventName}="${eventId}"]`
+    const element = shadowRoot.querySelector(selector)
+    if (!element) continue
+
+    const listener = (event) => config.handler.call(host, event)
+    element.addEventListener(config.eventName, listener)
+    element.removeAttribute(`data-baraba-on-${config.eventName}`)
+  }
+}
+
+=== engine/render/how-this-works.md ===
+---
+title: baraba-engine-render-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Render How This Works
+
+## Sta je ovaj folder
+
+`render/` je mesto gde unutrašnja istina komponente postaje ono što korisnik
+stvarno vidi.
+
+Ovde se sastaju:
+
+- template
+- dinamičke vrednosti
+- event binding
+- zakazivanje update-a
+- upis u `shadowRoot`
+
+Najkraće:
+
+- `state/` čuva istinu
+- `render/` pretvara tu istinu u ekran
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: piše `render({ state, props, actions })`
+- 🧠 **Render sloj**: obrađuje template i pretvara ga u prikaz
+- 🧩 **Komponenta**: nosi `state`, `props` i `actions`
+- 🌐 **Browser**: prikazuje rezultat u `shadowRoot` i šalje evente
+- 👤 **Korisnik**: vidi ekran i klikće ono što je nacrtano
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor razmišlja:
+
+- kako komponenta treba da izgleda sada
+- koje vrednosti da pokaže
+- koje akcije da prosledi dugmadima
+
+### 👤 Priča korisnika
+
+Korisnik razmišlja:
+
+- da li vidim pravi tekst i prave dugmiće
+- da li klik radi
+- da li se ekran osvežava kad se stanje promeni
+
+`render/` je mesto gde te dve priče dodiruju ekran.
+
+## Story 1: 👨‍💻 Autor zeli da nacrta komponentu
+
+Zamisli autora Janu.
+
+Jana pravi:
+
+- `<mini-calculator>`
+
+Ona piše:
+
+ ```js
+render({ state, actions }) {
+  return html`
+    <div class="screen">${state.result}</div>
+    <button @click=${() => actions.addDigit("7")}>7</button>
+    <button @click=${actions.calculate}>=</button>
+  `
+}
+ ```
+
+Jana ne želi da ručno piše:
+
+- `innerHTML`
+- `querySelector`
+- `addEventListener`
+- escaping logiku
+- `requestAnimationFrame` batching
+
+To je razlog zašto `render/` postoji.
+
+On uzima njen template i pretvara ga u stvarni browser prikaz.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Jana napiše render({ state, actions })"] --> B["🎨 render-display.js pozove korisnicki render"]
+    B --> C["🗺️ process-template.js obradi html i evente"]
+    C --> D["🌐 shadowRoot dobije HTML"]
+    D --> E["⚡ bind-events poveže klikove i ostale evente"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** piše samo authoring template.
+- **🎨 `render-display.js`** poziva taj template sa pravim podacima.
+- **🗺️ `process-template.js`** pretvara template u HTML string i event mapu.
+- **🌐 `shadowRoot`** dobija stvarni prikaz.
+- **⚡ `bind-events.js`** obezbeđuje da dugmad nisu samo nacrtana, nego i živa.
+
+## Story 2: 👤 Korisnik zeli da vidi i koristi komponentu
+
+Sada zamisli Anu.
+
+Ana vidi:
+
+- ekran kalkulatora
+- broj na ekranu
+- dugmad koja može da klikne
+
+Kad klikne dugme, ona očekuje da ekran odmah pokaže novo stanje.
+
+Iz njenog ugla to je prosto:
+
+- klik
+- novi rezultat
+
+Ispod haube je to precizan render tok.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana vidi ekran komponente"] --> B["👆 Klikne dugme"]
+    B --> C["⚡ Action promeni state"]
+    C --> D["🔄 request-update zakaze novi render"]
+    D --> E["🎨 render sloj pravi novi HTML"]
+    E --> F["🌐 Browser prikaze novo stanje u shadowRoot"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Ana** vidi samo rezultat, ne template mehaniku.
+- **👆 Klik** je spoljašnji signal.
+- **⚡ Action** menja unutrašnju istinu.
+- **🔄 `request-update`** sabija promene u sledeći frame.
+- **🎨 Render** pravi novi prikaz.
+- **🌐 Browser** prikazuje novo stanje.
+
+## Najkraca intuicija
+
+Ako želiš banalnu sliku, zamisli semafor tablu na stadionu.
+
+- 💾 stanje kaže koji je rezultat
+- 🎨 render je tabla koja taj rezultat ispisuje
+
+Tabla sama ne odlučuje ko je dao gol.
+
+Ali bez table publika ne vidi ništa.
+
+To je odnos između:
+
+- `state`
+- i `render`
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- `_requestUpdate()` iz [`../define/create-defined-component.js`](../define/create-defined-component.js)
+- `_renderDisplay()` iz [`../define/create-defined-component.js`](../define/create-defined-component.js)
+- korisnički `render({ state, props, actions })`
+
+Direktni fajlovi u ovom folderu su:
+
+- [`template.js`](./template.js)
+- [`process-template.js`](./process-template.js)
+- [`render-display.js`](./render-display.js)
+- [`bind-events.js`](./bind-events.js)
+- [`request-update.js`](./request-update.js)
+
+## U kom trenutku se `render/` desava
+
+`render/` se dešava svaki put kada komponenta treba da se prikaže ili osveži.
+
+Najčešći trenuci su:
+
+- prvi put kada `connectedCallback()` zatraži prikaz
+- kasnije kada action promeni `state`
+- kasnije kada observed atribut promeni `props`
+
+Važna istina:
+
+- `render/` nije registracioni trenutak
+- `render/` je trenutak prikaza
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["🔄 update je zatražen"] --> B["🧵 request-update.js čeka sledeći frame"]
+    B --> C["🎨 render-display.js pozove korisnički render"]
+    C --> D["🗺️ process-template.js napravi htmlString i eventMap"]
+    D --> E["🌐 shadowRoot.innerHTML dobije novi sadržaj"]
+    E --> F["⚡ bind-events.js poveže evente"]
+ ```
+
+### Objasnjenje crteza
+
+- **🔄 Update** je signal da ekran više ne sme da ostane isti.
+- **🧵 `request-update.js`** sprečava nepotrebno previše rendera odjednom.
+- **🎨 `render-display.js`** je glavni orkestrator prikaza.
+- **🗺️ `process-template.js`** pretvara authoring template u browser materijal.
+- **🌐 `shadowRoot`** dobija stvarni prikaz.
+- **⚡ `bind-events.js`** vraća život dugmadima i eventima.
+
+## Prva vazna putanja
+
+Kada komponenta ima:
+
+ ```js
+render({ state, actions }) {
+  return html`
+    <button @click=${actions.increment}>
+      Klikovi: ${state.count}
+    </button>
+  `
+}
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Action as ⚡ Action
+    participant Update as 🔄 request-update.js
+    participant Render as 🎨 render-display.js
+    participant Process as 🗺️ process-template.js
+    participant DOM as 🌐 shadowRoot
+    participant User as 👤 Korisnik
+
+    Action->>Update: Step 1: promena state trazi novi prikaz
+    Update->>Render: Step 2: sledeći frame pokrene render
+    Render->>Process: Step 3: korisnički template ide na obradu
+    Process-->>Render: Step 4: vrati htmlString i eventMap
+    Render->>DOM: Step 5: shadowRoot dobije HTML
+    Render->>DOM: Step 6: event handler-i budu vezani
+    DOM-->>User: Step 7: korisnik vidi nov rezultat
+ ```
+
+- **Step 1:** Promena stanja pokreće potrebu za novim ekranom.
+- **Step 2:** `request-update.js` sabija promene u jedan frame.
+- **Step 3:** `render-display.js` zove authoring `render()`.
+- **Step 4:** Template obrada pravi browser-upotrebljiv rezultat.
+- **Step 5:** DOM dobija novi HTML.
+- **Step 6:** Event binding vraća ponašanje tom HTML-u.
+- **Step 7:** Korisnik vidi novo stanje.
+
+## Direktni fajlovi u ovom folderu
+
+### [`template.js`](./template.js)
+
+Drži `html` helper i označava vrednost kao Baraba template objekat.
+
+### [`process-template.js`](./process-template.js)
+
+Obrađuje template vrednosti:
+
+- escaping
+- serijalizaciju
+- prepoznavanje `@click=${fn}` i sličnih event bindova
+
+### [`render-display.js`](./render-display.js)
+
+Glavni file prikaza.
+
+On:
+
+- poziva korisnički `render()`
+- daje mu `state`, `props` i `actions`
+- ubacuje stilove
+- upisuje rezultat u `shadowRoot`
+- poziva `bind-events(...)`
+
+### [`bind-events.js`](./bind-events.js)
+
+Povezuje event mapu sa stvarnim DOM elementima.
+
+### [`request-update.js`](./request-update.js)
+
+Brine da više promena ne izazove lavinu rendera u istom trenutku.
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`render-display.js`](./render-display.js) ako komponenta vraća template, ali se ništa ne vidi
+- otvori [`process-template.js`](./process-template.js) ako dinamične vrednosti ili event sintaksa ne rade kako očekuješ
+- otvori [`bind-events.js`](./bind-events.js) ako se prikaz vidi, ali klik ne radi
+- otvori [`request-update.js`](./request-update.js) ako se update dešava previše često ili nikako
+
+## Sta treba da zapamtis
+
+- `render/` ne odlučuje šta je istina; to radi `state/`
+- `render/` ne pravi klasu komponente; to radi `define/`
+- `render/` uzima spremne podatke i pretvara ih u ono što korisnik vidi
+- prikaz bez event binding-a je mrtav prikaz
+- event binding bez novog prikaza ne daje korisniku vidljiv rezultat
+
+## Recnik
+
+- **`template`**: authoring objekat koji nosi statične i dinamične delove prikaza
+- **`eventMap`**: interna mapa koja povezuje event slot sa handler funkcijom
+- **`frame`**: jedan browser ciklus crtanja u koji engine pokušava da sabije update
+- **`shadowRoot`**: mesto gde komponenta drži svoj izolovani prikaz
+
+=== engine/render/process-template.js ===
+import { isTemplate } from "./template.js"
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
+export function serializeTemplateValue(value) {
+  if (value == null || value === false) {
+    return { htmlString: "", eventMap: new Map() }
+  }
+
+  if (Array.isArray(value)) {
+    let htmlString = ""
+    const eventMap = new Map()
+
+    for (const item of value) {
+      const compiled = serializeTemplateValue(item)
+      htmlString += compiled.htmlString
+
+      for (const [key, config] of compiled.eventMap.entries()) {
+        eventMap.set(key, config)
+      }
+    }
+
+    return { htmlString, eventMap }
+  }
+
+  if (isTemplate(value)) return processTemplate(value)
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return { htmlString: escapeHtml(value), eventMap: new Map() }
+  }
+
+  return { htmlString: escapeHtml(String(value)), eventMap: new Map() }
+}
+
+export function processTemplate(template) {
+  const strings = template.strings.slice()
+  const values = template.values
+  const eventMap = new Map()
+  let htmlString = ""
+
+  for (let index = 0; index < values.length; index += 1) {
+    const left = strings[index]
+    const value = values[index]
+    const right = strings[index + 1] ?? ""
+    const eventMatch = left.match(/^(.*)@([a-zA-Z][\w:-]*)=(["'])?$/s)
+
+    if (eventMatch && typeof value === "function") {
+      const beforeAttribute = eventMatch[1]
+      const eventName = eventMatch[2]
+      const quote = eventMatch[3] ?? ""
+      const eventId = `e${eventMap.size}`
+
+      htmlString += `${beforeAttribute}data-baraba-on-${eventName}="${eventId}"`
+
+      if (quote && right.startsWith(quote)) {
+        strings[index + 1] = right.slice(1)
+      }
+
+      eventMap.set(eventId, { eventName, handler: value })
+      continue
+    }
+
+    htmlString += left
+    const compiledValue = serializeTemplateValue(value)
+    htmlString += compiledValue.htmlString
+
+    for (const [key, config] of compiledValue.eventMap.entries()) {
+      eventMap.set(key, config)
+    }
+  }
+
+  htmlString += strings[strings.length - 1]
+  return { htmlString, eventMap }
+}
+
+=== engine/render/render-display.js ===
+import { processTemplate, serializeTemplateValue } from "./process-template.js"
+import { isTemplate } from "./template.js"
+import { buildStyleBlock } from "../styling/build-style-block.js"
+import { bindEvents } from "./bind-events.js"
+
+export function renderDisplay(host, render, styles) {
+  const template = render.call(host, {
+    state: host._state,
+    props: host.props,
+    actions: host._actions
+  })
+
+  const compiled = isTemplate(template)
+    ? processTemplate(template)
+    : serializeTemplateValue(template)
+
+  const styleBlock = buildStyleBlock(host.shadowRoot, styles)
+  host.shadowRoot.innerHTML = `${styleBlock}${compiled.htmlString}`
+  bindEvents(host.shadowRoot, compiled.eventMap, host)
+}
+
+=== engine/render/request-update.js ===
+export function requestUpdate(host, renderDisplay) {
+  if (host._scheduled) return
+
+  host._scheduled = true
+  host._frameId = requestAnimationFrame(() => {
+    host._scheduled = false
+    host._frameId = 0
+    renderDisplay()
+  })
+}
+
+=== engine/render/template.js ===
+const BARABA_TEMPLATE = Symbol("baraba.template")
+
+export function html(strings, ...values) {
+  return {
+    __type: BARABA_TEMPLATE,
+    strings,
+    values
+  }
+}
+
+export function isTemplate(value) {
+  return Boolean(value) && value.__type === BARABA_TEMPLATE
+}
+
+=== engine/state/create-deep-reactive.js ===
+export function createDeepReactive(target, notify) {
+  const proxyCache = new WeakMap()
+
+  const wrap = (value) => {
+    if (!value || typeof value !== "object") {
+      return value
+    }
+
+    if (proxyCache.has(value)) {
+      return proxyCache.get(value)
+    }
+
+    const proxy = new Proxy(value, {
+      get(currentTarget, key) {
+        return wrap(currentTarget[key])
+      },
+
+      set(currentTarget, key, nextValue) {
+        if (currentTarget[key] === nextValue) return true
+        currentTarget[key] = nextValue
+        notify()
+        return true
+      },
+
+      deleteProperty(currentTarget, key) {
+        if (!(key in currentTarget)) return true
+        delete currentTarget[key]
+        notify()
+        return true
+      }
+    })
+
+    proxyCache.set(value, proxy)
+    return proxy
+  }
+
+  return wrap(target)
+}
+
+=== engine/state/how-this-works.md ===
+---
+title: baraba-engine-state-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# State How This Works
+
+## Sta je ovaj folder
+
+`state/` je mesto gde ulazne vrednosti i unutrašnje stanje dobijaju oblik koji
+komponenta može normalno da koristi.
+
+Ovde se rešavaju dva velika problema:
+
+- kako string iz HTML atributa postaje pravi tip
+- kako promena unutrašnjeg stanja traži novi render
+
+Najkraće:
+
+- `state/` je prevodilac i alarm
+
+Prevodilac zato što pretvara sirove ulaze u prave vrednosti.
+
+Alarm zato što javlja engine-u da se stanje promenilo i da prikaz više ne sme da ostane isti.
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: zadaje `props` defaults i `state` defaults
+- 💾 **State sloj**: prevodi i prati vrednosti
+- 🧩 **Komponenta**: nosi `_rawProps`, `props` i `_state`
+- 🌐 **Browser**: šalje attribute promene
+- 👤 **Korisnik**: klikom ili input-om posredno menja stanje
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor želi da napiše:
+
+- `props: { count: 0, compact: false }`
+- `state: { open: false }`
+
+I očekuje da sistem zna šta to znači.
+
+### 👤 Priča korisnika
+
+Korisnik vidi komponentu i radi nešto:
+
+- klik
+- input
+- promena atributa kroz DOM
+
+On očekuje da rezultat bude:
+
+- pravo novo stanje
+- pravi novi prikaz
+
+`state/` je mesto koje obezbeđuje da te vrednosti budu tačne i žive.
+
+## Story 1: 👨‍💻 Autor zeli da koristi prave vrednosti, ne samo stringove
+
+Zamisli autora Marka.
+
+Marko pravi komponentu:
+
+- `<rating-stars>`
+
+On želi da može da napiše:
+
+ ```html
+<rating-stars value="3" compact></rating-stars>
+ ```
+
+I da sistem to razume kao:
+
+- `value` je broj `3`
+- `compact` je boolean `true`
+
+Marko ne želi da u svakom `render()` ručno proverava:
+
+- da li je `"3"` string ili broj
+- da li je prazan atribut zapravo boolean true
+
+Tu `state/` radi svoj prvi veliki posao.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Marko napiše prop defaults"] --> B["🏷️ Browser pošalje HTML atribute"]
+    B --> C["💾 sync-properties.js pročita i prevede vrednosti"]
+    C --> D["🧩 Komponenta dobije prave props vrednosti"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** daje očekivani tip kroz default vrednost.
+- **🏷️ HTML atribut** je često samo string ili prazan marker.
+- **💾 `sync-properties.js`** odlučuje šta je pravi tip.
+- **🧩 Komponenta** kasnije radi sa smislenim vrednostima, ne sa sirovim tekstom.
+
+## Story 2: 👤 Korisnik zeli da promena stvarno osvezi prikaz
+
+Sada zamisli korisnicu Anu.
+
+Ana klikne dugme:
+
+- `+`
+
+Ona očekuje da broj na ekranu odmah poraste.
+
+Da bi se to desilo, nije dovoljno da se vrednost negde promeni.
+
+Sistem mora da zna:
+
+- da je promena stvarna
+- da nije samo upis iste vrednosti
+- da sada treba tražiti novi render
+
+Tu `create-deep-reactive.js` radi drugi veliki posao.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana klikne dugme"] --> B["⚡ Action promeni state.count"]
+    B --> C["💾 Proxy primeti promenu"]
+    C --> D["🔔 notify() javi engine-u da trazi update"]
+    D --> E["🎨 Komponenta dobije novi prikaz"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Korisnik** vidi samo da klik treba da menja rezultat.
+- **⚡ Action** menja unutrašnje stanje.
+- **💾 Proxy** je unutrašnji stražar koji primeti promenu.
+- **🔔 `notify()`** je signal da ekran mora da se osveži.
+- **🎨 Novi prikaz** je ono što korisnik zapravo vidi.
+
+## Najkraca intuicija
+
+Zamisli da `state/` radi dva posla u isto vreme:
+
+- kao prevodilac na aerodromu
+- kao alarm u zgradi
+
+Prevodilac kaže:
+
+- `"3"` znači broj `3`
+- prazan atribut znači `true`
+
+Alarm kaže:
+
+- "nešto se promenilo"
+- "sada treba osvežiti prikaz"
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- `constructor()` u [`../define/create-defined-component.js`](../define/create-defined-component.js)
+- `attributeChangedCallback()` u [`../define/create-defined-component.js`](../define/create-defined-component.js)
+
+Glavni fajlovi su:
+
+- [`create-deep-reactive.js`](./create-deep-reactive.js)
+- [`sync-properties.js`](./sync-properties.js)
+
+## U kom trenutku se `state/` desava
+
+`state/` ulazi u priču u tri važna trenutka.
+
+### 1. 🏗️ Setup trenutak
+
+Kada `constructor()` priprema početne vrednosti:
+
+- čita prop defaults
+- čita početne HTML atribute
+- pravi početni `_state`
+
+### 2. 🏷️ Attribute trenutak
+
+Kada browser promeni observed atribut:
+
+- `attributeChangedCallback()` ulazi u priču
+- atribut mora da se prevede nazad u pravi prop tip
+
+### 3. 🔄 Update trenutak
+
+Kada action promeni stanje:
+
+- reaktivni sloj javlja da sada treba novi render
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["🏷️ HTML atribut ili state defaults ulaze u state/"] --> B["💾 sync-properties.js pročita i pretvori vrednosti"]
+    B --> C["🧩 Komponenta dobije props i state u pravom obliku"]
+    C --> D["⚡ Akcija ili setter promeni state"]
+    D --> E["🔔 create-deep-reactive.js prijavi promenu"]
+    E --> F["🎨 Engine trazi novi prikaz"]
+ ```
+
+### Objasnjenje crteza
+
+- **🏷️ Atributi i defaults** su sirov ulaz.
+- **💾 `sync-properties.js`** radi prevođenje i sinhronizaciju.
+- **🧩 Komponenta** dobija smislen interni oblik.
+- **⚡ Promena** se dešava kroz action ili property setter.
+- **🔔 Reaktivni sloj** javlja da se istina promenila.
+- **🎨 Render** zatim može da pokaže novu istinu.
+
+## Prva vazna putanja
+
+Kada browser vidi:
+
+ ```html
+<hello-card badge="3" featured></hello-card>
+ ```
+
+a autor ima:
+
+ ```js
+props: {
+  badge: 0,
+  featured: false
+}
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant HTML as 🌐 HTML tag
+    participant Sync as 💾 sync-properties.js
+    participant State as 💾 create-deep-reactive.js
+    participant Component as 🧩 Komponenta
+    participant Render as 🎨 Render
+
+    HTML->>Sync: Step 1: readInitialProps procita badge i featured
+    Sync->>Sync: Step 2: coerceValue pretvori "3" u 3 i prisutan atribut u true
+    Sync->>Component: Step 3: komponenta dobije _rawProps
+    Component->>State: Step 4: state defaults budu umotani u Proxy
+    State-->>Render: Step 5: buduca promena state javlja da treba update
+ ```
+
+- **Step 1:** Sirovi ulaz dolazi iz HTML-a.
+- **Step 2:** Tipovi se prevode prema default vrednostima autora.
+- **Step 3:** Komponenta dobija čitljive props vrednosti.
+- **Step 4:** Unutrašnji state postaje reaktivan.
+- **Step 5:** Buduće promene sada mogu da pokrenu novi prikaz.
+
+## Direktni fajlovi u ovom folderu
+
+### [`create-deep-reactive.js`](./create-deep-reactive.js)
+
+Pravi duboki `Proxy`.
+
+Njegov posao je:
+
+- da primeti `set`
+- da primeti `delete`
+- da pozove `notify()` kad se stanje stvarno promeni
+
+### [`sync-properties.js`](./sync-properties.js)
+
+Drži glavna pravila za props i atribute:
+
+- `toKebabCase`
+- `cloneValue`
+- `coerceValue`
+- `getObservedAttributes`
+- `readInitialProps`
+- `reflectPropToAttribute`
+- `initPropertyAccessors`
+- `findPropNameByAttribute`
+
+Ovo je pravi translator između:
+
+- HTML atributa
+- prop defaultsa
+- runtime props API-ja
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`sync-properties.js`](./sync-properties.js) ako atribut `"3"` ne postane broj `3`
+- otvori [`sync-properties.js`](./sync-properties.js) ako boolean atribut ne radi kako očekuješ
+- otvori [`create-deep-reactive.js`](./create-deep-reactive.js) ako promena `state.deep.value` ne traži novi render
+- otvori [`sync-properties.js`](./sync-properties.js) ako property i attribute prestanu da budu sinhronizovani
+
+## Sta treba da zapamtis
+
+- `state/` ne crta UI
+- `state/` ne vezuje evente
+- `state/` priprema i čuva istinu koju drugi slojevi prikazuju
+- ovde se rešava i tip vrednosti i detekcija promene
+- ako je istina loše pripremljena, render samo lepo prikazuje pogrešnu stvar
+
+## Recnik
+
+- **`coercion`**: pretvaranje sirove string vrednosti iz HTML-a u pravi tip
+- **`Proxy`**: browser mehanizam koji može da primeti promenu nad objektom
+- **`observed attribute`**: HTML atribut koji browser prati za dati custom element
+- **`_rawProps`**: interni objekat sa trenutnim props vrednostima
+
+=== engine/state/sync-properties.js ===
+export function toKebabCase(value) {
+  return String(value)
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[_\s]+/g, "-")
+    .toLowerCase()
+}
+
+export function cloneValue(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value)
+  }
+
+  return JSON.parse(JSON.stringify(value))
+}
+
+export function coerceValue(rawValue, defaultValue) {
+  if (typeof defaultValue === "number") {
+    const parsed = Number(rawValue)
+    return Number.isNaN(parsed) ? defaultValue : parsed
+  }
+
+  if (typeof defaultValue === "boolean") {
+    if (rawValue === null) return false
+    if (rawValue === "" || rawValue === "true") return true
+    if (rawValue === "false") return false
+    return Boolean(rawValue)
+  }
+
+  if (defaultValue == null) return rawValue
+  return String(rawValue)
+}
+
+export function getObservedAttributes(propDefaults) {
+  return Object.keys(propDefaults).map(toKebabCase)
+}
+
+export function readInitialProps(host, propDefaults) {
+  const nextProps = { ...propDefaults }
+
+  for (const [key, defaultValue] of Object.entries(propDefaults)) {
+    const attributeName = toKebabCase(key)
+    if (!host.hasAttribute(attributeName)) continue
+
+    const rawValue = host.getAttribute(attributeName)
+    nextProps[key] = coerceValue(rawValue, defaultValue)
+  }
+
+  return nextProps
+}
+
+export function reflectPropToAttribute(host, key, value) {
+  const attributeName = toKebabCase(key)
+  const defaultValue = host._propDefaults[key]
+
+  host._isReflectingProp = true
+  try {
+    if (typeof defaultValue === "boolean") {
+      if (value) host.setAttribute(attributeName, "")
+      else host.removeAttribute(attributeName)
+      return
+    }
+
+    if (value == null) {
+      host.removeAttribute(attributeName)
+      return
+    }
+
+    host.setAttribute(attributeName, String(value))
+  } finally {
+    host._isReflectingProp = false
+  }
+}
+
+export function initPropertyAccessors(host) {
+  for (const key of Object.keys(host._propDefaults)) {
+    if (Object.prototype.hasOwnProperty.call(host, key)) continue
+
+    Object.defineProperty(host, key, {
+      configurable: true,
+      enumerable: false,
+      get: () => host._rawProps[key],
+      set: (value) => {
+        host._rawProps[key] = value
+        reflectPropToAttribute(host, key, value)
+        host._requestUpdate()
+      }
+    })
+  }
+}
+
+export function findPropNameByAttribute(propDefaults, attributeName) {
+  return Object.keys(propDefaults).find((key) => toKebabCase(key) === attributeName)
+}
+
+=== engine/styling/build-style-block.js ===
+function readStyleSheetText(sheet) {
+  try {
+    return Array.from(sheet.cssRules ?? [])
+      .map((rule) => rule.cssText)
+      .join("\n")
+  } catch {
+    return ""
+  }
+}
+
+export function buildStyleBlock(shadowRoot, styles) {
+  if (!styles) return ""
+
+  const styleList = Array.isArray(styles) ? styles : [styles]
+  const styleSheets = styleList.filter(
+    (item) => typeof CSSStyleSheet !== "undefined" && item instanceof CSSStyleSheet
+  )
+  const supportsAdoptedStyleSheets = "adoptedStyleSheets" in shadowRoot
+
+  const inlineCss = styleList
+    .map((item) => {
+      if (typeof item === "string") return item
+
+      if (!supportsAdoptedStyleSheets && typeof CSSStyleSheet !== "undefined" && item instanceof CSSStyleSheet) {
+        return readStyleSheetText(item)
+      }
+
+      return ""
+    })
+    .filter(Boolean)
+    .join("\n")
+
+  if (styleSheets.length > 0 && supportsAdoptedStyleSheets) {
+    shadowRoot.adoptedStyleSheets = styleSheets
+  }
+
+  return inlineCss ? `<style>${inlineCss}</style>` : ""
+}
+
+=== engine/styling/css.js ===
+export function css(strings, ...values) {
+  const text = strings.reduce((acc, str, index) => {
+    return acc + str + (values[index] ?? "")
+  }, "")
+
+  if (
+    typeof CSSStyleSheet !== "undefined" &&
+    typeof CSSStyleSheet.prototype.replaceSync === "function"
+  ) {
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(text)
+    return sheet
+  }
+
+  return text
+}
+
+=== engine/styling/how-this-works.md ===
+---
+title: baraba-engine-styling-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Styling How This Works
+
+## Sta je ovaj folder
+
+`styling/` je mesto gde authoring CSS postaje stvarni stil komponente.
+
+Ovde se odlučuje:
+
+- da li browser podržava `CSSStyleSheet`
+- da li stil ide u `adoptedStyleSheets`
+- da li treba `<style>...</style>` fallback
+
+Najkraće:
+
+- autor napiše `css` tagged template
+- `styling/` odluči kako taj stil stvarno stiže do komponente
+
+## Likovi u ovoj prici
+
+- 👨‍💻 **Autor**: piše `styles: css\`\`Baraba`
+- 🎨 **Styling sloj**: priprema stil u browser-prihvatljivom obliku
+- 🧩 **Komponenta**: nosi `shadowRoot` u koji stil mora da stigne
+- 🌐 **Browser**: nekad podržava `CSSStyleSheet`, nekad traži fallback
+- 👤 **Korisnik**: na kraju vidi komponentu kao lepo stilizovanu ili slomljenu
+
+## Dve velike price koje treba da vidis odjednom
+
+### 👨‍💻 Priča autora
+
+Autor želi da napiše stil jednostavno:
+
+ ```js
+styles: css`
+  button {
+    background: teal;
+    color: white;
+  }
+`
+ ```
+
+On ne želi da razmišlja:
+
+- da li browser ima `replaceSync`
+- da li treba `adoptedStyleSheets`
+- da li mora `<style>`
+
+### 👤 Priča korisnika
+
+Korisnik ne razmišlja o tome kako stil stiže.
+
+On samo vidi:
+
+- da li komponenta izgleda kako treba
+- da li je stil prisutan ili nije
+
+`styling/` je most između authoring CSS-a i stvarnog prikaza u browseru.
+
+## Story 1: 👨‍💻 Autor zeli da komponenta izgleda lepo bez dodatne muke
+
+Zamisli autora Nemanju.
+
+Nemanja pravi:
+
+- `<note-card>`
+
+On želi da kartica ima:
+
+- blagu pozadinu
+- zaobljene ivice
+- lepo stilizovano dugme
+
+On piše:
+
+ ```js
+styles: css`
+  .card {
+    border-radius: 16px;
+    background: white;
+  }
+`
+ ```
+
+Nemanja ne želi da rešava browser grananja ručno.
+
+`styling/` preuzima baš taj posao.
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Nemanja napiše styles: css`...`"] --> B["🎨 css.js pretvori stil u stylesheet ili string"]
+    B --> C["🧱 build-style-block.js pripremi finalni stil za shadowRoot"]
+    C --> D["🧩 Komponenta dobije spreman stil za prikaz"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Autor** daje authoring CSS.
+- **🎨 `css.js`** proverava šta browser ume.
+- **🧱 `build-style-block.js`** pravi finalni stil output.
+- **🧩 Komponenta** kasnije dobija stil na mestu gde joj treba.
+
+## Story 2: 👤 Korisnik zeli da vidi lepo stilizovanu komponentu
+
+Sada zamisli korisnicu Anu.
+
+Ana otvori stranicu i vidi karticu.
+
+Ona ne zna:
+
+- da li je stil došao kao `CSSStyleSheet`
+- da li je došao kroz `<style>`
+- da li je browser koristio `adoptedStyleSheets`
+
+Nju zanima samo:
+
+- da li kartica izgleda lepo
+- da li stil nije "nestao"
+
+Ako stil ne uđe kako treba, korisnik odmah vidi problem, čak i ako engine logika radi savršeno.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana otvori stranicu"] --> B["🌐 Browser napravi komponentu"]
+    B --> C["🎨 Styling sloj ubaci stil u shadowRoot"]
+    C --> D["👀 Ana vidi lepo stilizovan prikaz"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Korisnik** vidi finalni izgled, ne mehaniku iza njega.
+- **🌐 Browser** koristi onu stil strategiju koju podržava.
+- **🎨 Styling sloj** obezbeđuje da stil ipak stigne.
+- **👀 Rezultat** je ono što korisnik zove "komponenta izgleda ispravno".
+
+## Najkraca intuicija
+
+Zamisli pozorišnu garderobu.
+
+- autor osmisli kostim
+- styling sloj proveri šta garderoba ima na raspolaganju
+- glumac na kraju izađe obučen kako treba
+
+U toj slici:
+
+- authoring `css`
+- je dizajn kostima
+- `styling/`
+- je garderoba koja bira pravi način da kostim stvarno stigne do scene
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- korisnički `styles: css\`\`Baraba`
+- [`../render/render-display.js`](../render/render-display.js)
+
+Glavni fajlovi su:
+
+- [`css.js`](./css.js)
+- [`build-style-block.js`](./build-style-block.js)
+
+## U kom trenutku se `styling/` desava
+
+`styling/` ima dva bitna trenutka.
+
+### 1. 🧾 Authoring stil trenutak
+
+Kada autor napiše `css\`\`Baraba`.
+
+Tada `css.js` odlučuje:
+
+- stylesheet objekat
+- ili običan string
+
+### 2. 🎨 Render trenutak
+
+Kada `render-display.js` sprema prikaz u `shadowRoot`.
+
+Tada `build-style-block.js` odlučuje:
+
+- `adoptedStyleSheets`
+- ili `<style>...</style>`
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Autor napiše css`...`"] --> B["🎨 css.js proveri podršku browsera"]
+    B --> C["📄 Vrati CSSStyleSheet ili string"]
+    C --> D["🧱 build-style-block.js pripremi stil za shadowRoot"]
+    D --> E["🌐 Browser prikaže komponentu sa stilom"]
+ ```
+
+### Objasnjenje crteza
+
+- **👨‍💻 Authoring CSS** je početna namera.
+- **🎨 `css.js`** bira najjači mogući oblik za dati browser.
+- **📄 Rezultat** može biti stylesheet ili raw CSS string.
+- **🧱 `build-style-block.js`** ga pretvara u finalni isporučivi oblik.
+- **🌐 Browser** na kraju prikazuje stilizovanu komponentu.
+
+## Prva vazna putanja
+
+Kada autor napiše:
+
+ ```js
+styles: css`
+  button {
+    color: white;
+    background: teal;
+  }
+`
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Css as 🎨 css.js
+    participant Render as 🎨 render-display.js
+    participant Build as 🧱 build-style-block.js
+    participant Shadow as 🌐 shadowRoot
+
+    Author->>Css: Step 1: napiše css`...`
+    Css-->>Render: Step 2: vrati stylesheet ili string
+    Render->>Build: Step 3: preda styles i shadowRoot
+    Build->>Shadow: Step 4: doda adoptedStyleSheets ili <style> blok
+ ```
+
+- **Step 1:** Authoring stil ulazi kao mali i čist API.
+- **Step 2:** `css.js` bira realni oblik stila.
+- **Step 3:** Render sloj traži finalnu dostavu stila.
+- **Step 4:** Stil stvarno stiže do komponente.
+
+## Direktni fajlovi u ovom folderu
+
+### [`css.js`](./css.js)
+
+Javni CSS helper.
+
+Ako browser podržava `CSSStyleSheet` i `replaceSync`, pravi stylesheet objekat.
+
+Ako ne podržava, vraća plain string.
+
+### [`build-style-block.js`](./build-style-block.js)
+
+Pravi finalni style output za komponentu.
+
+On:
+
+- skuplja stilove u listu
+- odvaja stylesheet objekte od stringova
+- setuje `shadowRoot.adoptedStyleSheets` kada može
+- pravi `<style>...</style>` fallback kada treba
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`css.js`](./css.js) ako sumnjaš da authoring stil nije dobro pretvoren
+- otvori [`build-style-block.js`](./build-style-block.js) ako stil postoji, ali ne ulazi u komponentu
+- proveri browser podršku ako `adoptedStyleSheets` ne radi kako očekuješ
+
+## Sta treba da zapamtis
+
+- `styling/` ne pravi DOM strukturu
+- `styling/` ne vezuje evente
+- `styling/` samo obezbeđuje da stil dođe do komponente u ispravnom obliku
+- korisnik ne vidi da li si koristio stylesheet ili fallback, vidi samo da li komponenta izgleda ispravno
+
+## Recnik
+
+- **`CSSStyleSheet`**: browser objekat za stylesheet u programskom obliku
+- **`adoptedStyleSheets`**: način da se stylesheet objekti zakače na `shadowRoot`
+- **`fallback`**: rezervni način rada kada browser ne podržava jači mehanizam
+
+=== how-this-works-rules.md ===
+---
+title: baraba-how-this-works-rules
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# How-This-Works Rules
+
+## Sta je ovaj fajl
+
+Ovo je kanonski standard za `how-this-works.md` dokumente u
+`**`.
+
+Ovaj fajl ne opisuje engine logiku.
+
+On opisuje:
+
+- kako `how-this-works` dokument mora da bude napisan
+- kojim redosledom mora da uci citaoca
+- kako da bude detaljan, vizuelan i lak za potpuno novog coveka
+
+Ovaj standard je preuzeo najjace principe iz PolyMoly flow-doc governance, ali
+ih je prilagodio Baraba stilu:
+
+- jos vise edukacije
+- jos vise sporog objasnjavanja
+- jos vise vizuelnih banalnih primera
+- jos vise autor/user price
+
+## 1. Core Idea
+
+`how-this-works` dokument mora da objasnjava kretanje, ne inventar.
+
+To znaci:
+
+- nije dovoljno nabrojati foldere
+- nije dovoljno nabrojati fajlove
+- nije dovoljno reci sta postoji
+
+Mora da se objasni:
+
+- sta ulazi
+- ko prvi prihvata tok
+- sta se menja
+- sta ide dalje
+- sta covek vidi na kraju
+
+Najkrace:
+
+**flow docs moraju da objasnjavaju pricu sistema, ne katalog sistema**
+
+## 2. Kanonski test kvaliteta
+
+Dobar `how-this-works.md` prolazi tek kada potpuni pocetnik moze da preprica:
+
+1. sta ovaj folder stvarno radi
+2. koji pravi trigger ili kod ga budi
+3. koji fajl i koja funkcija ga hvataju prvi
+4. sta je glavni trenutak odluke ili transformacije
+5. sta ide dalje
+6. sta korisnik vidi u browseru
+7. sta autor komponente mora da razume
+8. gde treba da debaguje prvo
+9. koje termine ce gotovo sigurno pomesati
+10. zasto su folder, file i function nazivi posteni
+
+Ako citac to ne moze da preprica svojim recima, dokument nije gotov.
+
+## 3. Redosled ucenja
+
+Svaki `how-this-works` dokument mora da uci ovim redom:
+
+1. human layer
+2. author story
+3. user story
+4. technical layer
+5. debug layer
+6. dictionary
+
+### 3.1 Human Layer
+
+Otvori dokument kao da ga citas coveku koji:
+
+- nikad nije pravio web komponentu
+- nikad nije ulazio u engine kod
+- i mora da oseti zasto ovaj folder postoji
+
+Ton mora da bude:
+
+- miran
+- prost
+- direktan
+- strpljiv
+
+Ali ne sme da bude:
+
+- detinjast
+- neprecizan
+- "slatkast"
+
+Pravilo:
+
+**objasni kao pocetniku, ali tehnicki ostani posten**
+
+### 3.2 Author Story
+
+Ako dokument opisuje interaktivni deo sistema, mora da ima author story.
+
+To znaci:
+
+- 👨‍💻 autor je covek koji zeli da napravi komponentu
+- mora da postoji mali scenario sta autor zeli da napravi
+- mora da postoji konkretan primer, na primer kalkulator, counter, tabs ili modal
+
+Author story mora da odgovori na pitanja:
+
+- sta autor zeli da napravi
+- sta autor pise
+- gde engine preuzima njegovu nameru
+- gde se autorova ideja pretvara u runtime ponasanje
+
+### 3.3 User Story
+
+Ako dokument opisuje interaktivni deo sistema, mora da ima user story.
+
+To znaci:
+
+- 👤 korisnik je covek koji koristi aplikaciju u browseru
+- mora da postoji mali scenario sta korisnik radi
+- mora da postoji konkretna radnja: klik, input, change, fokus, otvaranje strane
+
+User story mora da odgovori na pitanja:
+
+- sta korisnik vidi
+- sta korisnik radi
+- sta se ispod haube desi
+- sta korisnik vidi posle toga
+
+### 3.4 Technical Layer
+
+Tek posle author i user price ide tehnicka istina:
+
+- pravi fajlovi
+- prave funkcije
+- pravi pozivi
+- pravi handoff
+- pravi rezultat
+
+Tehnicka sekcija mora da bude vezana za realan kod.
+
+Ne sme da zvuci kao da je pisana iz mastanja.
+
+### 3.5 Debug Layer
+
+Na kraju dokument mora da kaze:
+
+- gde gledas prvo ako se nesto pokvari
+- koji simptom vodi ka kom fajlu
+- gde je najverovatniji kvar
+
+## 4. Vizuelna pravila
+
+Vizuelni deo nije ukras.
+
+Vizuelni deo je obavezni deo ucenja.
+
+### 4.1 Emoji pravilo
+
+U tekstu i Mermaid dijagramima koristi emoji-je kao vizuelne uloge kad god to
+pojacava razumevanje.
+
+Kanonske uloge su:
+
+- 👨‍💻 autor
+- 👤 korisnik
+- 🧠 engine
+- 🧩 komponenta
+- 🌐 browser
+- 💾 state
+- ⚡ action
+- 🎨 render
+- 🔄 update
+
+Ne ubacuj emoji nasumicno.
+
+Koristi ih kao male "slike" koje pomazu da citac prati likove i korake.
+
+### 4.2 Mermaid pravilo
+
+Mermaid nije dekoracija.
+
+Svaki Mermaid mora da uci jedan konkretan tok.
+
+Svaki dijagram mora:
+
+- da ima jasan pocetak
+- da ima jasan kraj
+- da koristi step logiku
+- da prati realan kod
+
+Posle svakog Mermaid dijagrama treba dati kratko objasnjenje:
+
+- sta znaci svaki korak
+- zasto je bas taj korak vazan
+
+### 4.3 Banalni primeri
+
+Pozeljni su prosti, banalni, vizuelni primeri:
+
+- calculator
+- counter
+- tabs
+- modal
+- toggle
+- search box
+
+Primer mora da pomogne coveku da zamisli realnu interakciju.
+
+Ne koristi apstraktne primere ako prost primer radi bolje.
+
+## 5. Obavezna content pravila
+
+Svaki `how-this-works.md` mora da uradi sledece:
+
+1. objasni svrhu foldera prostim jezikom
+2. veže priču za pravi trigger
+3. imenuje prvi važan fajl i funkciju
+4. objasni author flow kada je relevantan
+5. objasni user flow kada je relevantan
+6. pokaze bar jednu stvarnu putanju od ulaza do rezultata
+7. kaze sta ulazi, sta izlazi i sta se menja
+8. kaze sta korisnik stvarno vidi u browseru
+9. kaze sta ne radi taj folder
+10. kaze gde se debaguje prvo
+11. zavrsi recnikom
+
+## 6. Obavezna heading struktura
+
+Ako lokalna istina ne trazi bolji naziv, koristi ovaj redosled:
+
+1. `Sta je ovaj folder`
+2. `Likovi u ovoj prici`
+3. `Dve velike price koje treba da vidis odjednom`
+4. `Story 1: Autor ...`
+5. `Story 2: Korisnik ...`
+6. `Najkraca intuicija`
+7. `Sta tacno ulazi u ovaj folder`
+8. `U kom trenutku se ... desava`
+9. `Glavna putanja kroz sistem`
+10. `Prva vazna putanja`
+11. `Direktni fajlovi u ovom folderu`
+12. `Prvo gledaj ovde kada debagujes`
+13. `Sta treba da zapamtis`
+14. `Recnik`
+
+Ne mora svaki dokument da ima identicne reci u naslovu, ali mora da prati isti
+mentalni redosled.
+
+## 7. Iskrenost prema kodu
+
+Dokument ne sme da izmislja magiju.
+
+Ako je prava putanja:
+
+- `define(...)`
+- `constructor()`
+- `createActions(...)`
+- `renderDisplay(...)`
+- `processTemplate(...)`
+- `bindEvents(...)`
+
+onda tako mora i da pise.
+
+Ne pisati:
+
+- "sistem nekako poveze klik"
+- "engine dalje odradi sta treba"
+- "onda se nesto osvezi"
+
+Pisati:
+
+- koji fajl
+- koja funkcija
+- koji handoff
+- koji vidljiv rezultat
+
+Ako nova tvrdnja nije potvrđena kodom, ne ulazi u dokument.
+
+## 8. Zabranjen ton
+
+U `how-this-works` dokument ne ulazi:
+
+- reklama
+- meta analiza o tome kako je dokument napisan
+- prompt-artifacts
+- `contentReference[...]`
+- filozofiranje pre svrhe
+- genericka arhitektonska poezija
+- filler recenice koje zvuce pametno a ne govore nista
+
+Takodje izbegavati:
+
+- previse kratke kosture bez pravog objasnjenja
+- suv reference-only stil
+- prebrz skok u tehnicke termine bez intuitivnog uvoda
+
+## 9. Naming law mora da se vidi i u dokumentu
+
+`how-this-works` dokument mora da podrzi isto pravilo kao i kod:
+
+- folder kaže tok
+- file kaže odgovornost
+- function kaže tačnu akciju
+
+Dokument ne sme da ulepsava los naziv.
+
+Ako je naziv mutan, dokument treba to da primeti i prijavi, ne da ga sakrije.
+
+## 10. Mini checklist pre zavrsetka
+
+Pre nego sto oznacis dokument gotov, proveri:
+
+- da li potpuni pocetnik moze da prati pricu
+- da li dokument ima i author i user perspektivu
+- da li su emoji i Mermaid korisni, ne dekorativni
+- da li su primeri banalni i vizuelni
+- da li su navedeni pravi fajlovi i funkcije
+- da li postoji debug sekcija
+- da li recnik zatvara zbunjujuce termine
+
+## 11. Najkraci zakon
+
+Ako zelis da zapamtis samo jednu recenicu, neka bude ova:
+
+> `how-this-works` dokument mora da bude dovoljno detaljan da pocetnik moze da
+> vidi pricu, dovoljno vizuelan da moze da je zamisli, i dovoljno posten da je
+> svaka recenica vezana za stvarni kod.
+
+=== how-this-works.md ===
+---
+title: baraba-how-this-works
+owner: platform@baraba
+last_reviewed: 2026-03-19
+classification: internal
+---
+
+# Baraba How This Works
+
+## Sta je ovaj folder
+
+`Baraba` je javna kapija ka Baraba sistemu.
+
+Kad autor u ovom repou zeli da napravi custom element bez frameworka, ovde
+počinje priča.
+
+Spolja sve mora da izgleda malo i jednostavno:
+
+- uvezi `define`
+- uvezi `html`
+- uvezi `css`
+- napravi komponentu
+
+Iza te male kapije postoji ozbiljan engine.
+
+Ali poenta ovog foldera je da autor ne mora odmah da zna celu unutrašnjost.
+
+Ovaj folder postoji da bi authoring ulaz ostao ljudski.
+
+## Likovi u ovoj prici
+
+Ovde imamo pet glavnih likova:
+
+- 👨‍💻 **Autor**: programer koji želi da napiše web komponentu
+- 🧠 **Engine**: unutrašnji sistem koji od authoring opisa pravi radnu komponentu
+- 🧩 **Komponenta**: konkretna instanca koju browser napravi
+- 🌐 **Browser**: okruženje koje registruje tag, pravi instancu i pušta lifecycle
+- 👤 **Korisnik**: osoba koja vidi komponentu i koristi je u aplikaciji
+
+Kad čitaš ovaj dokument, zamišljaj ovu kratku sliku:
+
+- 👨‍💻 autor napiše komponentu
+- `Baraba` je preda engine-u
+- 🧠 engine je pretvori u pravi custom element
+- 🌐 browser je registruje i kasnije napravi instancu
+- 👤 korisnik vidi i koristi komponentu
+
+## Dve velike price koje treba da vidis odjednom
+
+Ovaj folder je mnogo lakše razumeti ako ga gledaš iz dve perspektive.
+
+### 👨‍💻 Priča autora
+
+Autor razmišlja ovako:
+
+- gde da uvezem API
+- kako da napišem `define(...)`
+- kako da dam komponenti `state`, `actions`, `render` i `styles`
+- kako da ne razmišljam odmah o svakom browser detalju
+
+### 👤 Priča korisnika
+
+Korisnik razmišlja potpuno drugačije:
+
+- da li vidim komponentu na ekranu
+- da li klik radi
+- da li se prikaz menja kako očekujem
+
+Ovaj folder je most između te dve priče.
+
+On autoru daje mali, čist ulaz, a korisniku kasnije omogućava da vidi stvarnu,
+radnu komponentu.
+
+## Story 1: 👨‍💻 Autor zeli da napravi web komponentu
+
+Zamisli autora po imenu Milos.
+
+Milos želi da napravi:
+
+- `<note-card>`
+
+Hoće da ova komponenta bude mala kartica sa naslovom, tekstom i dugmetom
+"Sakrij detalje".
+
+Milos ne želi da razmišlja odmah o:
+
+- `customElements.define(...)`
+- `HTMLElement`
+- `shadowRoot`
+- `connectedCallback()`
+- `attributeChangedCallback()`
+
+On želi da razmišlja ovako:
+
+- "Kako se komponenta zove?"
+- "Šta prikazuje?"
+- "Šta radi kad korisnik klikne?"
+
+Tu ovaj folder radi veliku stvar.
+
+On Milosu daje miran authoring API:
+
+ ```js
+import { define, html, css } from "./baraba.js"
+ ```
+
+Drugim rečima:
+
+- 👨‍💻 autor dobija mali ulaz
+- 🧠 engine preuzima teži tehnički posao
+
+### Autorov flow
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Milos želi da napravi <note-card>"] --> B["📦 Uveze define, html i css iz baraba"]
+    B --> C["🧾 Napiše define('note-card', definition)"]
+    C --> D["🧠 Ovaj folder preda definiciju engine-u"]
+    D --> E["🧩 Engine pripremi pravi custom element"]
+ ```
+
+### Objasnjenje autorovog flow-a
+
+- **👨‍💻 Milos** polazi od komponente koju želi da vidi u aplikaciji.
+- **📦 Javni ulaz** mu ne traži da ulazi direktno u engine foldere.
+- **🧾 `define(...)`** je authoring jezik koji mu je dovoljan za početak.
+- **🧠 Ovaj folder** zatim vodi tu priču ka pravoj mašineriji.
+- **🧩 Rezultat** je komponenta koju browser može da registruje i koristi.
+
+## Story 2: 👤 Korisnik zeli da koristi komponentu u browseru
+
+Sada zamisli Anu.
+
+Ana otvara aplikaciju i vidi:
+
+- `<note-card>`
+
+Ona ne zna ništa o:
+
+- `baraba.js`
+- `define(...)`
+- `createDefinedComponent(...)`
+- `customElements.define(...)`
+
+I ne treba da zna.
+
+Nju zanima samo:
+
+- da li kartica postoji
+- da li je lepo prikazana
+- da li dugme radi
+
+Ono što je za Milosa authoring priča, za Anu je korisničko iskustvo.
+
+### Korisnicki flow
+
+ ```mermaid
+flowchart TD
+    A["👤 Ana otvori stranicu"] --> B["🌐 Browser vidi registrovani custom tag"]
+    B --> C["🧩 Napravi instancu komponente"]
+    C --> D["🎨 Komponenta se prikaže na ekranu"]
+    D --> E["👆 Ana klikne dugme ili koristi komponentu"]
+ ```
+
+### Objasnjenje korisnickog flow-a
+
+- **👤 Ana** vidi gotovu stvar, ne engine.
+- **🌐 Browser** je taj koji kasnije oživi registrovani tag.
+- **🧩 Komponenta** postaje konkretna instanca u DOM-u.
+- **🎨 Prikaz** je ono što Ana stvarno oseća kao "komponenta radi".
+- **👆 Interakcija** tek tada dobija smisao.
+
+## Najkraca intuicija
+
+Ako želiš najkraću moguću sliku u glavi, ova je dobra:
+
+`Baraba` je kao recepcija hotela.
+
+- 👨‍💻 autor dolazi sa namerom: "želim da napravim komponentu"
+- recepcija ga ne tera odmah u podrum sa mašinama
+- recepcija ga uputi u pravi unutrašnji tok
+
+Drugim rečima:
+
+- ovaj folder nije cela zgrada
+- ovaj folder je čist ulaz u zgradu
+
+## Sta tacno ulazi u ovaj folder
+
+Pravi ulazi su:
+
+- [`baraba.js`](./baraba.js)
+- [`baraba.js`](./baraba.js)
+
+U praksi, autor najčešće piše:
+
+ ```js
+import { define, html, css } from "./baraba.js"
+ ```
+
+Oba javna ulaza trenutno predaju u isti engine:
+
+- `baraba.js`
+- `baraba.js`
+
+To je namerno, zato što je `baraba.js` backward-compatible most dok se
+repo konsoliduje.
+
+## U kom trenutku se ovaj folder desava
+
+Ovaj folder ulazi u priču u dva odvojena trenutka.
+
+### 1. 🧾 Authoring trenutak
+
+Autor uveze `define`, `html` i `css`, pa napiše komponentu.
+
+To je trenutak kada priča tek nastaje.
+
+### 2. 🌐 Browser startup i runtime trenutak
+
+Kasnije, kada se modul izvrši:
+
+- browser dobije registraciju taga
+- kada taj tag vidi u DOM-u, pravi instancu komponente
+
+Važna razlika:
+
+- `define(...)` se desava kada se JavaScript modul izvrši
+- instanca komponente nastaje tek kasnije kada browser vidi tag u DOM-u
+
+## Glavna putanja kroz sistem
+
+ ```mermaid
+flowchart TD
+    A["👨‍💻 Autor uveze define/html/css"] --> B["📦 baraba primi authoring ulaz"]
+    B --> C["🧠 Ulaz preda pricu engine-u"]
+    C --> D["🌐 Browser dobije registrovan custom element"]
+    D --> E["🧩 Kasnije nastane prava instanca u DOM-u"]
+    E --> F["👤 Korisnik vidi i koristi komponentu"]
+ ```
+
+### Objasnjenje crteza
+
+- **👨‍💻 Autor** polazi od authoring API-ja.
+- **📦 Ovaj folder** drži taj API malim i čistim.
+- **🧠 Engine** preuzima tehničku odgovornost.
+- **🌐 Browser** pamti šta znači dati custom tag.
+- **🧩 Instanca** nastaje tek kada tag stvarno uđe u DOM.
+- **👤 Korisnik** na kraju vidi gotov rezultat.
+
+## Prva vazna putanja
+
+Kada autor napiše:
+
+ ```js
+import { define, html } from "./baraba.js"
+
+define("hello-card", {
+  render() {
+    return html`<p>Zdravo</p>`
+  }
+})
+ ```
+
+najvažnija putanja je:
+
+ ```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as 👨‍💻 Autor
+    participant Public as 📦 baraba.js
+    participant Engine as 🧠 engine/baraba.js
+    participant Registry as 🌐 customElements registry
+    participant Browser as 🌐 Browser
+    participant User as 👤 Korisnik
+
+    Author->>Public: Step 1: uveze define i pozove define("hello-card", ...)
+    Public->>Engine: Step 2: javni ulaz preda definiciju engine-u
+    Engine->>Registry: Step 3: engine registruje tag
+    Registry-->>Browser: Step 4: browser sada zna šta je <hello-card>
+    Browser->>Browser: Step 5: kada tag udje u DOM, browser pravi instancu
+    Browser-->>User: Step 6: korisnik vidi komponentu na ekranu
+ ```
+
+- **Step 1:** Authoring priča počinje na javnom ulazu, ne duboko u engine-u.
+- **Step 2:** `Baraba` ne radi celu magiju, nego predaje priču dalje.
+- **Step 3:** Registracija taga je granica posle koje browser može da razume komponentu.
+- **Step 4:** Browser sada pamti značenje tog taga.
+- **Step 5:** Tek u DOM trenutku nastaje živa instanca.
+- **Step 6:** Korisnik vidi rezultat čitavog authoring lanca.
+
+## Direktni fajlovi u ovom folderu
+
+### [`baraba.js`](./baraba.js)
+
+Glavni javni ulaz.
+
+Ovo je prvo mesto za nove import putanje.
+
+### [`baraba.js`](./baraba.js)
+
+Kompatibilni most ka istom engine ulazu.
+
+Koristan je dok stari importi još postoje.
+
+### [`how-this-works-rules.md`](./how-this-works-rules.md)
+
+Kanonski standard za sve `how-this-works.md` dokumente u ovom delu repoa.
+
+### [`how-this-works.md`](./how-this-works.md)
+
+Mapa ovog root foldera.
+
+## Podfolderi u ovom folderu
+
+### `engine/`
+
+Otvori [`engine/how-this-works.md`](./engine/how-this-works.md).
+
+Koristi ga kada priča uključuje:
+
+- kako `define(...)` postaje klasa
+- kako props i state rade
+- kako `render()` stiže do `shadowRoot`
+- kako eventi i cleanup rade
+
+## Prvo gledaj ovde kada debagujes
+
+- otvori [`baraba.js`](./baraba.js) ako sumnjaš da je problem u javnom authoring ulazu
+- otvori [`baraba.js`](./baraba.js) ako proveravaš backward compatibility import
+- otvori [`engine/how-this-works.md`](./engine/how-this-works.md) čim znaš da je problem već ušao u engine tok
+
+## Sta treba da zapamtis
+
+- `Baraba` je authoring ulaz, ne ceo runtime sistem
+- javni ulaz mora da ostane mali i predvidiv
+- browser ne pravi instancu kad vidi `define(...)`, nego kasnije kad vidi tag u DOM-u
+- autor i korisnik gledaju isti sistem iz dve potpuno različite perspektive
+- ako želiš unutrašnju mehaniku, sledeći korak je `engine/`
+
+## Recnik
+
+- **`define(...)`**: authoring ulaz kojim autor opisuje komponentu
+- **`custom element`**: HTML tag koji browser zna da poveže sa klasom komponente
+- **`registry`**: mesto gde browser pamti koji tag pripada kojoj klasi
+- **`instance`**: konkretna, živa verzija komponente u DOM-u
+- **`authoring`**: trenutak kada programer piše i uvozi komponentu
+- **`runtime`**: trenutak kada browser i korisnik stvarno koriste komponentu
+
+=== merge-files.sh ===
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+usage: merge-files.sh <target-dir> [--exclude=png,jpg] [--include=md,yaml] [--dry-run]
+EOF
+}
+
+declare -A ignored_dirs=(
+  ["vendor"]=1
+  ["node_modules"]=1
+  ["storage"]=1
+  ["tmp"]=1
+  ["dist"]=1
+  ["build"]=1
+  ["coverage"]=1
+  ["__pycache__"]=1
+  [".idea"]=1
+  [".git"]=1
+  [".polymoly"]=1
+  [".cache"]=1
+  ["artifacts"]=1
+)
+
+declare -A exclude_exts=()
+declare -A include_exts=()
+
+target_dir=""
+dry_run=0
+
+add_csv_to_set() {
+  local csv="$1"
+  local -n set_ref="$2"
+  local value
+
+  IFS=',' read -r -a values <<< "$csv"
+  for value in "${values[@]}"; do
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    value="${value#.}"
+    if [[ -n "$value" ]]; then
+      set_ref["$value"]=1
+    fi
+  done
+}
+
+while (($# > 0)); do
+  case "$1" in
+    --exclude=*)
+      add_csv_to_set "${1#*=}" exclude_exts
+      shift
+      ;;
+    --exclude)
+      [[ $# -ge 2 ]] || { usage; exit 2; }
+      add_csv_to_set "$2" exclude_exts
+      shift 2
+      ;;
+    --include=*)
+      add_csv_to_set "${1#*=}" include_exts
+      shift
+      ;;
+    --include)
+      [[ $# -ge 2 ]] || { usage; exit 2; }
+      add_csv_to_set "$2" include_exts
+      shift 2
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --*)
+      printf 'unknown option: %s\n' "$1" >&2
+      usage
+      exit 2
+      ;;
+    *)
+      if [[ -n "$target_dir" ]]; then
+        usage
+        exit 2
+      fi
+      target_dir="$1"
+      shift
+      ;;
+  esac
+done
+
+[[ -n "$target_dir" ]] || { usage; exit 2; }
+[[ -d "$target_dir" ]] || { printf "directory '%s' does not exist\n" "$target_dir" >&2; exit 1; }
+
+if ((${#exclude_exts[@]} > 0 && ${#include_exts[@]} > 0)); then
+  printf 'you cannot use --exclude and --include at the same time\n' >&2
+  exit 1
+fi
+
+root="$(realpath "$target_dir")"
+output_file="$root/$(basename "$root").txt"
+
+printf 'Scanning directory: %s\n' "$root"
+printf 'Output file: %s\n' "$output_file"
+printf 'Ignoring directories:\n'
+printf '%s\n' "${!ignored_dirs[@]}" | LC_ALL=C sort | sed 's/^/- /'
+printf '%s\n' '----------------------------------------'
+
+get_extension_key() {
+  local path="$1"
+  local base ext
+  base="$(basename "$path")"
+
+  if [[ "$base" != *.* ]]; then
+    printf '%s' "$base"
+    return
+  fi
+
+  ext="${base##*.}"
+  if [[ "$ext" == "$base" ]]; then
+    printf '%s' "$base"
+  else
+    printf '%s' "$ext"
+  fi
+}
+
+is_text_file() {
+  local path="$1"
+
+  if [[ ! -s "$path" ]]; then
+    return 0
+  fi
+
+  LC_ALL=C grep -Iq . "$path"
+}
+
+mapfile -t files < <(
+  find "$root" \
+    \( -path "$root/vendor" -o -path "$root/vendor/*" \
+       -o -path "$root/node_modules" -o -path "$root/node_modules/*" \
+       -o -path "$root/storage" -o -path "$root/storage/*" \
+       -o -path "$root/tmp" -o -path "$root/tmp/*" \
+       -o -path "$root/dist" -o -path "$root/dist/*" \
+       -o -path "$root/build" -o -path "$root/build/*" \
+       -o -path "$root/coverage" -o -path "$root/coverage/*" \
+       -o -path "$root/__pycache__" -o -path "$root/__pycache__/*" \
+       -o -path "$root/.idea" -o -path "$root/.idea/*" \
+       -o -path "$root/.git" -o -path "$root/.git/*" \
+       -o -path "$root/.polymoly" -o -path "$root/.polymoly/*" \
+       -o -path "$root/.cache" -o -path "$root/.cache/*" \
+       -o -path "$root/artifacts" -o -path "$root/artifacts/*" \) -prune \
+    -o -type f -print | LC_ALL=C sort
+)
+
+merged=0
+skipped=0
+tmp_output=""
+
+if ((dry_run == 0)); then
+  tmp_output="$(mktemp)"
+fi
+
+cleanup() {
+  if [[ -n "$tmp_output" && -f "$tmp_output" ]]; then
+    rm -f "$tmp_output"
+  fi
+}
+trap cleanup EXIT
+
+for path in "${files[@]}"; do
+  rel="${path#"$root"/}"
+
+  if [[ "$path" == "$output_file" ]]; then
+    printf 'Skipping (generated output file): %s\n' "$rel"
+    ((skipped+=1))
+    continue
+  fi
+
+  ext="$(get_extension_key "$path")"
+
+  if ((${#include_exts[@]} > 0)) && [[ -z "${include_exts[$ext]+x}" ]]; then
+    printf 'Skipping (not in include list): %s\n' "$rel"
+    ((skipped+=1))
+    continue
+  fi
+
+  if ((${#include_exts[@]} == 0)) && [[ -n "${exclude_exts[$ext]+x}" ]]; then
+    printf 'Skipping (excluded by default or option): %s\n' "$rel"
+    ((skipped+=1))
+    continue
+  fi
+
+  if ! is_text_file "$path"; then
+    printf 'Skipping (binary or non-text): %s\n' "$rel"
+    ((skipped+=1))
+    continue
+  fi
+
+  ((merged+=1))
+  if ((dry_run == 1)); then
+    printf '[DRY-RUN] Would merge: %s\n' "$rel"
+    continue
+  fi
+
+  printf 'Merging: %s\n' "$rel"
+  {
+    printf '=== %s ===\n' "$rel"
+    cat "$path"
+    if [[ -s "$path" ]]; then
+      last_byte="$(tail -c 1 "$path" | od -An -tx1 | tr -d ' \n')"
+      if [[ "$last_byte" != "0a" ]]; then
+        printf '\n'
+      fi
+    fi
+    printf '\n'
+  } >> "$tmp_output"
+done
+
+if ((dry_run == 0)); then
+  mv "$tmp_output" "$output_file"
+  tmp_output=""
+fi
+
+printf '%s\n' '----------------------------------------'
+printf 'Done!\n'
+printf 'Merged files : %d\n' "$merged"
+printf 'Skipped files: %d\n' "$skipped"
+printf 'Output file  : %s\n' "$output_file"
+
+=== tests/check-actions-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { define, html } from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+import { waitForBrowserFrame } from "./wait-for-browser-frame.js"
+
+test("actions folder binds actions to the instance and lets template events call them", async () => {
+  const environment = createBrowserLikeEnvironment()
+
+  try {
+    const tagName = createTestTag("baraba-actions")
+
+    define(tagName, {
+      props: { step: 2 },
+      state: { count: 0 },
+      actions: {
+        increment(state, props) {
+          state.count += props.step
+        }
+      },
+      render({ state, actions }) {
+        return html`
+          <button id="count-button" type="button" @click=${actions.increment}>
+            Count: <span>${state.count}</span>
+          </button>
+        `
+      }
+    })
+
+    const element = environment.document.createElement(tagName)
+    environment.document.body.append(element)
+    await waitForBrowserFrame(environment.window)
+
+    assert.equal(typeof element.increment, "function")
+    assert.match(element.shadowRoot.textContent, /Count:\s*0/)
+
+    const button = element.shadowRoot.querySelector("#count-button")
+    button.dispatchEvent(new environment.window.MouseEvent("click", { bubbles: true, composed: true }))
+    await waitForBrowserFrame(environment.window)
+
+    assert.match(element.shadowRoot.textContent, /Count:\s*2/)
+
+    await element.increment()
+    await waitForBrowserFrame(environment.window)
+
+    assert.match(element.shadowRoot.textContent, /Count:\s*4/)
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-define-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { define, html } from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+import { waitForBrowserFrame } from "./wait-for-browser-frame.js"
+
+test("define folder turns one author definition into one registered custom element class", async () => {
+  const environment = createBrowserLikeEnvironment()
+  const lifecycleLog = []
+
+  try {
+    const tagName = createTestTag("baraba-define")
+
+    const FirstComponent = define(tagName, {
+      state: { count: 1 },
+      render({ state }) {
+        return html`<p data-count="${state.count}">Count: ${state.count}</p>`
+      },
+      onConnect() {
+        lifecycleLog.push("connected")
+      }
+    })
+
+    const SecondComponent = define(tagName, {
+      render() {
+        return html`<p>Should not replace existing class</p>`
+      }
+    })
+
+    assert.equal(FirstComponent, SecondComponent)
+
+    const element = environment.document.createElement(tagName)
+    environment.document.body.append(element)
+    await waitForBrowserFrame(environment.window)
+
+    assert.ok(element instanceof environment.window.HTMLElement)
+    assert.equal(lifecycleLog.length, 1)
+    assert.equal(element.shadowRoot.querySelector("[data-count]").textContent.trim(), "Count: 1")
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-lifecycle-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { define, html } from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+import { waitForBrowserFrame } from "./wait-for-browser-frame.js"
+
+test("lifecycle folder runs author cleanup and registered cleanup stack when the component leaves the DOM", async () => {
+  const environment = createBrowserLikeEnvironment()
+  const cleanupLog = []
+
+  try {
+    const tagName = createTestTag("baraba-lifecycle")
+
+    define(tagName, {
+      render() {
+        return html`<p>Lifecycle</p>`
+      },
+      onConnect() {
+        this.onCleanup(() => {
+          cleanupLog.push("stack-cleanup")
+        })
+      },
+      onCleanup() {
+        cleanupLog.push("hook-cleanup")
+      }
+    })
+
+    const element = environment.document.createElement(tagName)
+    environment.document.body.append(element)
+    await waitForBrowserFrame(environment.window)
+
+    element.remove()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    assert.deepEqual(cleanupLog, ["hook-cleanup", "stack-cleanup"])
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-public-entry.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import * as baraba from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+
+test("root baraba.js entry exposes canonical author API", () => {
+  const environment = createBrowserLikeEnvironment()
+
+  try {
+    assert.equal(typeof baraba.define, "function")
+    assert.equal(typeof baraba.html, "function")
+    assert.equal(typeof baraba.css, "function")
+
+    const tagName = createTestTag("baraba-entry")
+    const DefinedComponent = baraba.define(tagName, {
+      render() {
+        return baraba.html`<p>Baraba works</p>`
+      }
+    })
+
+    assert.equal(typeof DefinedComponent, "function")
+    assert.equal(environment.window.customElements.get(tagName), DefinedComponent)
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-render-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { define, html } from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+import { waitForBrowserFrame } from "./wait-for-browser-frame.js"
+
+test("render folder handles nested templates, arrays, dynamic values and event-driven rerender", async () => {
+  const environment = createBrowserLikeEnvironment()
+
+  try {
+    const tagName = createTestTag("baraba-render")
+
+    define(tagName, {
+      state: { open: true },
+      actions: {
+        toggle(state) {
+          state.open = !state.open
+        }
+      },
+      render({ state, actions }) {
+        return html`
+          <section id="content">
+            ${["A", html`<span data-kind="nested">B</span>`, state.open ? html`<strong>ON</strong>` : "OFF", 3]}
+          </section>
+          <button id="toggle-button" type="button" @click=${actions.toggle}>Toggle</button>
+        `
+      }
+    })
+
+    const element = environment.document.createElement(tagName)
+    environment.document.body.append(element)
+    await waitForBrowserFrame(environment.window)
+
+    assert.ok(element.shadowRoot.querySelector('[data-kind="nested"]'))
+    assert.match(element.shadowRoot.querySelector("#content").textContent.replace(/\s+/g, ""), /ABON3/)
+
+    element.shadowRoot
+      .querySelector("#toggle-button")
+      .dispatchEvent(new environment.window.MouseEvent("click", { bubbles: true, composed: true }))
+
+    await waitForBrowserFrame(environment.window)
+
+    assert.match(element.shadowRoot.querySelector("#content").textContent.replace(/\s+/g, ""), /ABOFF3/)
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-state-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { define, html } from "../baraba.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+import { createTestTag } from "./create-test-tag.js"
+import { waitForBrowserFrame } from "./wait-for-browser-frame.js"
+
+test("state folder parses typed props, reacts to attribute changes and skips no-op reactive writes", async () => {
+  const environment = createBrowserLikeEnvironment()
+  const propsChanges = []
+  let renderCount = 0
+
+  try {
+    const tagName = createTestTag("baraba-state")
+
+    define(tagName, {
+      props: {
+        count: 0,
+        compact: false,
+        label: "start"
+      },
+      state: {
+        open: false
+      },
+      render({ props, state }) {
+        renderCount += 1
+        return html`
+          <p data-props="${props.count}:${props.compact}:${props.label}">
+            ${props.count} / ${String(props.compact)} / ${props.label} / ${String(state.open)}
+          </p>
+        `
+      },
+      onPropsChanged(previousProps, nextProps, change) {
+        propsChanges.push({ previousProps, nextProps, change })
+      }
+    })
+
+    const element = environment.document.createElement(tagName)
+    element.setAttribute("count", "3")
+    element.setAttribute("compact", "")
+    element.setAttribute("label", "ready")
+
+    environment.document.body.append(element)
+    await waitForBrowserFrame(environment.window)
+
+    assert.deepEqual(element.props, {
+      count: 3,
+      compact: true,
+      label: "ready"
+    })
+
+    element.setAttribute("count", "4")
+    await waitForBrowserFrame(environment.window)
+
+    assert.equal(element.props.count, 4)
+    assert.ok(propsChanges.length >= 1)
+    assert.equal(propsChanges.at(-1).change.name, "count")
+
+    const renderCountBeforeNoOp = renderCount
+    element.state.open = false
+    await waitForBrowserFrame(environment.window)
+
+    assert.equal(renderCount, renderCountBeforeNoOp)
+
+    element.label = "runtime"
+    await waitForBrowserFrame(environment.window)
+
+    assert.equal(element.getAttribute("label"), "runtime")
+    assert.equal(element.props.label, "runtime")
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/check-styling-folder.test.js ===
+import assert from "node:assert/strict"
+import test from "node:test"
+
+import { css } from "../baraba.js"
+import { buildStyleBlock } from "../engine/styling/build-style-block.js"
+import { createBrowserLikeEnvironment } from "./create-browser-like-environment.js"
+
+test("styling folder keeps css authoring ergonomic and still returns inline fallback when adoptedStyleSheets are unavailable", () => {
+  const environment = createBrowserLikeEnvironment()
+
+  try {
+    const styles = css`
+      button {
+        color: white;
+        background: teal;
+      }
+    `
+
+    const host = environment.document.createElement("div")
+    const shadowRoot = host.attachShadow({ mode: "open" })
+    const styleBlock = buildStyleBlock(shadowRoot, styles)
+
+    assert.ok(styles instanceof environment.window.CSSStyleSheet)
+    assert.match(styleBlock, /button/)
+    assert.match(styleBlock, /background:\s*teal/)
+  } finally {
+    environment.cleanup()
+  }
+})
+
+=== tests/create-browser-like-environment.js ===
+import { JSDOM } from "jsdom"
+
+const GLOBAL_KEYS = [
+  "window",
+  "document",
+  "customElements",
+  "HTMLElement",
+  "Element",
+  "Node",
+  "DocumentFragment",
+  "ShadowRoot",
+  "CustomEvent",
+  "Event",
+  "MouseEvent",
+  "InputEvent",
+  "HTMLInputElement",
+  "HTMLTextAreaElement",
+  "HTMLButtonElement",
+  "HTMLTemplateElement",
+  "CSSStyleSheet",
+  "navigator",
+  "requestAnimationFrame",
+  "cancelAnimationFrame"
+]
+
+const MISSING = Symbol("missing-global")
+
+function setGlobalValue(name, value) {
+  Object.defineProperty(globalThis, name, {
+    configurable: true,
+    writable: true,
+    value
+  })
+}
+
+export function createBrowserLikeEnvironment() {
+  const dom = new JSDOM("<!doctype html><html><body></body></html>", {
+    pretendToBeVisual: true,
+    url: "http://localhost/"
+  })
+
+  const previousValues = new Map()
+
+  for (const key of GLOBAL_KEYS) {
+    previousValues.set(key, key in globalThis ? globalThis[key] : MISSING)
+    setGlobalValue(key, dom.window[key])
+  }
+
+  return {
+    window: dom.window,
+    document: dom.window.document,
+
+    cleanup() {
+      for (const [key, previousValue] of previousValues.entries()) {
+        if (previousValue === MISSING) {
+          delete globalThis[key]
+          continue
+        }
+
+        setGlobalValue(key, previousValue)
+      }
+
+      dom.window.close()
+    }
+  }
+}
+
+=== tests/create-test-tag.js ===
+let nextTagId = 0
+
+export function createTestTag(prefix = "baraba-test") {
+  nextTagId += 1
+  return `${prefix}-${nextTagId}`
+}
+
+=== tests/wait-for-browser-frame.js ===
+export async function waitForBrowserFrame(window) {
+  await new Promise((resolve) => {
+    window.requestAnimationFrame(() => resolve())
+  })
+
+  await Promise.resolve()
+}
+

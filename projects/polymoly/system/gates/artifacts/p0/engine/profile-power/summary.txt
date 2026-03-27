@@ -1,0 +1,7 @@
+Profile Power Gate
+checks_total: 50
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/p0/engine/profile-power/checks.tsv

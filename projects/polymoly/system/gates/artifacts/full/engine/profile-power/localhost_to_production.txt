@@ -1,0 +1,7 @@
+from=localhost
+to=production
+claim_raised=auth,availability,backup,exposure,observability,security
+claim_unchanged=
+resolved_raised=auth,availability,backup,exposure,observability,security
+resolved_unchanged=
+claim_without_resolved=

@@ -1,0 +1,7 @@
+Advanced Runtime Tuning Baseline
+checks_total: 16
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/full/performance/runtime-tuning/checks.tsv

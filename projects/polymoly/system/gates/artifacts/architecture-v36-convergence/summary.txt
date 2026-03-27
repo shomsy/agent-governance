@@ -1,0 +1,11 @@
+ARCHITECTURE V3.6 CONVERGENCE: PASS
+checks_total: 95
+checks_failed: 0
+gate: PASS
+
+required_missing=0
+legacy_paths_present=0
+doc_required_clauses=12
+doc_forbidden_clauses=14
+binding_failures=0
+checks_file=system/gates/artifacts/architecture-v36-convergence/checks.tsv

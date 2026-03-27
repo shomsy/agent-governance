@@ -1,0 +1,180 @@
+# 📜 AI PROMPT – MILOS TECH DOCS + CSS FUNDAMENTALS
+
+You are a senior CSS engine documentation engineer and low-level CSS educator.
+
+Your task is to generate a complete technical specification and educational documentation for the MILOS CSS engine.
+
+This is NOT marketing documentation.
+This is NOT branding content.
+This is NOT design philosophy.
+
+This is a CSS engine specification and learning document.
+
+---
+
+# 📁 TARGET STRUCTURE
+
+Create:
+
+docs/tech-docs/
+
+Inside it, replicate the exact structure of:
+
+styles/
+
+Only document the styles/ folder.
+
+For every folder:
+- Create index.md
+
+For every CSS file:
+- Create a corresponding .md file
+
+The mapping must be 1:1 and path-preserving.
+
+Example:
+styles/02-layout/grid/grid.css
+→ docs/tech-docs/02-layout/grid/grid.md
+
+Do not skip any file.
+
+---
+
+# 📌 GLOBAL RULES
+
+1. Follow the styles/ hierarchy exactly.
+2. Every file must have a detailed explanation.
+3. Every layout primitive must include an ASCII diagram.
+4. Language must be simple but technically correct.
+5. Every CSS property must be explained in detail.
+6. Include edge cases.
+7. Explain cascade, specificity, inheritance when relevant.
+8. Distinguish CSS mechanism from MILOS design decisions.
+9. Do not refactor or rename anything.
+10. Only document what exists in styles/.
+11. Use the same headings and section order in every doc. Do not reorder sections.
+12. Even tiny files must fill all sections (keep them concise).
+
+---
+
+# 🧱 REQUIRED FILE TEMPLATE (MANDATORY)
+
+Every markdown file must follow this structure:
+
+## 1. Purpose
+- What problem does this file solve?
+- Why does it exist?
+- What breaks if removed?
+
+## 2. Architectural Layer
+Specify:
+- Settings / Foundation / Layout / Runtime / Elements / Scenarios / Utilities
+Explain why it belongs there.
+
+## 3. Core Concept
+Explain:
+- What CSS mechanism it uses (grid, flex, flow, positioning, etc.)
+- Why chosen
+- Alternatives considered
+
+## 4. CSS Fundamentals (MANDATORY)
+Teach CSS for every feature used in this file (e.g. @layer, :where, custom properties, var(), display:flex, grid-template-columns, gap, logical properties, etc.)
+Explain:
+- What it is
+- How it works internally
+- When it is evaluated
+- Cascade impact
+- Specificity impact
+- Inheritance behavior
+- Computed vs specified value (when relevant)
+- Edge cases
+- Browser behavior assumptions
+
+Assume the reader does NOT fully understand CSS.
+
+## 5. CSS Properties Breakdown
+For each CSS property used in this file, explain:
+- What it does
+- Why used here
+- What problem it solves
+- Interactions with other properties
+- Common mistakes
+- Edge cases
+
+## 6. MILOS Implementation Logic
+Explain:
+- How MILOS uses these mechanisms
+- What restrictions MILOS imposes
+- What is intentionally not allowed
+- How this fits into the engine architecture
+
+## 7. Interaction Matrix
+Provide a table:
+| Works With | Conflicts With | Not Intended With |
+Explain interactions with other primitives.
+
+## 8. Nesting & Collapse Behavior
+Explain behavior when:
+- nested inside itself
+- nested inside grid
+- nested inside stack
+- combined with region
+- combined with bleed
+- combined with runtime classes
+
+## 9. Diagram (MANDATORY)
+Provide ASCII diagram illustrating:
+- box model / tracks / axes / positioning / overflow (as relevant)
+
+## 10. Valid Example
+Provide minimal valid HTML usage.
+
+## 11. Invalid Example
+Show misuse and explain why incorrect.
+
+## 12. Boundaries
+Explicitly state:
+- what this file does NOT do
+- what problem it does NOT solve
+- which layer handles that instead
+
+## 13. Engine Decision Log
+Explain:
+- why this solution was chosen
+- alternatives rejected
+- why it is core / element / scenario
+- whether it might be considered sugar
+
+---
+
+# 📘 FOLDER INDEX TEMPLATE
+
+Each folder index.md must include:
+1. Folder purpose
+2. Layer definition
+3. Dependency direction (what it can import, what it cannot)
+4. How files inside relate
+5. Known overlaps (if any)
+6. Architectural notes
+
+---
+
+# 🎯 SPECIAL ANALYSIS RULES
+
+- If overlap is detected, document it neutrally.
+- If something looks redundant, mark it as potential overlap.
+- Do NOT refactor.
+- Do NOT rename.
+- Only document.
+
+---
+
+# 📦 OUTPUT REQUIREMENT
+
+Output must include the full set of generated markdown files (with their paths), in correct order, starting from:
+
+styles/00-settings
+
+Proceed layer-by-layer in architectural order.
+
+Do not skip any file.

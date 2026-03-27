@@ -1,0 +1,7 @@
+PHP Runtime Surface Gate
+checks_total: 6
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/full/platform/php-runtime-surface/checks.tsv

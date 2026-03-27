@@ -1,0 +1,7 @@
+Modular Packs Gate
+checks_total: 7
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/full/platform/modular-packs/checks.tsv

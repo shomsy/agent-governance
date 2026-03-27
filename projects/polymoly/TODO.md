@@ -1,0 +1,820 @@
+# PolyMoly — Active TODO
+
+Last update: 2026-03-13
+
+## Scope
+
+- This file tracks only active unresolved feature and platform work.
+- Bug, risk, and regression findings belong in `BUGS.md`.
+- The only active release-planning contract lives in `system/docs/development/release/current.md`.
+
+## Active Release Inputs
+
+- `ARCHITECTURE.md`
+- `system/docs/development/release/current.md`
+- `system/docs/development/release/current-placement-plan.yaml`
+- `system/docs/development/architecture/principles.md`
+- `system/docs/development/architecture/root-surface-contract.md`
+- `system/docs/development/standards/product-quality.md`
+- `system/docs/development/standards/code-quality.md`
+- `system/docs/development/standards/release-proof-plan.md`
+
+## Status Snapshot
+
+- Active TODO scope: **8 open items** (Local 100% closure plan)
+- Release-blocking TODO items: **0**
+- Canonical planning rule: **one active release contract, no versioned roadmap stacks in the active tree**
+- Canonical architecture truth: **`ARCHITECTURE.md` plus `system/docs/development/architecture/**`**
+- Closure law: **every TODO closes only after review convergence, required gates, and evidence agree**
+
+## Active Items (Local 100% Production-Ready Plan)
+
+[x] TODO-LOCAL-100-001 (high, release-engineering) Run canonical local verification path:
+    git diff --check  # PASS (no output)
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./...  # PASS (all ok, some no tests)
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs  # PASS
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0  # PASS
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack . # PASS
+
+[x] TODO-LOCAL-100-002 (medium, release-engineering) Run stronger closure proof:
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run full # PASS
+
+[x] TODO-LOCAL-100-003 (high, operator-proof) Run real source-native demo:
+    env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly new demo --framework laravel # PASS
+    cd demo
+    poly up
+    poly status
+
+[ ] TODO-LOCAL-100-004 (medium, observability) Verify inspect/diagnose surface in demo:
+    poly doctor
+    poly logs
+    poly describe redis
+
+[ ] TODO-LOCAL-100-005 (medium, release-engineering) Build binary and repeat core demo with built artifact:
+    task poly:build
+    ./system/tools/poly/bin/poly version
+    run new/up/status with absolute binary path from non-repo dir
+
+[ ] TODO-LOCAL-100-006 (low, documentation) Check README / QUICKSTART / operator docs for truth convergence and rerun docs gate if edited.
+
+[ ] TODO-LOCAL-100-007 (medium, governance) Archive final closure evidence:
+    system/docs/development/evidence/findings/local-100percent-closure.md
+
+[ ] TODO-LOCAL-100-008 (low, governance) Re-check TODO.md and BUGS.md after proof run and record any blocker before claiming 100/100.
+
+## Active Items
+
+- [x] `TODO-NAMING-001` converge PolyMoly on flow-first naming so folders state the flow, files state one responsibility, and exported functions state the exact action across product, system, tooling, and docs
+- [x] `TODO-DOCS-STYLE-001` finish the repo-wide rollout and docs checks for the canonical `product/project` style `how-this-works` contract outside `system/docs/**`
+
+Add new work here only in this form:
+
+- `[ ]` `TODO-ID` short outcome statement
+
+## Evidence Pointers
+
+- Execution history and closure notes: `system/docs/development/evidence/archives/evidence-archive.md`
+- Governance decisions: `system/docs/development/governance/decision-log.md`
+
+## Recent Evidence
+
+- Iteration evidence (`2026-03-14`, extend root-surface allowlist and restore planning artifacts):
+  - lane: `architecture + governance`
+  - goal: update the root-surface gate to allow architecture planning artifacts in the repository root, restore INTEGRATION_PLAN.md and TEMP_FILE_FUNCTION_MAP.md to the root as requested, and sync internal forwarder documentation to satisfy the docs-scope-drift gate
+  - changed files:
+    - `TODO.md`
+    - `INTEGRATION_PLAN.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+    - `system/tools/poly/internal/architecture/check_architecture_surface_rules.go`
+    - `system/tools/poly/internal/product/project/configure/how-this-works.md`
+    - `system/tools/poly/internal/product/project/lifecycle/how-this-works.md`
+  - verification:
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run full` -> PASS
+
+
+- Iteration evidence (`2026-03-14`, align CLI routing with internal forwarders and fix project root resolution):
+  - lane: `release-engineering + architecture + governance`
+  - goal: resolve the final blockers for local-ready closure by refactoring CLI command routing to use internal forwarder packages, fixing project root resolution for `poly describe`, `poly events`, `poly health`, and `poly open`, and ensuring resilience when commands are executed from sub-projects by correctly locating `external-modules.lock.json` and adapter configurations
+  - changed files:
+    - `TODO.md`
+    - `go.work.sum`
+    - `system/adapters/docker/fetch_docker_runtime_state.go`
+    - `system/engine/apply/apply_command_spec.go`
+    - `system/shared/config/catalog_platform_modules.go`
+    - `system/tools/poly/go.mod`
+    - `system/tools/poly/internal/cli/route_plugin_and_experience_commands.go`
+    - `system/tools/poly/internal/cli/route_project_commands.go`
+    - `system/tools/poly/internal/cli/route_runtime_commands.go`
+    - `system/tools/poly/internal/product/project/lifecycle/lifecycle_forwarder.go`
+  - verification:
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly new demo --framework laravel` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run full` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `bash merge-files.sh .` -> PASS
+
+- Iteration evidence (`2026-03-13`, reorganize deploy into a canonical product pipeline slice and align product-root truth around it):
+  - lane: `release-engineering + governance + architecture`
+  - goal: finish the deploy rewrite so `product/deploy/` reads as one real pipeline with `install`, `release/prepare`, `release/verify`, and `validate/runtime`, add `deploy_pipeline.go` as the canonical in-code orchestration map, update the root `product/` explanation so pipeline-shaped slices and lane-shaped slices are both explicit, and keep active planning and inventory docs aligned to the shipped tree
+  - changed files:
+    - `TODO.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+    - `INTEGRATION_PLAN.md`
+    - `product/how-this-works.md`
+    - `product/deploy/**`
+    - `product/inspect/diagnose/doctor_report.go`
+    - `system/docs/development/release/current-placement-plan.yaml`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules.go`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules_test.go`
+    - `system/tools/poly/internal/cli/route_argocd_commands.go`
+    - `system/tools/poly/internal/cli/route_operator_commands.go`
+    - `system/tools/poly/internal/installops/project_binary_installation.go`
+    - `system/tools/poly/internal/migrateops/verify_file_placement_logic_test.go`
+    - `system/tools/poly/internal/releaseops/release_artifacts.go`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./product/deploy/... ./system/tools/poly/internal/installops ./system/tools/poly/internal/releaseops ./system/tools/poly/internal/cli ./system/tools/poly/internal/architecture ./system/tools/poly/internal/migrateops` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, split the deploy channel flow into a deeper vertical slice only where it improves explainability):
+  - lane: `release-engineering + governance`
+  - goal: apply the `folder says flow, file says responsibility, function says exact action` rule across the deploy slice, keep the public `prepare` handoff absurdly simple, move the real distribution-channel work into `prepare/channels/**`, give each channel sub-step its own folder when that makes the flow easier to follow, and keep `release/` plus `validate/` flatter where their current size is already readable
+  - changed files:
+    - `TODO.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+    - `product/deploy/how-this-works.md`
+    - `product/deploy/prepare/channel_models.go`
+    - `product/deploy/prepare/generate_channels.go`
+    - `product/deploy/prepare/how-this-works.md`
+    - `product/deploy/prepare/channels/**`
+    - `product/deploy/prepare/build_channel_paths.go` (deleted)
+    - `product/deploy/prepare/build_release_binaries.go` (deleted)
+    - `product/deploy/prepare/filter_release_binaries.go` (deleted)
+    - `product/deploy/prepare/generate_channels_test.go` (deleted)
+    - `product/deploy/prepare/load_checksums.go` (deleted)
+    - `product/deploy/prepare/normalize_generate_channels_input.go` (deleted)
+    - `product/deploy/prepare/render_channel_readme.go` (deleted)
+    - `product/deploy/prepare/render_homebrew_formula.go` (deleted)
+    - `product/deploy/prepare/render_install_script.go` (deleted)
+    - `product/deploy/prepare/render_scoop_manifest.go` (deleted)
+    - `product/deploy/prepare/validate_required_release_binaries.go` (deleted)
+    - `product/deploy/prepare/write_channel_files.go` (deleted)
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./product/deploy/prepare ./product/deploy/prepare/channels/... ./system/tools/poly/internal/releaseops ./system/tools/poly/internal/cli` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, refactor release channel generation into strict job-based operations):
+  - lane: `release-engineering + governance`
+  - goal: replace the monolithic distribution-channel generator with a small file-per-job flow in `product/deploy/prepare/`, move the public API to `GenerateChannels(GenerateChannelsInput)`, enforce stricter input and checksum validation, make rendered channel artifacts deterministic, harden install and Homebrew generation, and keep docs plus temporary repo inventory aligned to the shipped code
+  - changed files:
+    - `TODO.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+    - `product/deploy/prepare/configure_distribution_channels.go` (deleted)
+    - `product/deploy/prepare/channel_models.go`
+    - `product/deploy/prepare/generate_channels.go`
+    - `product/deploy/prepare/normalize_generate_channels_input.go`
+    - `product/deploy/prepare/build_release_binaries.go`
+    - `product/deploy/prepare/validate_required_release_binaries.go`
+    - `product/deploy/prepare/build_channel_paths.go`
+    - `product/deploy/prepare/write_channel_files.go`
+    - `product/deploy/prepare/load_checksums.go`
+    - `product/deploy/prepare/render_install_script.go`
+    - `product/deploy/prepare/render_homebrew_formula.go`
+    - `product/deploy/prepare/render_scoop_manifest.go`
+    - `product/deploy/prepare/render_channel_readme.go`
+    - `product/deploy/prepare/filter_release_binaries.go`
+    - `product/deploy/prepare/generate_channels_test.go`
+    - `product/deploy/prepare/how-this-works.md`
+    - `system/tools/poly/internal/cli/route_operator_commands.go`
+    - `system/tools/poly/internal/releaseops/release_artifacts.go`
+    - `system/tools/poly/internal/releaseops/channels_test.go`
+    - `system/tools/poly/internal/releaseops/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./product/deploy/prepare ./system/tools/poly/internal/releaseops ./system/tools/poly/internal/cli` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, explain distribution channels in English across docs and generated release output):
+  - lane: `release-engineering + governance`
+  - goal: clarify that PolyMoly distribution channels are the install surfaces generated by `poly release dist-channels <version>`, map `Homebrew` to macOS users, `Scoop` to Windows users, and `install.sh` to Linux or shell-first users, and ship the same explanation both in repo docs and in the generated channel README
+  - changed files:
+    - `TODO.md`
+    - `README.md`
+    - `product/deploy/prepare/configure_distribution_channels.go`
+    - `product/deploy/prepare/how-this-works.md`
+    - `system/tools/poly/internal/releaseops/channels_test.go`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, clarify clone-vs-build-vs-release-vs-deploy in the product deploy docs):
+  - lane: `governance + release-engineering`
+  - goal: explain that `git clone polymoly` is only the development starting point, separate it from build, release, and deploy, clarify that `product/deploy/` owns the shipping/distribution story rather than repo checkout, and remove the remaining top-level product doc ambiguity between `project/` and `deploy/`
+  - changed files:
+    - `TODO.md`
+    - `product/how-this-works.md`
+    - `product/deploy/README.md`
+    - `product/deploy/how-this-works.md`
+    - `product/deploy/prepare/how-this-works.md`
+    - `product/deploy/release/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, remove dead code and legacy file surfaces across the repo):
+  - lane: `runtime-hardening + governance + release-engineering`
+  - goal: delete confirmed dead files and dead helpers, remove legacy file-level compatibility naming from active tooling slices, fail closed on stray `poly ai` arguments, regenerate the temporary file/function inventory from the live tree, and leave no active legacy file names outside historical evidence archives
+  - changed files:
+    - `TODO.md`
+    - `INTEGRATION_PLAN.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+    - `product/deploy/prepare/how-this-works.md`
+    - `product/deploy/prepare/bundle_release_assets.go` (deleted)
+    - `system/tools/poly/internal/cli/route_plugin_and_experience_commands.go`
+    - `system/tools/poly/internal/modules/provide_external_module_support.go`
+    - `system/tools/poly/internal/projectcfg/project_configuration.go`
+    - `system/tools/poly/internal/system/shared/config/project_configuration.go`
+    - `system/tools/poly/internal/system/engine/apply/command_specs.go`
+    - `system/tools/poly/internal/system/engine/resolve/resolve_requested_modules.go`
+    - `system/tools/poly/internal/**/how-this-works.md`
+  - verification:
+    - `rg --files | rg 'compatibility\.go$|legacy'` -> PASS (`0` active legacy-named files)
+    - `git diff --check` -> PASS
+    - `go test ./...` -> PASS
+    - `(cd system/tools/poly && staticcheck ./...)` -> PASS
+    - `(cd system/tools/poly && deadcode -test ./...)` -> PASS
+    - `(cd system/tools/poly && golangci-lint run ./...)` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `bash merge-files.sh .` -> PASS
+- Iteration evidence (`2026-03-13`, publish a temporary repo-wide rename map and backup review bundle):
+  - lane: `governance`
+  - goal: generate one root markdown file that groups the whole repository by folder, lists every shipped file, explains what each file is responsible for, lists every top-level function with a rename-oriented description, and produce the matching backup review bundle so naming cleanup can be planned from one place
+  - changed files:
+    - `TODO.md`
+    - `TEMP_FILE_FUNCTION_MAP.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache bash merge-files.sh .` -> PASS
+- Iteration evidence (`2026-03-13`, humanize the repo-wide `how-this-works` surface toward the `PolyMoly for Humans` tone):
+  - lane: `governance`
+  - goal: keep the canonical `how-this-works` skeleton, but rewrite the shipped flow-book surface so it reads more like a guided PM story again, with lighter language, more concrete `command -> file -> function -> result` traces, less generated filler, and corrected top-level story routing in the central product, system, deploy, shared-config, and CLI docs
+  - changed files:
+    - `TODO.md`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md` outside `system/docs/**`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `polymoly.txt`
+  - verification:
+    - `git diff --check` -> PASS
+    - `rg -n "a real operator command or operator question reaches this folder|a higher product, engine, or tooling flow reaches this system slice|this folder performs one machine-facing step|the next layer gets a cleaner request|This is one of the direct Go files in this folder|This Go test file proves|When a higher-level caller reaches this slice for this reason:|this folder performs one internal tool step|a CLI, gate, or script flow reaches this tooling slice|the story lands in the first real file or child slice" product system -g 'how-this-works.md' | wc -l` -> `0`
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, publish the root integration plan draft for shared review):
+  - lane: `governance`
+  - goal: start tracking the root `INTEGRATION_PLAN.md` in git so the architecture map and the `PolyMoly for Humans` appendix can be reviewed, iterated, and linked as a first-class repository document instead of staying only as a local draft
+  - changed files:
+    - `TODO.md`
+    - `INTEGRATION_PLAN.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-13`, align the remaining `product/project/**` flow docs to the canonical skeleton):
+  - lane: `governance`
+  - goal: finish the last `product/project/**` `how-this-works.md` pages so every shipped flow doc in `product/**` and `system/**` follows the same human-first skeleton, preserve the richer product-project teaching slice, and close the final repo-wide style gap without touching the separate `INTEGRATION_PLAN.md` draft
+  - changed files:
+    - `TODO.md`
+    - `product/project/how-this-works.md`
+    - `product/project/configure/how-this-works.md`
+    - `product/project/configure/cache/how-this-works.md`
+    - `product/project/configure/database/how-this-works.md`
+    - `product/project/configure/profile/how-this-works.md`
+    - `product/project/configure/replace/how-this-works.md`
+    - `product/project/create/template/how-this-works.md`
+    - `product/project/create/wizard/how-this-works.md`
+    - `product/project/lifecycle/how-this-works.md`
+    - `product/project/lifecycle/access/how-this-works.md`
+    - `product/project/lifecycle/control/how-this-works.md`
+    - `product/project/lifecycle/logs/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `find product system -name 'how-this-works.md' ... canonical heading audit` -> PASS (`250/250` files matched, missing heading count `0`)
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-12`, close the repo-wide `how-this-works` rollout outside `system/docs/**`):
+  - lane: `governance`
+  - goal: finish the human-first rewrite of every shipped `how-this-works.md` page outside `system/docs/**`, keep `product/project/**` as the teaching reference slice, close the last open docs-style backlog item, and prove the docs-only change through the canonical review loop
+  - changed files:
+    - `TODO.md`
+    - `product/**/how-this-works.md` outside `product/project/**`
+    - `system/**/how-this-works.md` outside `system/docs/**`
+    - `polymoly.txt`
+  - verification:
+    - `git diff --check` -> PASS
+    - `find product system -type d ... missing how-this-works count` -> `0`
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-12`, formalize the 10/10 `how-this-works` law and execution scaffold):
+  - lane: `governance`
+  - goal: turn the missing explanation checklist into the canonical `how-this-works` doctrine, align it to the shipped `product/project` teaching style, and make the reusable template concrete enough that future flow docs can be rewritten without falling back to generic filler
+  - changed files:
+    - `TODO.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+  - verification:
+    - `git diff --check -- TODO.md system/docs/development/governance/how-to-document-flow.md system/docs/development/governance/how-this-works-template.md` -> PASS
+    - `python3 - <<'PY' ... assert the flow law and template include the canonical folder headings, first-path contract, function coverage, dictionary rule, and anti-filler rule ... PY` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+- Iteration evidence (`2026-03-12`, rewrite repo-wide `how-this-works` pages into the `product/project` teaching style):
+  - lane: `governance`
+  - goal: rewrite every first-party `how-this-works.md` page across `product/**` and executable `system/**` in the richer `product/project` narrative style, add the remaining missing folder docs, and keep `system/docs/**` out of scope because it still follows the separate ADU docs-engine contract
+  - changed files:
+    - `TODO.md`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md` outside `system/docs/**`
+    - `system/gates/engine/fixtures/compose-renderer-proof/.polymoly/how-this-works.md`
+    - `system/runtime/capabilities/storage/**`
+    - `system/scripts/build/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `find product system -type d \( -name node_modules -o -path '*/node_modules/*' -o -name artifacts -o -path '*/artifacts/*' -o -name bin -o -path '*/bin/*' -o -path 'system/docs' -o -path 'system/docs/*' \) -prune -o -type d -print | ... missing how-this-works count` -> `0`
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-12`, converge repo naming from flow-first to plain-language operator verbs):
+  - lane: `platform-feature + governance`
+  - goal: remove the remaining implementation-heavy naming layer so first-party internals prefer plain operator verbs like `route`, `prepare`, `plan`, `map`, `describe`, and `select`, while keeping `build`, `apply`, and `run` only where they are truly contractual or literal
+  - changed files:
+    - `TODO.md`
+    - `product/inspect/diagnose/**`
+    - `product/inspect/observe/**`
+    - `product/project/configure/**`
+    - `product/project/create/wizard/**`
+    - `product/project/lifecycle/control/**`
+    - `system/adapters/docker/**`
+    - `system/engine/resolve/**`
+    - `system/shared/cli/**`
+    - `system/shared/config/**`
+    - `system/tools/poly/cmd/poly/main.go`
+    - `system/tools/poly/internal/architecture/**`
+    - `system/tools/poly/internal/cli/**`
+    - `system/tools/poly/internal/doctor/**`
+    - `system/tools/poly/internal/enterpriseops/**`
+    - `system/tools/poly/internal/modules/**`
+    - `system/tools/poly/internal/perfops/**`
+    - `system/tools/poly/internal/platformops/**`
+    - `system/tools/poly/internal/product/**`
+    - `system/tools/poly/internal/profiles/**`
+    - `system/tools/poly/internal/projectcfg/**`
+    - `system/tools/poly/internal/releasecheck/**`
+    - `system/tools/poly/internal/runner/**`
+    - `system/tools/poly/internal/system/engine/**`
+    - `system/tools/poly/internal/system/shared/config/**`
+    - `system/tools/poly/internal/toolboxops/**`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/release/current-placement-plan.yaml`
+    - `system/docs/development/evidence/findings/strict-review-plain-language-naming-2026-03-12.md`
+    - `system/docs/flow.md`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./...` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache bash merge-files.sh .` -> PASS
+  - strict review:
+    - `system/docs/development/evidence/findings/strict-review-plain-language-naming-2026-03-12.md`
+- Iteration evidence (`2026-03-12`, complete repo-wide flow-first naming convergence across PolyMoly):
+  - lane: `platform-feature + governance`
+  - goal: finish the repository-wide naming wave so folder paths state the shipped flow, files state one honest responsibility, exported functions state the exact action, stale generic names disappear from docs, and the major convergence claim is backed by gates plus a current strict review
+  - changed files:
+    - `TODO.md`
+    - `product/deploy/release/**`
+    - `product/deploy/validate/**`
+    - `product/ecosystem/plugins/**`
+    - `product/inspect/diagnose/**`
+    - `product/inspect/observe/dashboard/**`
+    - `product/project/create/template/**`
+    - `product/project/create/wizard/**`
+    - `system/adapters/docker/**`
+    - `system/adapters/filesystem/**`
+    - `system/engine/apply/**`
+    - `system/engine/request/**`
+    - `system/engine/resolve/**`
+    - `system/runtime/capabilities/app/go/main.go`
+    - `system/scripts/release/toolbox/cmd/toolbox-entrypoint/main.go`
+    - `system/shared/cli/**`
+    - `system/shared/config/**`
+    - `system/shared/utils/**`
+    - `system/tools/poly/internal/**`
+    - `system/docs/flow.md`
+    - `system/docs/development/evidence/findings/strict-review-flow-first-naming-2026-03-12.md`
+    - `system/docs/development/evidence/findings/strict-review-5x-closure-2026-03-08.md`
+    - `system/docs/development/release/current-placement-plan.yaml`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./...` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+  - strict review:
+    - `system/docs/development/evidence/findings/strict-review-flow-first-naming-2026-03-12.md`
+- Iteration evidence (`2026-03-12`, execute wave-1 flow-first naming foundation across configure, policy, and config seams):
+  - lane: `configurator`
+  - goal: open the active release contract for repo-wide naming convergence, apply the stage-8 manifest-driven naming foundation, rename the highest-noise configure and policy/config symbols to exact actions, and keep the paired docs/tooling story consistent with the shipped tree
+  - changed files:
+    - `TODO.md`
+    - `system/docs/development/release/current.md`
+    - `system/docs/development/release/current-placement-plan.yaml`
+    - `product/project/how-this-works.md`
+    - `product/project/create/how-this-works.md`
+    - `product/project/configure/**`
+    - `system/shared/config/check_*.go`
+    - `system/shared/config/how-this-works.md`
+    - `system/shared/config/initiate_module_updates.go`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules.go`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules_test.go`
+    - `system/tools/poly/internal/cli/**`
+    - `system/tools/poly/internal/migrateops/**`
+    - `system/tools/poly/internal/modules/**`
+    - `system/tools/poly/internal/policy/**`
+    - `system/tools/poly/internal/product/project/**`
+    - `system/tools/poly/internal/projectcfg/**`
+    - `system/tools/poly/internal/reviewpack/**`
+    - `system/docs/development/evidence/findings/strict-review-5x-closure-2026-03-08.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./product/project/configure/... ./system/shared/config/... ./system/tools/poly/internal/...` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-12`, lock the flow-first naming law into local governance):
+  - lane: `governance`
+  - goal: make `folder says the flow, file says the responsibility, function says the exact action` a canonical PolyMoly governance rule across the local contract, coding standards, flow-doc law, and stable code-quality summary
+  - changed files:
+    - `AGENTS.md`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/decision-log.md`
+    - `system/docs/development/standards/code-quality.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache task docs:governance` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-11`, rewrite the remaining product flow-doc tree under the sequence-first law):
+  - lane: `documentation + governance`
+  - goal: rewrite the remaining `product/**/how-this-works.md` pages under the thinner template and stricter movement-first flow-doc law, then sync the governance template and generated workspace sums with that shipped docs pass
+  - changed files:
+    - `product/how-this-works.md`
+    - `product/deploy/**/how-this-works.md`
+    - `product/ecosystem/**/how-this-works.md`
+    - `product/examples/**/how-this-works.md`
+    - `product/inspect/**/how-this-works.md`
+    - `product/project/**/how-this-works.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `go.work.sum`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache bash merge-files.sh .` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs` -> PASS
+- Iteration evidence (`2026-03-10`, make file and function drawings fully mandatory in the doc-engine law):
+  - lane: `documentation + governance`
+  - goal: tighten the flow-doc contract so every described file and every described function must include its own visual block and step-by-step walkthrough, without the old Level C or file-level exceptions
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check -- system/docs/development/governance/how-to-document-flow.md system/docs/development/governance/how-this-works-template.md` -> PASS
+    - `python3 - <<'PY' ... audit product/project file/function visual coverage ... PY` -> `COUNT=11` docs still needed file-level visual sweep at that point
+- Iteration evidence (`2026-03-10`, complete the product/project file-level visual sweep):
+  - lane: `documentation + governance`
+  - goal: bring the local `product/project/**` preview into full compliance with the new rule that every described file and every described function must have its own Mermaid drawing and walkthrough
+  - changed files:
+    - `product/project/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `python3 - <<'PY' ... audit product/project file/function visual coverage ... PY` -> `COUNT=0`
+    - `git diff --check -- product/project system/docs/development/governance/how-to-document-flow.md system/docs/development/governance/how-this-works-template.md TODO.md` -> PASS
+- Iteration evidence (`2026-03-10`, rewrite the full product/project flow-doc tree from scratch under the sequence-first law):
+  - lane: `documentation + governance`
+  - goal: rewrite every `product/project/**/how-this-works.md` page from zero so the whole project lane now follows the sharper soft-entry, command-story, value-flow, and `sequenceDiagram`-first contract
+  - changed files:
+    - `product/project/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `python3 - <<'PY' ... verify every product/project folder with Go files has how-this-works.md ... PY` -> `COUNT=0`
+    - `rg -n '/home/' product/project` -> no matches
+    - `rg -n 'sequenceDiagram' product/project | wc -l` -> `55`
+    - `git diff --check -- product/project system/docs/development/governance/how-to-document-flow.md system/docs/development/governance/how-this-works-template.md TODO.md` -> PASS
+- Iteration evidence (`2026-03-10`, make sequence diagrams the default flow picture):
+  - lane: `documentation + governance`
+  - goal: tighten the doc-engine law so `how-this-works` pages use Mermaid `sequenceDiagram` as the default visual flow language, with visible arguments, return values, transformations, handoffs, and branch paths
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check -- system/docs/development/governance/how-to-document-flow.md system/docs/development/governance/how-this-works-template.md` -> PASS
+- Iteration evidence (`2026-03-10`, tighten doc-engine law and rewrite product/project flow books):
+  - lane: `documentation + governance`
+  - goal: harden `how-to-document-flow.md` and `how-this-works-template.md` with stricter behavior, grounding, handoff, path-hygiene, and anti-filler rules, then rework the full `product/project/**` flow-doc tree so project docs follow the sharper trigger-to-result contract with repo-relative links and more concrete file/function behavior
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `product/project/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `rg -n '/home/|handles the step|processes the owned step|keeps the behavior in one place|performs the job|performs the owned step|returns the result' product/project` -> no matches
+    - `git diff --check` -> PASS
+- Iteration evidence (`2026-03-09`, rewrite product/project/create flow book from scratch under the new law):
+  - lane: `documentation + governance`
+  - goal: rebuild `product/project/create/how-this-works.md` from zero so the create lane now explains one concrete trigger-to-result story, distinguishes contract files from decision and proof files, and describes the main create functions with real value flow instead of template filler
+  - changed files:
+    - `product/project/create/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+- Iteration evidence (`2026-03-09`, slim doc-engine control layer and sharpen flow law):
+  - lane: `documentation + governance`
+  - goal: turn `how-to-document-flow.md` into the single normative law for programming-facing flow docs, shrink `how-this-works-template.md` into a thin execution scaffold, and fold in both review passes by adding anti-checklist success criteria, rule-strength levels, anti-filler guardrails, and file/function classification guidance
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+- Iteration evidence (`2026-03-09`, strengthen movement-first flow-doc law):
+  - lane: `documentation + governance`
+  - goal: make `how-this-works` rules stricter about narrative movement so folder docs must explain trigger, command-story sequence, internal handoff, visible result, failure path, and concrete function value flow instead of stopping at folder/file taxonomy
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `./merge-files.sh .` -> PASS
+- Iteration evidence (`2026-03-09`, strengthen soft-entry writing law):
+  - lane: `documentation + governance`
+  - goal: make the soft-entry requirement explicit as one unified writing rule so `how-this-works` openings must not only have the right sections, but must also sound like a calm visual explanation to a junior developer or even your own child sitting next to you
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, add command-story law and rewrite product flow books again):
+  - lane: `documentation + governance`
+  - goal: make `human layer -> command-story layer -> technical layer` the mandatory `how-this-works` contract, then rewrite the whole `product/**` flow-book tree from scratch again so every product folder, file, and described function connects itself to real `poly ...` command stories instead of reading like an internal-only taxonomy
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `product/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `find product -type f -name 'how-this-works.md' | wc -l` -> `45`
+    - `python3 - <<'PY' ... verify every product flow book has a command-story section ... PY` -> `COUNT=0`
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, rewrite the system flow-doc tree from scratch):
+  - lane: `documentation + governance`
+  - goal: rewrite the executable `system/**` flow-book surface from scratch in the soft-entry, file-first, function-under-file doc-engine style, add missing `how-this-works.md` files across the `system/` execution tree, and keep `system/docs/**` out of scope because that documentation surface follows a different architecture-audit contract
+  - changed files:
+    - `system/**/how-this-works.md` outside `system/docs/**`
+    - `TODO.md`
+  - verification:
+    - `find system -path 'system/docs' -prune -o -type f -name 'how-this-works.md' -print | wc -l` -> `200`
+    - `python3 - <<'PY' ... verify every first-party system folder outside system/docs has how-this-works.md ... PY` -> `COUNT=0`
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, rewrite the whole product flow-doc tree from scratch):
+  - lane: `documentation + governance`
+  - goal: rewrite every first-party `product/**/how-this-works.md` page from scratch in the new soft-entry, file-first, function-under-file doc-engine style, add missing folder docs across the `product/` tree, and align the reusable flow-document contract with that shipped shape
+  - changed files:
+    - `product/**/how-this-works.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `find product -type f -name 'how-this-works.md' | wc -l` -> `45`
+    - `python3 - <<'PY' ... verify every first-party product folder has how-this-works.md ... PY` -> `COUNT=0`
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, fix Mermaid linkStyle bounds in deploy flow books):
+  - lane: `documentation + governance`
+  - goal: correct off-by-one Mermaid `linkStyle` indices in the rewritten deploy flow books so the diagrams in `product/deploy/**` render without out-of-bounds link-style errors
+  - changed files:
+    - `product/deploy/how-this-works.md`
+    - `product/deploy/prepare/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `python3 - <<'PY' ... check Mermaid linkStyle indices in product/deploy docs ... PY` -> PASS
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, rewrite deploy and prepare flow books from scratch):
+  - lane: `documentation + governance`
+  - goal: rewrite `product/deploy/how-this-works.md` and `product/deploy/prepare/how-this-works.md` from scratch in the new soft-entry doc-engine style so the deploy lane explains itself like a teaching document, `product/deploy/` works as a simple lane router, and `prepare/` explains each direct file and each described function with a human layer, a Mermaid flow, and a step-by-step walkthrough
+  - changed files:
+    - `product/deploy/how-this-works.md`
+    - `product/deploy/prepare/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, extract soft-entry flow-doc template):
+  - lane: `documentation + governance`
+  - goal: turn the new doc-engine style into an explicit reusable template by defining the soft entry layer, the human-layer plus technical-layer teaching model, the canonical file and function chapter shapes, and the Level A/B/C function depth model
+  - changed files:
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, split flow-document rules from coding standards):
+  - lane: `documentation + governance`
+  - goal: move folder/file/function flow-document rules out of `how-to-coding-standards.md` into a dedicated `how-to-document-flow.md` contract so coding standards can stay focused on real code style and naming rules
+  - changed files:
+    - `AGENTS.md`
+    - `system/docs/development/governance/how-to-document-flow.md`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `system/docs/development/governance/README.md`
+    - `system/docs/development/standards/code-quality.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, prepare folder full file-and-function flow rollout):
+  - lane: `documentation + governance`
+  - goal: make `product/deploy/prepare/how-this-works.md` fully comply with the picture-plus-prose rule so every described direct file and every described function has a Mermaid flow and a numbered step-by-step walkthrough
+  - changed files:
+    - `product/deploy/prepare/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, documentation teaching-clarity rule and file-first prepare example):
+  - lane: `documentation + governance`
+  - goal: make vivid, file-first, function-under-file writing an explicit documentation rule, require picture-like Mermaid diagrams and banal examples where they help, require file-flow and function-flow diagrams with green input lines and orange output lines, require numbered `Step 1`, `Step 2`, `Step 3` prose walkthroughs directly under those diagrams, and require that every described file and every described function on a `how-this-works.md` page carries both the picture and the walkthrough
+  - changed files:
+    - `system/docs/development/governance/how-to-document.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `product/deploy/prepare/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-09`, how-this-works plain-English and file-first flow refactor):
+  - lane: `documentation + governance`
+  - goal: make `how-this-works.md` easier for junior developers and web-app operators by adding brutally simple folder summaries, practical developer and devops flow charts, and a file-first walkthrough where functions are explained under the file that owns them
+  - changed files:
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `product/how-this-works.md`
+    - `product/deploy/how-this-works.md`
+    - `product/inspect/diagnose/how-this-works.md`
+    - `system/how-this-works.md`
+    - `system/engine/request/parse/how-this-works.md`
+    - `system/tools/poly/internal/cli/how-this-works.md`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `find product system -name how-this-works.md | wc -l` -> `103`
+    - `find product system -name how-this-works.md | xargs -I{} sh -c 'grep -q "^## What this is$" "$1" || echo "$1"' sh {} | wc -l` -> `0`
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+- Iteration evidence (`2026-03-08`, v3.7 folder flow documentation rollout):
+  - lane: `documentation + governance`
+  - goal: make `how-this-works.md` the canonical educational map for first-party folders, using the same writing doctrine as `system/docs/architecture/**`, and explain folder purpose, direct files, direct functions, and real command flow such as `poly up` and `poly status`
+  - changed files:
+    - `system/docs/development/governance/how-to-document.md`
+    - `system/docs/development/governance/how-to-coding-standards.md`
+    - `system/docs/development/governance/how-this-works-template.md`
+    - `system/docs/development/standards/code-quality.md`
+    - `system/docs/development/release/current.md`
+    - `system/docs/development/README.md`
+    - `system/docs/flow.md`
+    - `product/**/how-this-works.md`
+    - `system/**/how-this-works.md`
+    - `TODO.md`
+  - verification:
+    - `find product system -name how-this-works.md | wc -l` -> `103`
+    - `find product system -name how-this-works.md | xargs -I{} sh -c 'first=$(head -n 1 "$1"); case "$first" in ---*) : ;; *) echo "$1" ;; esac' sh {} | wc -l` -> `0`
+    - `git diff --check` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-08`, strict-review process formalization):
+  - lane: `governance + documentation + release-engineering`
+  - goal: make `strict-review` an explicit repository process outside `AGENTS.md` law, define its cold first-principles posture, connect it to the normal review workflow, and tie production-ready release claims to an independent strict-review report
+  - changed files:
+    - `system/docs/development/governance/how-to-strict-review.md`
+    - `system/docs/development/governance/how-to-code-review.md`
+    - `system/docs/development/governance/review-template.md`
+    - `system/docs/development/governance/README.md`
+    - `system/docs/development/README.md`
+    - `system/docs/development/standards/product-quality.md`
+    - `system/docs/development/release/current.md`
+    - `TODO.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-08`, strict-review closure sweep):
+  - lane: `runtime-hardening + release-engineering + architecture + documentation`
+  - goal: close every finding from the independent five-pass strict review by fixing repo-independent CLI behavior, removing supply-chain trust downgrade paths, hardening release secret handling, completing JWT verification artifacts, and making product ownership seams honest
+  - changed files:
+    - `README.md`
+    - `Taskfile.yml`
+    - `product/deploy/prepare/install_project_cli.go`
+    - `product/deploy/validate/check_stage_smoke.go`
+    - `system/gates/run`
+    - `system/shared/config/configure_module_runtime.go`
+    - `system/shared/config/external-modules.lock.json`
+    - `system/shared/config/resolve_module_from_registry.go`
+    - `system/shared/utils/rotate_system_secrets.go`
+    - `system/shared/utils/sign_and_validate_jwt_tokens.go`
+    - `system/tools/poly/internal/cli/route_root_commands.go`
+    - `system/tools/poly/internal/cli/expand_variable_placeholders.go`
+    - `system/tools/poly/internal/cli/resolve_cli_runtime.go`
+    - `system/docs/development/evidence/findings/strict-review-5x-closure-2026-03-08.md`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./system/tools/poly/internal/cli ./system/tools/poly/internal/installops -run 'TestRunVersionDoesNotRequireRepoRoot|TestResolveProjectLocalSourceRoot|TestInstallProjectBinarySupportsSelfCopyWithoutCorruption'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./system/shared/config ./system/shared/utils -run 'TestVerifyDescriptorMetadata|TestPreparePromotedSecrets|TestGenerateInternalJWT'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./product/... ./system/tools/poly/... ./system/shared/...` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go build -o /tmp/poly-review-bin ./system/tools/poly/cmd/poly` -> PASS
+    - `/tmp/poly-review-bin help` from a temp directory -> PASS
+    - `/tmp/poly-review-bin version` from a temp directory -> `dev`
+    - `/tmp/poly-review-bin install --project <tmp-project>` -> PASS
+    - `<tmp-project>/.polymoly/bin/poly help` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0'` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run full'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-08`, development contract reduction and quality-rule consolidation):
+  - lane: `governance + architecture + documentation`
+  - goal: remove closed versioned planning/docs clutter from the active development tree, reduce active backlog files to live state only, replace the standalone direction artifact with the active release contract, and keep quality rules in a smaller durable set
+  - changed files:
+    - `TODO.md`
+    - `BUGS.md`
+    - `system/docs/development/README.md`
+    - `system/docs/development/release/current.md`
+    - `system/docs/development/release/current-placement-plan.yaml`
+    - `system/docs/development/standards/code-quality.md`
+    - `system/docs/development/standards/product-quality.md`
+    - `system/docs/development/governance/ci-profile-contract.md`
+    - `system/docs/development/governance/team-operating-model.md`
+    - `system/docs/flow.md`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules.go`
+    - `system/tools/poly/internal/architecture/ensure_convergence_rules_test.go`
+    - `system/tools/poly/internal/platformcheck/check_platform_contracts.go`
+    - `system/tools/poly/internal/cli/route_root_commands.go`
+  - verification:
+    - `git diff --check` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go test ./system/tools/poly/internal/architecture ./system/tools/poly/internal/migrateops ./system/shared/config ./system/tools/poly/internal/platformcheck` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate check strategic-direction` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate check release-convergence` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run p0'` -> PASS
+    - `sg docker -c 'cd /home/shomsy/projects/polymoly && env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly gate run docs'` -> PASS
+    - `env TMPDIR=/tmp GOTMPDIR=/tmp GOCACHE=/tmp/gocache go run ./system/tools/poly/cmd/poly review pack .` -> PASS
+- Iteration evidence (`2026-03-09`, strict-review temp artifact cleanup):
+  - lane: `governance + documentation`
+  - goal: remove the temporary five-pass strict-review working file after confirming that its findings are fully closed in the canonical closure record and no active references remain
+  - changed files:
+    - `STRICT_REVIEW_5X_TMP.md`
+    - `TODO.md`
+  - verification:
+    - closure record `system/docs/development/evidence/findings/strict-review-5x-closure-2026-03-08.md` confirms all five findings closed with open `high=0` and open `critical=0`
+    - `rg -n "STRICT_REVIEW_5X_TMP\\.md|strict review 5x|STRICT_REVIEW_5X_TMP" -S .` -> no active operational references outside this cleanup evidence

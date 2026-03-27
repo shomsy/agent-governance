@@ -1,0 +1,16 @@
+FinOps Cost Baseline and Guardrails
+timestamp: 2026-03-14T18:13:48Z
+services_costed: 0
+hours_per_month: 730
+price_vcpu_hour_usd: 0.031611
+price_gb_hour_usd: 0.004237
+monthly_total_usd: 0.0000
+monthly_budget_usd: 600.0000
+under_budget: true
+highest_service_cost_usd: 0.0000
+highest_service_name: 
+highest_service_ratio: 0.0000
+highest_service_ratio_warn: false
+
+artifacts:
+- /home/shomsy/projects/polymoly/system/gates/artifacts/finops/service-costs.tsv

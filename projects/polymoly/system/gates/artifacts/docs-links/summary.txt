@@ -1,0 +1,10 @@
+Markdown Link Gate
+files_scanned: 55
+checks_total: 2357
+checks_failed: 0
+gate: PASS
+strict_mode: 1
+phase: development
+
+artifacts:
+- system/gates/artifacts/docs-links/checks.tsv

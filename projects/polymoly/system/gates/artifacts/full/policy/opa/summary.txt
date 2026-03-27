@@ -1,0 +1,7 @@
+OPA Policy Gate
+checks_total: 10
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/full/policy/opa/checks.tsv

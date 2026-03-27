@@ -1,0 +1,15 @@
+Docs Governance Gate
+files_scanned: 17
+checks_total: 251
+checks_failed: 0
+gate: PASS
+strict_mode: 1
+phase: development
+runtime_mode: docker-canonical
+
+artifacts:
+- system/gates/artifacts/docs-governance/checks.tsv
+- system/gates/artifacts/docs-governance/details.tsv
+- system/gates/artifacts/docs-governance/semantic-checks.tsv
+- system/gates/artifacts/docs-governance/semantic-report.json
+- system/gates/artifacts/docs-governance/fixtures

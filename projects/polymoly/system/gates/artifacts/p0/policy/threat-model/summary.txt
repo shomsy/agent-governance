@@ -1,0 +1,7 @@
+Threat Model Validation Gate
+checks_total: 12
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/p0/policy/threat-model/checks.tsv

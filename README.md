@@ -1,57 +1,76 @@
-# agent-governance
+# Agent Governance & OS Hub
 
-Reusable parent agent contract and governance ruleset for software projects.
+> [!IMPORTANT]
+> This repository is a **Portable Agent Operating System**. The core "brain" lives entirely inside the [`.agents/`](.agents/) folder. Copying this folder into any project instantly installs the governance, standards, and AI-alignment rules required for high-performance collaboration.
 
-This repository exists to hold the quality bar you want to reuse across future
-repositories without copying one project's internal layout into every other
-project.
+## Vision: The Portable Brain
 
-## Layout
+Instead of managing floating markdown files, this project centralizes the entire governance system into a single, structured directory.
 
-- `PARENT-AGENTS.md`
-  The reusable base contract meant to be copied into adopting repositories.
-- `AGENTS.md`
-  The local maintenance contract for this repository itself.
-- `docs/governance/**`
-  Reusable detailed rules that the parent and child contracts can point to.
-- `scaffolds/AGENTS.md`
-  Example child `AGENTS.md` showing local override over the parent contract.
-- `scaffolds/TODO.md`
-  Minimal active backlog scaffold.
-- `scaffolds/BUGS.md`
-  Minimal defect and risk backlog scaffold.
+1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
+2.  **Specialized Profiles**: Modular governance grouped by **Language**, **Framework**, and **Architecture**.
+3.  **Process Policies**: Shared standards for code review, execution, and documentation.
 
-## Intended Model
+---
 
-Use this repository as `base + local override`, not as hidden inheritance.
+## 🏗️ OS Architecture
 
-The intended precedence in an adopting project is:
+- **`/.agents/AGENTS.md`**: The Master Contract. Defines the Order of Precedence and non-negotiable rules.
+- **`/.agents/governance/profiles/`**: Tech-specific rules (React, JS, Python, etc.) that can be plugged into the project.
+- **`/.agents/governance/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
+- **`/.agents/governance/naming-standard.md`**: The "Flow -> Responsibility -> Action" naming law.
 
-1. local `AGENTS.md`
-2. copied `PARENT-AGENTS.md`
-3. copied governance docs under `docs/governance/**`
-4. local project backlog and README
+---
 
-That means:
+## 📂 The `projects/` Directory (Temporary Knowledge Base)
 
-- the parent defines reusable engineering quality expectations
-- the local child defines repository-specific commands, paths, and architecture
-- detailed process stays in the governance docs
-- executable truth stays in scripts, task runners, and automated gates
+The [**`projects/`**](projects/) folder is a temporary, local repository of documentation and governance files vacuumed from real-world projects (`avax-bootcamp`, `baraba`, `polymoly`, etc.).
 
-## Adoption Workflow
+- **Purpose**: It serves as the raw material and inspiration for generalizing rules into the core `.agents` OS.
+- **Usage**: Use it to extract patterns, architecture boundaries, and "Naming Laws" that have proven effective in specific project contexts. 
+- **Destiny**: Once a rule is successfully generalized into the `.agents/` folder, the corresponding project-specific reference in this folder becomes legacy data.
 
-1. Copy `PARENT-AGENTS.md` into the target repository.
-2. Copy `docs/governance/**` into the target repository.
-3. Copy `scaffolds/TODO.md` and `scaffolds/BUGS.md` if you want the backlog base.
-4. Create a local `AGENTS.md` using `scaffolds/AGENTS.md` as the starting point.
-5. Define the target repository's canonical dev, validation, and release
-   entrypoints in the local `AGENTS.md`.
+---
 
-## Design Rules
+## 🚀 How to Adopt (The "OS Installation")
 
-- Keep the parent generic.
-- Keep the local child short and specific.
-- Move broad procedures into governance docs.
-- Move concrete commands into tooling whenever possible.
-- If a rule changes often, it probably does not belong in the parent contract.
+To "install" this Agent OS into a project:
+
+```bash
+# 1. Copy the portable brain
+cp -r /path/to/agent-governance/.agents /path/to/your/project/
+
+# 2. Create your project-specific AGENTS.md at the root
+# Use scaffolds/AGENTS.md as a template
+cp /path/to/agent-governance/scaffolds/AGENTS.md /path/to/your/project/AGENTS.md
+```
+
+The root `AGENTS.md` in your project should be minimal, only containing:
+- Path definitions (where is your source code?)
+- Entrypoints (how do we run/test the code?)
+- Any specific overrides that differ from the global OS rules.
+
+---
+
+## 🧪 Generalizing from Projects
+
+We continuously "vacuum" the best rules from active projects to improve the global OS.
+
+| Project Source | Generalized Rule | Destination in OS |
+|:---|:---|:---|
+| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `naming-standard.md` |
+| `avax-bootcamp` | `state/render/actions` Pattern | `app-architecture/architecture-standard.md` |
+| `baraba` | Web Component Facades | `profiles/frameworks/v-web-components.md` |
+
+---
+
+## 📋 Completion Criteria for Changes
+
+1.  Does the rule belong in the **Master Contract** or a **Specialized Profile**?
+2.  Does it maintain the **Order of Precedence**?
+3.  Is it documented in simple, direct English or Serbian?
+
+---
+*No offload recommended for this step.*
+
+

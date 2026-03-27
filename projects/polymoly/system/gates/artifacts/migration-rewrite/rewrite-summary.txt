@@ -1,0 +1,6 @@
+PolyMoly migration rewrite summary
+plan=system/docs/development/release/current-placement-plan.yaml
+phase=stage-9-plain-language-naming
+mode=apply
+changes=15
+files=5

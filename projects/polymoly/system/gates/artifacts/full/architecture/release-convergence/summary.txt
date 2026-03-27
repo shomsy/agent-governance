@@ -1,0 +1,11 @@
+ARCHITECTURE RELEASE CONVERGENCE: PASS
+checks_total: 88
+checks_failed: 0
+gate: PASS
+
+required_missing=0
+legacy_paths_present=0
+doc_required_clauses=9
+doc_forbidden_clauses=3
+binding_failures=0
+checks_file=system/gates/artifacts/full/architecture/release-convergence/checks.tsv

@@ -1,0 +1,8 @@
+FinOps Efficiency
+timestamp: 2026-03-14T18:13:48Z
+default_rps_assumption: 250.00
+highest_cost_per_1k_requests:  -1.000000
+highest_rps_per_cpu:  -1.000
+artifacts:
+- /home/shomsy/projects/polymoly/system/gates/artifacts/finops/cost-per-request.tsv
+- /home/shomsy/projects/polymoly/system/gates/artifacts/finops/rps-per-cpu.tsv
