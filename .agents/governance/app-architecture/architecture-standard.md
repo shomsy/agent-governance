@@ -23,10 +23,37 @@ It is designed to keep the surface absurdly simple while still carrying enterpri
 This is a reusable baseline standard.
 
 - applies to any project, language or framework
+- language and framework architecture profiles may narrow this baseline
 - project-level architecture documents may narrow and concretize it
 - project-level documents must not weaken it
 - if an exception is needed, it must be recorded in the repo-specific architecture document
 - this is not a workflow contract; workflow belongs in repo-operative documents
+
+## Architecture Law
+
+This standard stands on one simple law:
+
+- folder says flow or capability
+- file says responsibility
+- function says exact action
+
+The same law applies to:
+
+- business feature slices
+- technical runtime slices
+- infrastructure components
+- framework-owned adapter lanes
+
+The target feeling is banal clarity:
+
+- titles should be intuitive
+- names should be predictive
+- the codebase should read like a story from the first feature to the last
+- a smart developer should know where to look next without guessing
+
+This is screaming architecture in the simplest honest form.
+The goal is not visual cleverness.
+The goal is simplicity of top quality.
 
 ## Vertical Slice Intent
 
@@ -41,6 +68,8 @@ This standard treats the repo as a vertical slice system.
 - a reader should be able to predict the purpose of a folder, file or function before opening it
 - the same flow-first reading order must work for the product app and for the technical runtime
 - the reader should be able to follow the business flow from the first feature to the last feature without changing the mental model
+- root folder and slice names should feel intuitive enough that they can be
+  explained at a table without jargon
 
 ---
 
@@ -280,6 +309,29 @@ When there is a clear sequence of steps:
 #### `facade`
 When the feature is not one flow but one stable public entry into multiple internal things.
 
+Use it when:
+
+- external callers need one obvious stable API
+- internal complexity should stay behind an honest boundary
+- backwards compatibility matters more than exposing internal composition
+
+The facade stays thin.
+It names and delegates.
+It does not become a second hidden implementation.
+
+#### `kernel`
+When one component must own the full ingress lifecycle, runtime coordination, or
+exception boundary for a surface.
+
+Use it when:
+
+- requests, jobs, or events must pass through one controlled runtime boundary
+- middleware, validation, dispatch, or policy stages need one owner
+- unexpected failures must be caught and mapped in one place
+
+Kernel is an ingress governor, not a business-logic dump.
+It should orchestrate and contain failure, then delegate the real work.
+
 #### `orchestrator`
 When there is coordination of multiple branches, events, parallel flows or multiple subflows.
 
@@ -287,6 +339,92 @@ When there is coordination of multiple branches, events, parallel flows or multi
 When the feature is small and a simpler name is better than a pattern name.
 
 If a pattern makes more noise than it helps, it shouldn't be used.
+
+### 9. Public surface and internal machinery must not be confused
+
+If a slice has a public API, CLI, route DSL, event contract, or reusable
+library boundary:
+
+- keep the public surface small and stable
+- keep internal mechanics replaceable without breaking the public contract
+- do not leak internal folder structure as the public API by accident
+- document which layer is compatibility-sensitive and which layer is internal
+- keep registration, runtime resolution, and execution as separate concerns when
+  the system has all three
+
+### 10. Ingress must have one obvious failure boundary
+
+For request-driven, event-driven, or job-driven systems:
+
+- one owned entry boundary should validate, delegate, and map failure honestly
+- unexpected exceptions should be caught at that ingress boundary, not leak
+  randomly through the stack
+- degradations, retries, and stop conditions should be visible at the same
+  ownership boundary
+- the business core should not know transport-specific failure mapping details
+- if there is no single ingress owner, recovery and observability will drift
+
+### 11. Clean architecture belongs inside the slice, not above the story
+
+Clean architecture is welcome here, but only when it helps the code explain:
+
+- dependency direction
+- public versus internal boundaries
+- policy versus adapter ownership
+- testability and replacement seams
+
+In this standard that means:
+
+- the repo still screams features or capabilities first
+- clean layers live inside the owning feature or package root
+- one slice may contain interior layers such as public surface, kernel,
+  pipeline, domain or policy core, adapters, and diagnostics
+- small slices should collapse layers instead of creating empty shells
+- the dependency rule matters more than using fashionable layer names
+
+Good direction:
+
+```text
+billing/
+  issue_invoice.ts
+  domain/
+  persistence/
+  integrations/
+
+router/
+  Router.php
+  registration/
+  resolution/
+  execution/
+```
+
+Bad default direction:
+
+```text
+controllers/
+use_cases/
+repositories/
+entities/
+```
+
+If the top of the repo no longer tells the reader what the system does, the
+clean architecture interpretation is too abstract.
+
+### 12. Declaration, resolution, execution, and failure mapping are separate lanes
+
+If a system has DSL, registration, route definition, policy registration,
+container wiring, or other declaration phases:
+
+- declaration should validate early and become stable after bootstrap
+- resolution should read declared state without becoming the place that owns
+  business side effects
+- execution should happen only after successful resolution or admission
+- failure mapping should converge at the ingress or public boundary owner
+- caches, manifests, compiled artifacts, and diagnostics are derived from the
+  canonical declarations
+
+This rule matters for routers, containers, command systems, queues, webhook
+ingress, and other infrastructure-like components.
 
 ---
 
@@ -528,9 +666,29 @@ In other words:
 
 **don't break language idioms just so the architectural doctrine looks consistent**
 
+### Pattern Compatibility Rule
+
+Architectural patterns such as MVC, Clean Architecture, Hexagonal Architecture,
+CQRS, and similar may be used when they reduce noise and clarify ownership.
+
+But they are subordinate to the screaming feature-first law:
+
+- pattern names must not erase the business or capability story of the repo
+- framework terms such as controller, model, view, job, listener, or channel
+  may exist as local implementation lanes
+- those terms should not become the whole personality of the repository by
+  default
+- if a pattern is useful, keep it inside the feature or inside a clearly owned
+  technical slice
+- if a pattern makes naming less intuitive, reduce it or rename the boundary
+
 ---
 
 ## Language and Ecosystem Exceptions
+
+When the repo needs more concrete ecosystem guidance, apply the relevant
+architecture profile from `profiles/**` before writing a repo-specific
+`ARCHITECTURE.md`.
 
 ### Functional Programming and Non-OOP Languages
 Some languages and ecosystems are not class-first.
@@ -694,8 +852,10 @@ If you see this, the architecture is probably rotting:
 8. Product or app layer tells the story of the system. Technical layers tell the story of execution. Foundation carries boring primitives.
 9. Pattern is chosen by the nature of the flow, not by fashion.
 10. If an extra folder, file or abstraction doesn't reduce mental noise, it is not introduced.
-11. Language and framework idioms take precedence when rigid application of this standard would worsen readability or tooling.
-12. The ultimate goal is not complexity. The ultimate goal is simplicity of top quality.
+11. Clean architecture, when used, lives inside the slice rather than replacing the feature-first story of the repo.
+12. Declaration, resolution, execution, and failure mapping stay separate when the system has those lanes.
+13. Language and framework idioms take precedence when rigid application of this standard would worsen readability or tooling.
+14. The ultimate goal is not complexity. The ultimate goal is simplicity of top quality.
 
 ---
 

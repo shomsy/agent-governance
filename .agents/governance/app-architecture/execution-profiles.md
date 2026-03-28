@@ -10,10 +10,22 @@ verbosity, or non-functional behavior.
 - default end-user or operator behavior
 - standard timing, logging, and recovery posture
 
+### Slow
+
+- increased wait or visibility for teaching, demos, or careful verification
+- preserves canonical meaning and state outcomes
+- should not introduce extra branches unavailable in normal mode
+
 ### Fast
 
 - reduced waiting where correctness is unaffected
 - intended for automation, verification, and restore flows
+
+### Instant
+
+- duration is effectively zero where timing is not part of the contract
+- intended for smoke checks, replay, restore, and other fast proof paths
+- must not change canonical outputs or safety rules
 
 ### Diagnostic
 

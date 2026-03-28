@@ -2,6 +2,11 @@
 
 Use this profile for Next.js applications.
 
+Apply it together with `languages/nodejs.md`, the relevant
+`languages/typescript.md` or `languages/javascript.md`, and `languages/css.md`.
+Apply the matching architecture overlay from
+`../app-architecture/profiles/frameworks/nextjs.md` when repo shape matters.
+
 ## Boundary Rules
 
 - keep server and client responsibilities explicit

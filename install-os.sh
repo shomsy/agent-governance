@@ -1,49 +1,131 @@
 #!/bin/bash
+set -euo pipefail
 
 # Agent OS Installer
 # Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME]
 
-TARGET_DIR=$1
-shift
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET_DIR="${1:-}"
+SELECTED_LANGUAGES=()
+SELECTED_FRAMEWORKS=()
+CODING_PROFILES=()
+ARCH_PROFILES=()
 
 if [ -z "$TARGET_DIR" ]; then
     echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME]"
     exit 1
 fi
 
+shift
+
 echo "🚀 Installing Agent OS into $TARGET_DIR..."
+
+format_code_list() {
+    if [ "$#" -eq 0 ]; then
+        printf '[declare explicitly]'
+        return
+    fi
+
+    local joined=""
+    local item
+    for item in "$@"; do
+        if [ -n "$joined" ]; then
+            joined+=", "
+        fi
+        joined+="$item"
+    done
+
+    printf '%s' "$joined"
+}
+
+copy_rules_tree() {
+    local target_rules_dir="$1"
+
+    cp -R "$SCRIPT_DIR/.agents/." "$target_rules_dir/"
+}
+
+escape_sed_replacement() {
+    printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
+}
 
 # 1. Create target and .agents
 mkdir -p "$TARGET_DIR/.agents"
 
-# 2. Copy the Universal OS Core
-cp -r .agents/* "$TARGET_DIR/.agents/"
+# 2. Copy the full reusable `.agents` project into hidden `.rules`
+mkdir -p "$TARGET_DIR/.agents/.rules"
+copy_rules_tree "$TARGET_DIR/.agents/.rules"
 
-# 3. Copy Local Blueprints from scaffolds/ to Root
-# This is the primary use for the scaffolds folder.
-cp scaffolds/AGENTS.md "$TARGET_DIR/AGENTS.md"
-cp scaffolds/TODO.md "$TARGET_DIR/TODO.md"
-cp scaffolds/BUGS.md "$TARGET_DIR/BUGS.md"
+# 3. Copy the visible project skeleton into `.agents`
+if [ -d "$SCRIPT_DIR/scaffolds/agents-skeleton" ]; then
+    cp -r "$SCRIPT_DIR/scaffolds/agents-skeleton/." "$TARGET_DIR/.agents/"
+fi
 
-# 4. Handle Language Specifics (Profiles)
+# 4. Copy the project-local AGENTS scaffold to root
+cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
+
+# 5. Keep merge-files.sh in sync with the latest OS version
+if [ ! -f "$TARGET_DIR/merge-files.sh" ] || ! cmp -s "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"; then
+    cp "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"
+    chmod +x "$TARGET_DIR/merge-files.sh"
+    echo "🧩 Synced merge-files.sh"
+else
+    chmod +x "$TARGET_DIR/merge-files.sh"
+    echo "🧩 merge-files.sh already up to date"
+fi
+
+# 6. Resolve selected reusable profiles for the local AGENTS scaffold
 for arg in "$@"; do
     case $arg in
         --language=*)
-        LANG="${arg#*=}"
-        if [ -f ".agents/governance/profiles/languages/$LANG.md" ]; then
-            echo "📦 Adding language profile: $LANG"
-            cp ".agents/governance/profiles/languages/$LANG.md" "$TARGET_DIR/.agents/language-specific/$LANG.md"
+        LANGUAGE_NAME="${arg#*=}"
+        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/languages/$LANGUAGE_NAME.md" ]; then
+            echo "📦 Selecting language profile: $LANGUAGE_NAME"
+            SELECTED_LANGUAGES+=("$LANGUAGE_NAME")
+            CODING_PROFILES+=(".agents/.rules/governance/profiles/languages/$LANGUAGE_NAME.md")
+        else
+            echo "⚠️  Unknown reusable language profile: $LANGUAGE_NAME"
+        fi
+
+        if [ -f "$SCRIPT_DIR/.agents/governance/app-architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
+            ARCH_PROFILES+=(".agents/.rules/governance/app-architecture/profiles/languages/$LANGUAGE_NAME.md")
         fi
         ;;
         --framework=*)
         FRAME="${arg#*=}"
-        if [ -f ".agents/governance/profiles/frameworks/$FRAME.md" ]; then
-            echo "📦 Adding framework profile: $FRAME"
-            cp ".agents/governance/profiles/frameworks/$FRAME.md" "$TARGET_DIR/.agents/language-specific/$FRAME.md"
+        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/frameworks/$FRAME.md" ]; then
+            echo "📦 Selecting framework profile: $FRAME"
+            SELECTED_FRAMEWORKS+=("$FRAME")
+            CODING_PROFILES+=(".agents/.rules/governance/profiles/frameworks/$FRAME.md")
+        else
+            echo "⚠️  Unknown reusable framework profile: $FRAME"
+        fi
+
+        if [ -f "$SCRIPT_DIR/.agents/governance/app-architecture/profiles/frameworks/$FRAME.md" ]; then
+            ARCH_PROFILES+=(".agents/.rules/governance/app-architecture/profiles/frameworks/$FRAME.md")
         fi
         ;;
     esac
 done
 
+LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
+FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
+CODING_PROFILE_VALUE="$(format_code_list "${CODING_PROFILES[@]}")"
+ARCH_PROFILE_VALUE="$(format_code_list "${ARCH_PROFILES[@]}")"
+
+target_agents_tmp="$TARGET_DIR/AGENTS.md.tmp.$$"
+if sed \
+    -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
+    -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
+    -e "s|__AGENTS_CODING_PROFILES__|$(escape_sed_replacement "$CODING_PROFILE_VALUE")|" \
+    -e "s|__AGENTS_ARCH_PROFILES__|$(escape_sed_replacement "$ARCH_PROFILE_VALUE")|" \
+    -e "s|__AGENTS_SECURITY_LANES__|security/**|" \
+    -e "s|__AGENTS_OPERATIONS_LANES__|operations/**|" \
+    "$TARGET_DIR/AGENTS.md" > "$target_agents_tmp"; then
+    mv "$target_agents_tmp" "$TARGET_DIR/AGENTS.md"
+else
+    rm -f "$target_agents_tmp"
+    exit 1
+fi
+
 echo "✅ Agent OS installed successfully!"
-echo "Next steps: cd $TARGET_DIR and customize your AGENTS.md"
+echo "Next steps: cd $TARGET_DIR and finalize the Applied Governance Stack in AGENTS.md"

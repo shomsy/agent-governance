@@ -2,6 +2,11 @@
 
 Use this profile for React-based frontends.
 
+Apply it together with the relevant `languages/typescript.md` or
+`languages/javascript.md` profile and `languages/css.md`.
+Apply the matching architecture overlay from
+`../app-architecture/profiles/frameworks/react.md` when repo shape matters.
+
 ## Component Rules
 
 - keep components focused by capability

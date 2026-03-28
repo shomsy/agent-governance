@@ -1,5 +1,11 @@
 # ADR Template
 
+## Timeline
+
+- recorded_at:
+- decision_at:
+- updated_at:
+
 ## Title
 
 ## Status

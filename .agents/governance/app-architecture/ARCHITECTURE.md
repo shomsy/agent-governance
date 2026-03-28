@@ -16,10 +16,13 @@ In `agent-governance` it stays generic so that child projects can copy and speci
 When copying `.agents` into a project:
 
 1. Replace this template with a repo-specific architecture document.
-2. Describe real top-level boundaries (for example `product/`, `system/`, `foundation/`).
-3. Show a representative tree that matches that repo.
-4. Explain how vertical slices work in that codebase.
-5. Keep naming rules and anti-patterns consistent with the standard.
+2. Make the root `AGENTS.md` declare the applied governance stack.
+3. Choose the relevant architecture overlays from
+   `.agents/governance/app-architecture/profiles/**`.
+4. Describe real top-level boundaries (for example `product/`, `system/`, `foundation/`).
+5. Show a representative tree that matches that repo.
+6. Explain how vertical slices work in that codebase.
+7. Keep naming rules and anti-patterns consistent with the standard.
 
 ## Minimal Required Sections For Child Repos
 
@@ -28,6 +31,8 @@ Each child repo should define at least:
 - scope and authority
 - migration posture (where new work is allowed)
 - vertical slice intent
+- agreement with the applied governance stack from root `AGENTS.md`
+- applied language or framework architecture profiles
 - repo shape and representative tree
 - naming rules for folders, files, and functions
 - change policy for architecture documents

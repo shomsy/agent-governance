@@ -37,7 +37,7 @@ At minimum, closure must:
 
 1. record what changed
 2. record how it was validated
-3. update the active queue or bug record
+3. update the active queue or bug record with timestamps
 4. perform any local release, sync, or archival step required by the repo
 
 ## 4. Evidence Requirements
@@ -47,4 +47,5 @@ A completed iteration must include:
 - changed file list
 - validation commands and results
 - backlog status update in `.agents/management/TODO.md` or `.agents/management/BUGS.md`
+- timestamped evidence or management update using the local timeline policy
 - any local evidence artifact required by project governance

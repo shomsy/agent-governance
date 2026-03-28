@@ -1,5 +1,12 @@
 # Iteration Plan Template
 
+## Timeline
+
+- planned_at:
+- updated_at:
+- target_decision_at:
+- estimate_window:
+
 ## Primary Goal
 [Describe the single most important outcome of this iteration]
 

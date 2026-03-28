@@ -1,5 +1,10 @@
 # Change Definition Of Done
 
+## Timeline
+
+- verified_at:
+- evidence_logged_at:
+
 ## Outcome Verified
 
 ## System Behavior Verified

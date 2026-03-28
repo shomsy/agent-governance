@@ -7,17 +7,29 @@
 
 Instead of managing floating markdown files, this project centralizes the entire governance system into a single, structured directory.
 
-1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
+1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth in this source repo.
 2.  **Specialized Profiles**: Modular governance grouped by **Language**, **Framework**, and **Architecture**.
-3.  **Process Policies**: Shared standards for code review, execution, and documentation.
+3.  **Process Policies**: Shared standards for review, strict-review, execution, release, and documentation.
+4.  **Resolution Algorithm**: A deterministic stack and SDLC resolver that maps root `AGENTS.md` + repo signals into the exact rule pack.
+5.  **Operations Contracts**: Reusable observability, smoke, security, recovery, and handoff rules.
+6.  **Flow-Doc Law**: Reusable trigger-to-result documentation contract for `how-this-works` style docs.
+7.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
 
 ---
 
 ## 🏗️ OS Architecture
 
 - **`/.agents/AGENTS.md`**: The Master Contract. Defines the Order of Precedence and non-negotiable rules.
-- **`/.agents/governance/profiles/`**: Tech-specific rules (React, JS, Python, etc.) that can be plugged into the project.
+- **`/.agents/.rules/`**: Hidden mounted copy of the reusable `.agents` project in adopting repos. The installer places the full rules tree here.
+- **`/.agents/`**: Visible project workspace skeleton in adopting repos. This is where `business-logic/`, `language-specific/`, `management/`, and `review/` live.
+- **`/.agents/governance/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
+- **`/.agents/governance/profiles/`**: Tech-specific rules (PHP, JavaScript, TypeScript, Node.js, CSS, React, Laravel, etc.) that can be plugged into the project.
+- **`/.agents/governance/app-architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
+- **`/.agents/governance/security/`**: Secure SDLC, OWASP-aligned web and API baseline, auth/session, secrets, supply-chain, CI/CD, and incident-response governance.
 - **`/.agents/governance/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
+- **`/.agents/governance/how-to-strict-review.md`**: Independent first-principles review lane for high-stakes claims.
+- **`/.agents/governance/how-to-document-flow.md`**: The trigger-to-result law for flow documentation.
+- **`/.agents/governance/operations/`**: Runtime, release, and recovery governance for deployable systems.
 - **`/.agents/governance/naming-standard.md`**: The "Flow -> Responsibility -> Action" naming law.
 
 ---
@@ -37,18 +49,25 @@ The [**`projects/`**](projects/) folder is a temporary, local repository of docu
 To "install" this Agent OS into a project:
 
 ```bash
-# 1. Copy the portable brain
-cp -r /path/to/agent-governance/.agents /path/to/your/project/
+# Preferred: use the bootstrap script
+/path/to/agent-governance/install-os.sh /path/to/your/project
 
-# 2. Create your project-specific AGENTS.md at the root
-# Use scaffolds/AGENTS.md as a template
-cp /path/to/agent-governance/scaffolds/AGENTS.md /path/to/your/project/AGENTS.md
+# The result is:
+# - .agents/.rules/ for the mounted reusable rules project
+# - .agents/ for the project workspace skeleton
+# - merge-files.sh at the project root, kept in sync
 ```
 
 The root `AGENTS.md` in your project should be minimal, only containing:
 - Path definitions (where is your source code?)
 - Entrypoints (how do we run/test the code?)
+- Applied governance stack (which languages, frameworks, and architecture overlays are active?)
 - Any specific overrides that differ from the global OS rules.
+
+The installer keeps `merge-files.sh` in the child repo on the latest version so
+the portable merged snapshot stays consistent across projects.
+
+Canonical backlog and evidence files already live under `.agents/management/**`.
 
 ---
 
@@ -58,9 +77,14 @@ We continuously "vacuum" the best rules from active projects to improve the glob
 
 | Project Source | Generalized Rule | Destination in OS |
 |:---|:---|:---|
-| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `naming-standard.md` |
-| `avax-bootcamp` | `state/render/actions` Pattern | `app-architecture/architecture-standard.md` |
-| `baraba` | Web Component Facades | `profiles/frameworks/v-web-components.md` |
+| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `.agents/governance/naming-standard.md` |
+| `avax-bootcamp` | `state/render/actions` Pattern | `.agents/governance/app-architecture/architecture-standard.md` |
+| `avax-bootcamp` | Canonical source vs generated book/output discipline | `.agents/governance/how-to-document.md` |
+| `baraba` | Web Component Facades | `.agents/governance/profiles/frameworks/v-web-components.md` |
+| `components` | Public facade/kernel/pipeline law translated into screaming feature-first clean architecture | `.agents/governance/app-architecture/architecture-standard.md`, `.agents/governance/app-architecture/profiles/languages/php.md`, `.agents/governance/app-architecture/profiles/frameworks/laravel.md` |
+| `OWASP` anchors | Web, API, ASVS, DevSecOps, and supply-chain security baseline | `.agents/governance/security/**` |
+| `polymoly` | Flow-document contract | `.agents/governance/how-to-document-flow.md` |
+| `polymoly` + `hotelsync-bridgeone` | Runtime hardening and proof posture | `.agents/governance/app-architecture/runtime-hardening.md` |
 
 ---
 
@@ -72,5 +96,3 @@ We continuously "vacuum" the best rules from active projects to improve the glob
 
 ---
 *No offload recommended for this step.*
-
-

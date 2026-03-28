@@ -12,6 +12,11 @@ configuration, policies, content manifests, and declarative workflows.
 - numeric limits stay within documented bounds
 - deprecated fields are rejected or explicitly migrated
 - unsafe executable payloads are blocked or explicitly gated
+- destructive or stateful operations have an inverse, restore, or containment path when required
+- grouped operations do not hide unrelated mutations under one identifier
+- lifecycle hooks do not mutate canonical state outside allowed mutation points
+- generated or derived outputs are marked and not treated as hand-maintained truth
+- controlled vocabularies expand only through explicit governance update
 
 ## Rule
 

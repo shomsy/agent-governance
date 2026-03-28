@@ -10,7 +10,7 @@ Every rule, "Naming Law", and architectural standard currently residing in `.age
 
 ## 🛠️ Usage for AI & Human Contributors
 
-1.  **Analyze**: Look at the `AGENTS.md` and `docs/governance/` subdirectories in these projects to find effective ways of describing work.
+1.  **Analyze**: Look at the `AGENTS.md`, `.agents/`, and any `docs/governance/` directories in these projects to find effective ways of describing work.
 2.  **Generalize**: When you find a rule that works in more than one project (e.g., the "Flow -> Responsibility -> Action" rule), extract it, generalize the language, and move it into the core [`.agents/`](../.agents/) folder.
 3.  **Refine**: Use these real-world examples to test if a new global rule is too abstract or too rigid.
 

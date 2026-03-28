@@ -11,13 +11,14 @@ Update rules:
 - if a status changes, update this file in the same work item
 - add `actual` when the effort is known and worth recording
 - add `owner` only when the closure needs accountability context
-- use `YYYY-MM-DD HH:MM` timestamps for new entries so duration and aging can be estimated
+- use `TIMELINE.md` format for all new entries so duration and aging can be
+  estimated
 
 ## Current Ledger
 
-1. `[doc][high] 2026-03-27 20:59 - Refactored .agents into an agnostic kernel and removed project-specific governance residue`
+1. `[doc][high] 2026-03-27 20:59 CET - Refactored .agents into an agnostic kernel and removed project-specific governance residue`
    owner: codex
    actual: 1h
-2. `[doc][medium] 2026-03-27 18:01 - Thinned AGENTS.md and wired the required questions into .agents`
+2. `[doc][medium] 2026-03-27 18:01 CET - Thinned AGENTS.md and wired the required questions into .agents`
    owner: codex
    actual: 1h

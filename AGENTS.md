@@ -1,12 +1,12 @@
 # AGENTS.md — agent-governance Repository Contract
 
-Version: 1.1.0
+Version: 1.6.0
 Status: Normative / Local
 Scope: `./**`
 
 This repository maintains the reusable shared governance base for other
-projects. The canonical reusable contract lives in `PARENT-AGENTS.md`.
-Deep procedures live in `docs/governance/**`.
+projects. The canonical reusable contract lives in `.agents/AGENTS.md`.
+Deep procedures live in `.agents/governance/**`.
 
 ## 0) Order Of Precedence
 
@@ -15,14 +15,21 @@ Agents MUST follow this order in this repository:
 1. `AGENTS.md`
 2. `.agents/AGENTS.md`
 3. `.agents/governance/quality-gates.md`
-4. `.agents/governance/execution-policy.md`
-5. `.agents/governance/how-to-code-review.md`
-6. `.agents/governance/how-to-coding-standards.md`
-7. `.agents/governance/naming-standard.md`
-8. `.agents/governance/how-to-document.md`
-9. `.agents/governance/release-and-rollback-policy.md`
-10. `README.md`
-11. `scaffolds/**`
+4. `.agents/governance/profile-resolution-algorithm.md`
+5. `.agents/governance/profiles/**`
+6. `.agents/governance/app-architecture/**`
+7. `.agents/governance/security/**`
+8. `.agents/governance/execution-policy.md`
+9. `.agents/governance/how-to-code-review.md`
+10. `.agents/governance/how-to-strict-review.md`
+11. `.agents/governance/how-to-coding-standards.md`
+12. `.agents/governance/naming-standard.md`
+13. `.agents/governance/how-to-document-flow.md`
+14. `.agents/governance/how-to-document.md`
+15. `.agents/governance/release-and-rollback-policy.md`
+16. `.agents/governance/operations/**`
+17. `README.md`
+18. `scaffolds/**`
 
 ## 1) Local Rules
 
@@ -42,7 +49,7 @@ Agents MUST follow this order in this repository:
 
 A change here is complete only when:
 
-1. the parent contract remains generic
+1. `.agents/AGENTS.md` remains generic
 2. the local repository contract remains short
 3. README adoption instructions still match the file layout
 4. scaffold files still reflect the documented precedence model
