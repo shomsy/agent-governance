@@ -1,6 +1,6 @@
 # AGENTS.md — Local Project Contract
 
-Version: 1.8.0
+Version: 1.9.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -30,27 +30,29 @@ Agents MUST follow this order:
 15. `.agents/.rules/governance/standards/coding/naming-standard.md`
 16. `.agents/.rules/governance/standards/documentation/how-to-document-flow.md`
 17. `.agents/.rules/governance/standards/documentation/how-to-document.md`
-18. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
-19. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
-20. `.agents/.rules/governance/skills/contract/skill-contract.md`
-21. `.agents/.rules/governance/agents/roles/agent-roles.md`
-22. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
-23. `.agents/.rules/governance/intelligence/context/context-management.md`
-24. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
-25. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
-26. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
-27. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
-28. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
-29. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
-30. `.agents/.rules/governance/delivery/operations/**`
-31. `.agents/skills/**`
-32. `.agents/management/ACTIVE.md`
-33. `.agents/management/TIMELINE.md`
-34. `.agents/management/TODO.md`
-35. `.agents/management/BUGS.md`
-36. `.agents/review/REVIEWS.md`
-37. `README.md`
-38. `docs/**`
+18. `.agents/.rules/governance/standards/governance/governance-authoring-standard.md`
+19. `.agents/.rules/governance/standards/governance/governance-evolution-policy.md`
+20. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
+21. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
+22. `.agents/.rules/governance/skills/contract/skill-contract.md`
+23. `.agents/.rules/governance/agents/roles/agent-roles.md`
+24. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
+25. `.agents/.rules/governance/intelligence/context/context-management.md`
+26. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
+27. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
+28. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
+29. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
+30. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
+31. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
+32. `.agents/.rules/governance/delivery/operations/**`
+33. `.agents/skills/**`
+34. `.agents/management/ACTIVE.md`
+35. `.agents/management/TIMELINE.md`
+36. `.agents/management/TODO.md`
+37. `.agents/management/BUGS.md`
+38. `.agents/review/REVIEWS.md`
+39. `README.md`
+40. `docs/**`
 
 ## 1. Local Definitions
 
@@ -62,6 +64,7 @@ Replace this section with project-specific truth:
 4. **Project-Specific Architecture Boundaries**: (e.g., `product/`, `system/`)
 5. **Applied Governance Stack**:
    - **Delivery Kind**: `web app` | `API` | `worker` | `CLI` | `library` | [replace]
+   - **Applied Repository Profiles**: `__AGENTS_REPOSITORY_PROFILES__`
    - **Languages**: `__AGENTS_LANGUAGES__`
    - **Frameworks Or Runtimes**: `__AGENTS_FRAMEWORKS__`
    - **Applied Coding Profiles**: `__AGENTS_CODING_PROFILES__`

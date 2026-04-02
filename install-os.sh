@@ -2,12 +2,13 @@
 set -euo pipefail
 
 # Agent Harness Installer
-# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME] [--platform=NAME]
+# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME] [--repository-profile=NAME] [--platform=NAME]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${1:-}"
 SELECTED_LANGUAGES=()
 SELECTED_FRAMEWORKS=()
+SELECTED_REPOSITORY_PROFILES=()
 CODING_PROFILES=()
 ARCH_PROFILES=()
 PLATFORM_TARGETS=()
@@ -15,7 +16,7 @@ PLATFORM_FLAGS_EXPLICITLY_SET=false
 GENERATE_ALL_PLATFORM_ADAPTERS=false
 
 if [ -z "$TARGET_DIR" ]; then
-    echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME] [--platform=NAME]"
+    echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME] [--repository-profile=NAME] [--platform=NAME]"
     exit 1
 fi
 
@@ -172,6 +173,15 @@ for arg in "$@"; do
             ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md")
         fi
         ;;
+        --repository-profile=*)
+        REPOSITORY_PROFILE_NAME="${arg#*=}"
+        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md" ]; then
+            echo "📦 Selecting repository profile: $REPOSITORY_PROFILE_NAME"
+            SELECTED_REPOSITORY_PROFILES+=(".agents/.rules/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md")
+        else
+            echo "⚠️  Unknown reusable repository profile: $REPOSITORY_PROFILE_NAME"
+        fi
+        ;;
         --platform=*)
         PLATFORM_FLAGS_EXPLICITLY_SET=true
         PLATFORM_VALUE="${arg#*=}"
@@ -205,11 +215,13 @@ fi
 
 LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
 FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
+REPOSITORY_PROFILE_VALUE="$(format_code_list "${SELECTED_REPOSITORY_PROFILES[@]}")"
 CODING_PROFILE_VALUE="$(format_code_list "${CODING_PROFILES[@]}")"
 ARCH_PROFILE_VALUE="$(format_code_list "${ARCH_PROFILES[@]}")"
 
 target_agents_tmp="$TARGET_DIR/AGENTS.md.tmp.$$"
 if sed \
+    -e "s|__AGENTS_REPOSITORY_PROFILES__|$(escape_sed_replacement "$REPOSITORY_PROFILE_VALUE")|" \
     -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
     -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
     -e "s|__AGENTS_CODING_PROFILES__|$(escape_sed_replacement "$CODING_PROFILE_VALUE")|" \

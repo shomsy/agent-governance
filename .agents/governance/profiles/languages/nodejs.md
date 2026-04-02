@@ -6,7 +6,7 @@ This profile assumes actively supported Node.js LTS, lockfile-backed delivery,
 and production services or operational tooling with explicit runtime ownership.
 
 Apply it together with the relevant architecture overlay under
-`../app-architecture/profiles/**` when repo shape and slice ownership matter.
+`../../architecture/profiles/**` when repo shape and slice ownership matter.
 
 ## Runtime Baseline
 

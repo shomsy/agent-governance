@@ -7,7 +7,7 @@ This profile assumes modern CSS with layering, tokens, and reusable component
 contracts.
 
 Apply it together with the relevant architecture overlay under
-`../app-architecture/profiles/**` when repo shape and slice ownership matter.
+`../../architecture/profiles/**` when repo shape and slice ownership matter.
 
 ## Architectural Layer Rules
 

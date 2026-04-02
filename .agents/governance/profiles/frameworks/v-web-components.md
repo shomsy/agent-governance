@@ -5,7 +5,7 @@ This profile defines the engineering standard for projects using native Web Comp
 Apply it together with the relevant `languages/javascript.md` or
 `languages/typescript.md` profile and `languages/css.md`.
 Apply the matching architecture overlay from
-`../app-architecture/profiles/frameworks/v-web-components.md` when repo shape
+`../../architecture/profiles/frameworks/v-web-components.md` when repo shape
 matters.
 
 ## 1. Governance & Scope

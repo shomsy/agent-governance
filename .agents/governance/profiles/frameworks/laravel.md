@@ -3,7 +3,7 @@
 Use this profile for Laravel applications.
 Apply it together with `languages/php.md`.
 Apply the matching architecture overlay from
-`../app-architecture/profiles/frameworks/laravel.md` when repo shape matters.
+`../../architecture/profiles/frameworks/laravel.md` when repo shape matters.
 
 ## Application Boundary Rules
 

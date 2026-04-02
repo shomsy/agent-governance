@@ -51,6 +51,7 @@ Every idea, plan, architecture decision, and release-impacting change must answe
 - `governance/core/`
 - `governance/execution/`
 - `governance/standards/`
+- `governance/standards/governance/`
 - `governance/intelligence/`
 - `governance/agents/`
 - `governance/integrations/`
@@ -59,6 +60,7 @@ Every idea, plan, architecture decision, and release-impacting change must answe
 - `governance/product/`
 - `governance/architecture/`
 - `governance/profiles/`
+- `governance/profiles/repository-kinds/`
 - `governance/security/`
 
 ## Rule

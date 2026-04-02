@@ -8,7 +8,7 @@
 Instead of managing floating markdown files, this project provides a structured harness that organizes the entire agent-human collaboration:
 
 1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
-2.  **Specialized Profiles**: Modular rules grouped by **Language**, **Framework**, and **Architecture**.
+2.  **Specialized Profiles**: Modular rules grouped by **Repository Kind**, **Language**, **Framework**, and **Architecture**.
 3.  **Memory Architecture**: Standardized memory lifecycle for cross-session learning and compaction.
 4.  **Skills Harness**: Reusable agent-facing workflows and slash-commands (`/prd-draft`, `/meeting-cleanup`, etc.).
 5.  **Strategic Context**: Living library for Personas, ROADMAP, and Stakeholders.
@@ -25,8 +25,10 @@ Instead of managing floating markdown files, this project provides a structured 
 - **`/.agents/skills/`**: Reusable agent workflow and command definitions.
 - **`/.agent/`**: Runtime context, memory, and strategic library for the active agent.
 - **`/.agents/governance/README.md`**: Feature-first index for the governance tree.
+- **`/.agents/governance/standards/governance/`**: Rules for authoring and evolving governance itself.
 - **`/.agents/governance/core/resolution/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
 - **`/.agents/governance/profiles/`**: Tech-specific rules (PHP, JavaScript, TypeScript, Node.js, CSS, React, Laravel, etc.) that can be plugged into the project.
+- **`/.agents/governance/profiles/repository-kinds/`**: Profiles for non-standard repository classes such as governance or scaffold sources.
 - **`/.agents/governance/architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
 - **`/.agents/governance/security/`**: Secure SDLC, OWASP-aligned web and API baseline, auth/session, secrets, supply-chain, CI/CD, and incident-response governance.
 - **`/.agents/governance/execution/policy/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
@@ -56,6 +58,10 @@ To "install" this Agent OS into a project:
 # Preferred: use the bootstrap script
 /path/to/agent-harness/install-os.sh /path/to/your/project
 
+# Optional: apply a repository-kind profile when the child repo is itself a
+# governance/scaffold source
+/path/to/agent-harness/install-os.sh /path/to/your/project --repository-profile=governance-source
+
 # The result is:
 # - .agents/.rules/ for the mounted reusable rules project
 # - .agents/ for the project workspace skeleton
@@ -67,7 +73,7 @@ To "install" this Agent OS into a project:
 The root `AGENTS.md` in your project should be minimal, only containing:
 - Path definitions (where is your source code?)
 - Entrypoints (how do we run/test the code?)
-- Applied governance stack (which languages, frameworks, and architecture overlays are active?)
+- Applied governance stack (which repository profiles, languages, frameworks, and architecture overlays are active?)
 - Any specific overrides that differ from the global OS rules.
 
 The installer keeps `merge-files.sh` in the child repo on the latest version so
@@ -76,6 +82,10 @@ also writes lightweight adapter files for the common AI clients; pass
 `--platform=...` if you want to limit the generated adapters. The reusable
 governance tree is now organized feature-first, so child repos inherit the same
 navigation model under `.agents/.rules/governance/`.
+
+This repository also dogfoods a repository-kind profile for governance-source
+repos, plus explicit standards for how governance itself should be written and
+evolved.
 
 Canonical backlog and evidence files already live under `.agents/management/**`.
 

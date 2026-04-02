@@ -1,6 +1,6 @@
 # AGENTS.md — Agent Harness Repository Contract
 
-Version: 1.11.0
+Version: 1.12.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -29,22 +29,24 @@ Agents MUST follow this order in this repository:
 15. `.agents/governance/standards/coding/naming-standard.md`
 16. `.agents/governance/standards/documentation/how-to-document-flow.md`
 17. `.agents/governance/standards/documentation/how-to-document.md`
-18. `.agents/governance/delivery/release/release-and-rollback-policy.md`
-19. `.agents/governance/intelligence/memory/memory-lifecycle.md`
-20. `.agents/governance/skills/contract/skill-contract.md`
-21. `.agents/governance/agents/roles/agent-roles.md`
-22. `.agents/governance/delivery/workflows/workflow-pipelines.md`
-23. `.agents/governance/intelligence/context/context-management.md`
-24. `.agents/governance/intelligence/learning/continuous-learning.md`
-25. `.agents/governance/intelligence/learning/instincts-policy.md`
-26. `.agents/governance/integrations/platforms/platform-compatibility.md`
-27. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
-28. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
-29. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
-30. `.agents/governance/delivery/operations/**`
-31. `.agents/skills/**` (Reusable Agent Skills)
-32. `README.md`
-33. `scaffolds/**`
+18. `.agents/governance/standards/governance/governance-authoring-standard.md`
+19. `.agents/governance/standards/governance/governance-evolution-policy.md`
+20. `.agents/governance/delivery/release/release-and-rollback-policy.md`
+21. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+22. `.agents/governance/skills/contract/skill-contract.md`
+23. `.agents/governance/agents/roles/agent-roles.md`
+24. `.agents/governance/delivery/workflows/workflow-pipelines.md`
+25. `.agents/governance/intelligence/context/context-management.md`
+26. `.agents/governance/intelligence/learning/continuous-learning.md`
+27. `.agents/governance/intelligence/learning/instincts-policy.md`
+28. `.agents/governance/integrations/platforms/platform-compatibility.md`
+29. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
+30. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
+31. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
+32. `.agents/governance/delivery/operations/**`
+33. `.agents/skills/**` (Reusable Agent Skills)
+34. `README.md`
+35. `scaffolds/**`
 
 ## 1) Local Rules
 
@@ -75,3 +77,16 @@ Final user-facing responses must include one short offload note:
 
 - either a short recommendation, or
 - `No offload recommended for this step.`
+
+## 4) Local Applied Governance Stack
+
+This repository should dogfood its own reusable governance where that improves
+the Agent Harness as a portable OS source.
+
+- Repository Kind: `governance source`
+- Applied Repository Profile:
+  `.agents/governance/profiles/repository-kinds/governance-source.md`
+- Primary Surfaces: `.agents/**`, `scaffolds/**`, `install-os.sh`,
+  `merge-files.sh`, root documentation, and generated adapters
+- Structural Change Ceremony: update precedence, indexes, installer/scaffold
+  paths, validation commands, and merged snapshot together

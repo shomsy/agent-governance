@@ -5,7 +5,7 @@ Use this profile for Express applications and APIs.
 Apply it together with `languages/nodejs.md` and any relevant `typescript.md`
 or `javascript.md` profile.
 Apply the matching architecture overlay from
-`../app-architecture/profiles/frameworks/express.md` when repo shape matters.
+`../../architecture/profiles/frameworks/express.md` when repo shape matters.
 
 ## Routing and Middleware Rules
 

@@ -6,7 +6,7 @@ This profile assumes modern module-based JavaScript and should be combined with
 the relevant runtime, framework, or CSS profiles when applicable.
 
 Apply it together with the relevant architecture overlay under
-`../app-architecture/profiles/**` when repo shape and slice ownership matter.
+`../../architecture/profiles/**` when repo shape and slice ownership matter.
 
 ## Module And Naming Rules
 

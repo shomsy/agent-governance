@@ -6,7 +6,7 @@ The governance tree is organized feature-first so related rules live together.
 
 - `core/`: universal gates, flagging, and profile resolution
 - `execution/`: task execution, hooks, approvals, and sandbox boundaries
-- `standards/`: review, coding, naming, and documentation rules
+- `standards/`: review, coding, naming, documentation, and governance authoring rules
 - `intelligence/`: memory lifecycle, context budgets, learning, and instincts
 - `agents/`: role definitions and multi-agent orchestration
 - `integrations/`: client/platform adapters and MCP policy
@@ -14,7 +14,7 @@ The governance tree is organized feature-first so related rules live together.
 - `skills/`: reusable skill contract
 - `product/`: reusable product-management standard
 - `architecture/`: reusable architecture baseline and overlays
-- `profiles/`: language, framework, and reviewer persona packs
+- `profiles/`: language, framework, reviewer persona, and repository-kind packs
 - `security/`: secure SDLC and operational security baselines
 
 ## Read First

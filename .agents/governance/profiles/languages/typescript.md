@@ -6,7 +6,7 @@ This profile assumes strict TypeScript and should be used together with any
 relevant runtime or framework profile.
 
 Apply it together with the relevant architecture overlay under
-`../app-architecture/profiles/**` when repo shape and slice ownership matter.
+`../../architecture/profiles/**` when repo shape and slice ownership matter.
 
 ## Compiler And Type-System Baseline
 

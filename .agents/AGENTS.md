@@ -1,6 +1,6 @@
 # .agents/AGENTS.md — Global Agent Harness Master Contract
 
-Version: 2.2.0
+Version: 2.3.0
 Status: Normative / Universal
 Scope: `./**`
 
@@ -32,21 +32,23 @@ In any project using the `.agents` OS, agents MUST follow this order:
 15. `.agents/governance/standards/coding/naming-standard.md`
 16. `.agents/governance/standards/documentation/how-to-document-flow.md`
 17. `.agents/governance/standards/documentation/how-to-document.md`
-18. `.agents/governance/delivery/release/release-and-rollback-policy.md`
-19. `.agents/governance/intelligence/memory/memory-lifecycle.md`
-20. `.agents/governance/skills/contract/skill-contract.md`
-21. `.agents/governance/agents/roles/agent-roles.md`
-22. `.agents/governance/delivery/workflows/workflow-pipelines.md`
-23. `.agents/governance/intelligence/context/context-management.md`
-24. `.agents/governance/intelligence/learning/continuous-learning.md`
-25. `.agents/governance/intelligence/learning/instincts-policy.md`
-26. `.agents/governance/integrations/platforms/platform-compatibility.md`
-27. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
-28. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
-29. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
-30. `.agents/governance/delivery/operations/**`
-31. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
-32. `README.md`
+18. `.agents/governance/standards/governance/governance-authoring-standard.md`
+19. `.agents/governance/standards/governance/governance-evolution-policy.md`
+20. `.agents/governance/delivery/release/release-and-rollback-policy.md`
+21. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+22. `.agents/governance/skills/contract/skill-contract.md`
+23. `.agents/governance/agents/roles/agent-roles.md`
+24. `.agents/governance/delivery/workflows/workflow-pipelines.md`
+25. `.agents/governance/intelligence/context/context-management.md`
+26. `.agents/governance/intelligence/learning/continuous-learning.md`
+27. `.agents/governance/intelligence/learning/instincts-policy.md`
+28. `.agents/governance/integrations/platforms/platform-compatibility.md`
+29. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
+30. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
+31. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
+32. `.agents/governance/delivery/operations/**`
+33. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
+34. `README.md`
 
 ## 1) Agent OS Repository Structure
 
@@ -95,5 +97,5 @@ Each adopting repository MUST specify:
 2. canonical local development entrypoint
 3. canonical release or publish entrypoint
 4. project-specific architecture boundaries
-5. applied governance stack: languages, frameworks, architecture overlays, and
-   required SDLC lanes
+5. applied governance stack: repository profiles, languages, frameworks,
+   architecture overlays, required SDLC lanes, and runtime obligations

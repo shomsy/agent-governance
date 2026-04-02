@@ -1,4 +1,4 @@
-# App Architecture Governance
+# Architecture Governance
 
 This folder holds reusable architecture contracts for repository shape, feature
 ownership, runtime boundaries, and migration-safe structure decisions.
@@ -28,7 +28,7 @@ ownership, runtime boundaries, and migration-safe structure decisions.
 
 Apply architecture rules in this order:
 
-1. `../profile-resolution-algorithm.md`
+1. `../core/resolution/profile-resolution-algorithm.md`
 2. `architecture-standard.md`
 3. relevant `profiles/languages/**`
 4. relevant `profiles/frameworks/**`

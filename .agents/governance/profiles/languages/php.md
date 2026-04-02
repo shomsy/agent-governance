@@ -6,7 +6,7 @@ This profile assumes modern PHP 8.x with Composer-based delivery and should be
 used together with any relevant framework profile.
 
 Apply it together with the relevant architecture overlay under
-`../app-architecture/profiles/**` when repo shape and slice ownership matter.
+`../../architecture/profiles/**` when repo shape and slice ownership matter.
 
 ## Language Baseline
 

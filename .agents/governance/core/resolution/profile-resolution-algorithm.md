@@ -9,6 +9,7 @@ Given only the local root `AGENTS.md`, the copied `.agents/` folder, the actual
 repository tree, and the current user task, the agent must be able to resolve:
 
 - the active SDLC lane
+- the applicable repository-kind profiles
 - the applicable language profiles
 - the applicable framework or runtime profiles
 - the applicable architecture overlays
@@ -24,7 +25,7 @@ It must resolve the rule pack in a predictable order.
 
 The target is:
 
-`task lane -> stack -> architecture -> coding rules -> security -> release or evidence`
+`task lane -> repository kind -> stack -> architecture -> coding rules -> security -> release or evidence`
 
 ## Required Child-Repo Declaration
 
@@ -32,6 +33,7 @@ Every adopting repository should declare this explicitly in its root
 `AGENTS.md` under a short section such as `Applied Governance Stack`:
 
 - delivery kind or system kind
+- applied repository profiles
 - languages
 - frameworks or runtimes
 - applied coding profiles
@@ -50,21 +52,22 @@ Resolve rules in this order:
 1. root `AGENTS.md`
 2. `.agents/AGENTS.md`
 3. `.agents/governance/core/quality/quality-gates.md`
-13. `.agents/governance/intelligence/memory/universal-memory-standard.md`
-14. `.agents/governance/product/standards/product-management-standard.md`
-15. this file
-16. `.agents/governance/profiles/**`
-17. `.agents/governance/profiles/roles/**` (Reviewer Personas)
-18. `.agents/governance/architecture/**`
-19. `.agents/governance/security/**`
-20. `.agents/governance/execution/policy/execution-policy.md`
-21. lane-specific governance such as review, documentation, release, or ops
-22. `.agents/business-logic/**`
-23. `.agents/language-specific/**`
-24. `README.md` and other local supporting docs
-25. `.agent/memory/MEMORY.md` (Self-Improving Project Memory)
-26. `.agent/sessions/<SESSION_ID>/session_memory.md` (Active Session context)
-27. `.agent/context/**` (Strategic/Product Context Library)
+4. `.agents/governance/intelligence/memory/universal-memory-standard.md`
+5. `.agents/governance/product/standards/product-management-standard.md`
+6. this file
+7. `.agents/governance/profiles/repository-kinds/**`
+8. `.agents/governance/profiles/**`
+9. `.agents/governance/profiles/roles/**` (Reviewer Personas)
+10. `.agents/governance/architecture/**`
+11. `.agents/governance/security/**`
+12. `.agents/governance/execution/policy/execution-policy.md`
+13. lane-specific governance such as review, documentation, governance, release, or ops
+14. `.agents/business-logic/**`
+15. `.agents/language-specific/**`
+16. `README.md` and other local supporting docs
+17. `.agent/memory/MEMORY.md` (Self-Improving Project Memory)
+18. `.agent/sessions/<SESSION_ID>/session_memory.md` (Active Session context)
+19. `.agent/context/**` (Strategic/Product Context Library)
 
 If two rules conflict:
 
@@ -82,6 +85,8 @@ Before reading stack details, classify the task into one primary lane:
 - `brainstorm`: exploring options, tradeoffs, or architecture directions
 - `planning`: turning scope into execution steps and owned backlog
 - `coding`: changing implementation
+- `governance`: changing reusable rules, profiles, installers, scaffolds,
+  adapters, or precedence contracts
 - `review`: evaluating existing changes or claimed readiness
 - `documentation`: writing or updating docs as the primary deliverable
 - `security`: threat modeling, security hardening, vulnerability response, or
@@ -99,6 +104,7 @@ Read the local root `AGENTS.md` and extract:
 
 - declared languages
 - declared frameworks or runtimes
+- declared repository-kind profiles
 - declared architecture profiles
 - declared system kind such as `web app`, `API`, `worker`, `CLI`, `library`,
   `design system`, or `monolith`
@@ -115,6 +121,8 @@ the repository.
 
 Use signals like these:
 
+- root repo centers on `.agents/`, `scaffolds/`, installer scripts, adapters,
+  or generated contract snapshots -> `repository-kinds/governance-source.md`
 - `composer.json` -> `php`
 - `composer.json` with `laravel/framework`, `artisan`, or standard Laravel
   folders -> `laravel`
@@ -130,6 +138,8 @@ Inference rules:
 
 - only infer profiles that actually exist under reusable `.agents` governance
 - do not invent framework-specific rules that do not exist
+- do not infer a repository-kind profile unless the repository's primary
+  maintained surfaces clearly match it
 - if evidence is weak, stay at the broader language or architecture baseline
 - if the repo is polyglot, compose all clearly-owned profiles instead of
   pretending there is only one
@@ -172,7 +182,7 @@ Strategic resolution follows the **Product Management Standard**.
 
 These artifacts should inform the **"What"** and **"Why"** of any implementation task.
 
-## Step 7: Resolve Coding Profiles
+## Step 7: Resolve Coding And Repository Profiles
 
 Coding resolution order is:
 
@@ -191,6 +201,18 @@ Use coding profiles for:
 - interop rules
 - performance, cache, and resource posture
 - stack-specific security behavior
+
+Repository-kind resolution order is:
+
+1. explicit repository profiles from root `AGENTS.md`
+2. inferred repository-kind profile from strong repo signals
+3. repo-local clarifications in root `AGENTS.md`
+
+Repository-kind profiles shape:
+
+- what the repository treats as its primary product surface
+- how structural change propagates into scaffolds, installers, adapters, and docs
+- when path drift or precedence drift should be treated as release-blocking bugs
 
 ## Step 8: Add Security And Operations Layers
 
@@ -221,7 +243,7 @@ Use:
 
 - `quality-gates.md`
 - this file
-- app architecture baseline and relevant overlays
+- architecture baseline and relevant overlays
 - security baseline when the idea touches trust boundaries
 - local business and glossary docs
 
@@ -258,6 +280,24 @@ Use:
 Goal:
 
 - produce the minimal safe delta that obeys the stack law and repo shape
+
+### Governance
+
+Use:
+
+- `quality-gates.md`
+- this file
+- `standards/governance/governance-authoring-standard.md`
+- `standards/governance/governance-evolution-policy.md`
+- `how-to-document.md`
+- `delivery/workflows/workflow-pipelines.md` when installer, scaffold, or release
+  implications exist
+- repository-kind profiles when the repo itself is a governance source
+
+Goal:
+
+- improve the rule system without introducing duplication, drift, or silent
+  portability breaks
 
 ### Review
 
@@ -337,6 +377,8 @@ The lane determines what done means:
 - `brainstorm`: options, risks, and recommendation are explicit
 - `planning`: task breakdown, ownership, and queue placement are explicit
 - `coding`: implementation, validation, evidence, and backlog update exist
+- `governance`: precedence, placement, migration impact, installer/scaffold
+  parity, and docs are explicit
 - `review`: findings or explicit no-findings judgment are recorded
 - `documentation`: canonical docs match the real system
 - `security`: threat, mitigation, validation, and residual risk are explicit
