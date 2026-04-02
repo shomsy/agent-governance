@@ -4,7 +4,7 @@ contract_ref: v1
 status: stable
 ---
 
-Shared baseline: `system/docs/development/governance/shared/agent-governance/how-to-code-review.md`
+Shared baseline: `system/docs/development/governance/shared/agent-harness/how-to-code-review.md`
 Upstream source: `system/docs/development/governance/upstream-source.lock.json`
 Local role: PolyMoly-specific review depth, lanes, and production-readiness rules
 

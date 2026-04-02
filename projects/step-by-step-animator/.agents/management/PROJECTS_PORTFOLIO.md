@@ -19,7 +19,7 @@ Top-level projekti:
 2. `MILOS-V1`
 3. `STANKOVICH`
 4. `admin-dashboard`
-5. `agent-governance`
+5. `agent-harness`
 6. `avax-bootcamp`
 7. `baraba`
 8. `components`
@@ -94,7 +94,7 @@ Top-level projekti:
 - Governance:
   - Minimalno; postoji `TODO.md` kao task evidence.
 
-## 5) `agent-governance`
+## 5) `agent-harness`
 
 - Tip: reusable parent governance contract repo.
 - Jezici: Markdown (normativna dokumentacija).
@@ -180,7 +180,7 @@ Top-level projekti:
   - plus veliki interni modulni sistem kroz `system/**` i `product/**`.
 - Governance:
   - Root `AGENTS.md` sa vrlo detaljnim precedence-om i local non-negotiable pravilima
-  - Vendored shared governance (`agent-governance`) + local overlays
+  - Vendored shared governance (`agent-harness`) + local overlays
   - Canonical gate entrypoint: `poly gate run <profile>`.
 
 ## 11) `step-by-step-animations`
@@ -243,7 +243,7 @@ Top-level projekti:
 
 ## A) Reusable governance lineage
 
-- `agent-governance` je reusable baza (parent + governance docs + scaffolds).
+- `agent-harness` je reusable baza (parent + governance docs + scaffolds).
 - `step-by-step-animator` i `step-by-step-animations` koriste `.agents/` model sa slicnim policy granama.
 - `polymoly` koristi parent-child contract model i vendored shared governance snapshot.
 - `MILOS-*` family i `baraba` imaju jake local AGENTS contracts.

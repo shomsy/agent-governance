@@ -1,6 +1,6 @@
 # `language-specific/` — Child Repo Placeholder
 
-This directory stays intentionally empty in the reusable `agent-governance`
+This directory stays intentionally empty in the reusable `agent-harness`
 repo.
 
 Child repos may add local language or framework rules here only after the

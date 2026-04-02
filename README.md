@@ -1,18 +1,19 @@
-# Agent Governance & OS Hub
+# Agent Harness
 
 > [!IMPORTANT]
-> This repository is a **Portable Agent Operating System**. The core "brain" lives entirely inside the [`.agents/`](.agents/) folder. Copying this folder into any project instantly installs the governance, standards, and AI-alignment rules required for high-performance collaboration.
+> This repository is a **Portable Agent Harness**. The core "brain" lives entirely inside the [`.agents/`](.agents/) folder. Copying this folder into any project instantly installs the governance, memory, skills, and strategic context required for high-performance AI collaboration.
 
-## Vision: The Portable Brain
+## Vision: The Complete Harness
 
-Instead of managing floating markdown files, this project centralizes the entire governance system into a single, structured directory.
+Instead of managing floating markdown files, this project provides a structured harness that contientizes the entire agent-human collaboration:
 
-1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth in this source repo.
-2.  **Specialized Profiles**: Modular governance grouped by **Language**, **Framework**, and **Architecture**.
-3.  **Process Policies**: Shared standards for review, strict-review, execution, release, and documentation.
-4.  **Resolution Algorithm**: A deterministic stack and SDLC resolver that maps root `AGENTS.md` + repo signals into the exact rule pack.
-5.  **Operations Contracts**: Reusable observability, smoke, security, recovery, and handoff rules.
-6.  **Flow-Doc Law**: Reusable trigger-to-result documentation contract for `how-this-works` style docs.
+1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
+2.  **Specialized Profiles**: Modular rules grouped by **Language**, **Framework**, and **Architecture**.
+3.  **Memory Architecture**: Standardized memory lifecycle for cross-session learning and compaction.
+4.  **Skills Harness**: Reusable agent-facing workflows and slash-commands (`/prd-draft`, `/meeting-cleanup`, etc.).
+5.  **Strategic Context**: Living library for Personas, ROADMAP, and Stakeholders.
+6.  **Resolution Algorithm**: A deterministic stack and SDLC resolver.
+7.  **Operations & Flow-Doc Law**: Shared standards for observability, triggers, and results.
 7.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
 
 ---
@@ -20,8 +21,9 @@ Instead of managing floating markdown files, this project centralizes the entire
 ## 🏗️ OS Architecture
 
 - **`/.agents/AGENTS.md`**: The Master Contract. Defines the Order of Precedence and non-negotiable rules.
-- **`/.agents/.rules/`**: Hidden mounted copy of the reusable `.agents` project in adopting repos. The installer places the full rules tree here.
-- **`/.agents/`**: Visible project workspace skeleton in adopting repos. This is where `business-logic/`, `language-specific/`, `management/`, and `review/` live.
+- **`/.agents/.rules/`**: Hidden mounted copy of the reusable `.agents` project in adopting repos.
+- **`/.agents/skills/`**: Reusable agent workflow and command definitions.
+- **`/.agent/`**: Runtime context, memory, and strategic strategic library for the active agent.
 - **`/.agents/governance/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
 - **`/.agents/governance/profiles/`**: Tech-specific rules (PHP, JavaScript, TypeScript, Node.js, CSS, React, Laravel, etc.) that can be plugged into the project.
 - **`/.agents/governance/app-architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
@@ -50,7 +52,7 @@ To "install" this Agent OS into a project:
 
 ```bash
 # Preferred: use the bootstrap script
-/path/to/agent-governance/install-os.sh /path/to/your/project
+/path/to/agent-harness/install-os.sh /path/to/your/project
 
 # The result is:
 # - .agents/.rules/ for the mounted reusable rules project

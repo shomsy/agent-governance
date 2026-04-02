@@ -50,15 +50,21 @@ Resolve rules in this order:
 1. root `AGENTS.md`
 2. `.agents/AGENTS.md`
 3. `.agents/governance/quality-gates.md`
-4. this file
-5. `.agents/governance/profiles/**`
-6. `.agents/governance/app-architecture/**`
-7. `.agents/governance/security/**`
-8. `.agents/governance/execution-policy.md`
-9. lane-specific governance such as review, documentation, release, or ops
-10. `.agents/business-logic/**`
-11. `.agents/language-specific/**`
-12. `README.md` and other local supporting docs
+13. `.agents/governance/universal-memory-standard.md`
+14. `.agents/governance/product-management-standard.md`
+15. this file
+16. `.agents/governance/profiles/**`
+17. `.agents/governance/profiles/roles/**` (Reviewer Personas)
+18. `.agents/governance/app-architecture/**`
+19. `.agents/governance/security/**`
+20. `.agents/governance/execution-policy.md`
+21. lane-specific governance such as review, documentation, release, or ops
+22. `.agents/business-logic/**`
+23. `.agents/language-specific/**`
+24. `README.md` and other local supporting docs
+25. `.agent/memory/MEMORY.md` (Self-Improving Project Memory)
+26. `.agent/sessions/<SESSION_ID>/session_memory.md` (Active Session context)
+27. `.agent/context/**` (Strategic/Product Context Library)
 
 If two rules conflict:
 
@@ -146,7 +152,27 @@ Architecture overlays answer:
 - what the ingress, facade, pipeline, orchestration, or adapter boundaries are
 - what naming law the folders, files, and functions must obey
 
-## Step 5: Resolve Coding Profiles
+## Step 5: Resolve Memory Context (Phase 2)
+
+Memory resolution follows the **Universal Memory Standard**.
+
+1. Resolve global user-level memory from `~/.agent/`.
+2. Resolve project-level memory from `.agent/memory/`.
+3. Resolve active session-level memory from context.
+
+Memory context should shape the **System Prompt** and **Memory Section** of
+the agent's interaction.
+
+## Step 6: Resolve Strategic Context (ProdOps)
+
+Strategic resolution follows the **Product Management Standard**.
+
+1. Resolve user personas and style guides from `.agent/context/`.
+2. Resolve stakeholder maps and strategy docs.
+
+These artifacts should inform the **"What"** and **"Why"** of any implementation task.
+
+## Step 7: Resolve Coding Profiles
 
 Coding resolution order is:
 

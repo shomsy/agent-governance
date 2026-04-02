@@ -1,11 +1,11 @@
-# .agents/AGENTS.md — Global Agent Master Contract
+# .agents/AGENTS.md — Global Agent Harness Master Contract
 
-Version: 1.8.0
+Version: 1.9.0
 Status: Normative / Universal
 Scope: `./**`
 
 This file is the reusable base contract for any repository that adopts the
-`.agents` operating system scaffold.
+**Agent Harness** operating system scaffold.
 
 It must stay generic. Product-specific, team-specific, or repository-specific
 rules belong in the adopting repo's root `AGENTS.md` or in child-repo
@@ -49,6 +49,7 @@ Any project using this OS is divided into specialized domains within the
 | **`review/`** | Canonical review findings and archive. | **Yes** |
 | **`glossary/`** | Shared vocabulary, naming dictionaries, and term definitions. | **Yes** |
 | **`onboarding/`** | Guided flows for safe project adoption and contributor entry. | **Yes** |
+| **`skills/`** | Reusable agent-facing command and workflow definitions. | **Yes** |
 
 ## 2) Non-Negotiable Rules (Shared)
 

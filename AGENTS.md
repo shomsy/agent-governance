@@ -1,10 +1,10 @@
-# AGENTS.md — agent-governance Repository Contract
+# AGENTS.md — Agent Harness Repository Contract
 
-Version: 1.6.0
+Version: 1.7.0
 Status: Normative / Local
 Scope: `./**`
 
-This repository maintains the reusable shared governance base for other
+This repository maintains the reusable shared **Agent Harness** base for other
 projects. The canonical reusable contract lives in `.agents/AGENTS.md`.
 Deep procedures live in `.agents/governance/**`.
 
@@ -28,8 +28,9 @@ Agents MUST follow this order in this repository:
 14. `.agents/governance/how-to-document.md`
 15. `.agents/governance/release-and-rollback-policy.md`
 16. `.agents/governance/operations/**`
-17. `README.md`
-18. `scaffolds/**`
+17. `.agents/skills/**` (Reusable Agent Skills)
+18. `README.md`
+19. `scaffolds/**`
 
 ## 1) Local Rules
 

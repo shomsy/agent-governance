@@ -4,7 +4,7 @@ contract_ref: v1
 status: stable
 ---
 
-Shared baseline: `system/docs/development/governance/shared/agent-governance/how-to-coding-standards.md`
+Shared baseline: `system/docs/development/governance/shared/agent-harness/how-to-coding-standards.md`
 Upstream source: `system/docs/development/governance/upstream-source.lock.json`
 Local role: PolyMoly-specific coding standards and code-level delivery rules
 

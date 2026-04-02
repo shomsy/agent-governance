@@ -25,7 +25,7 @@ These scripts are outside the main Go engine path, but they still matter because
 ## The simplest story
 
 - a real `poly ...`, gate, or script entry reaches this tooling slice
-- this folder owns one concrete tooling step, often starting with `sync-agent-governance.sh`
+- this folder owns one concrete tooling step, often starting with `sync-agent-harness.sh`
 - the next tool step gets a report, summary, artifact, or exit decision from here
 
 ```mermaid
@@ -34,7 +34,7 @@ flowchart TD
     classDef step2 fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
     classDef step3 fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
 
-    A["1. a real `poly ...`, gate, or script entry reaches this tooling slice"]:::step1 --> B["2. this folder owns one concrete tooling step, often starting with `sync-agent-governance.sh`"]:::step2
+    A["1. a real `poly ...`, gate, or script entry reaches this tooling slice"]:::step1 --> B["2. this folder owns one concrete tooling step, often starting with `sync-agent-harness.sh`"]:::step2
     B --> C["3. the next tool step gets a report, summary, artifact, or exit decision from here"]:::step3
 ```
 
@@ -52,26 +52,26 @@ the important path is:
 sequenceDiagram
     autonumber
     participant Entry as Caller
-    participant Owned as sync-agent-governance.sh
+    participant Owned as sync-agent-harness.sh
     participant Next as NextStep
     participant Result as VisibleResult
 
     Entry->>Owned: Step 1: reach `system/scripts/governance/` through the current story
-    Owned->>Owned: Step 2: perform the folder-owned work in `sync-agent-governance.sh`
+    Owned->>Owned: Step 2: perform the folder-owned work in `sync-agent-harness.sh`
     Owned->>Next: Step 3: hand the concrete result to the next caller or boundary
     Next-->>Result: Step 4: make the next visible summary, artifact, or state available
 ```
 
 - **Step 1:** This is the moment the story actually enters this folder instead of staying in a higher router or parent helper.
-- **Step 2:** The first real work starts in `sync-agent-governance.sh`.
+- **Step 2:** The first real work starts in `sync-agent-harness.sh`.
 - **Step 3:** From here, the story moves to one smaller file, child slice, or boundary that can do the next concrete job.
 - **Step 4:** At the end, the caller has something concrete to carry forward: a file on disk, a rendered asset, a proof artifact, or a clear next state.
 
 ## Direct files in this folder
 
-### `sync-agent-governance.sh`
+### `sync-agent-harness.sh`
 
-This file ships the `sync-agent-governance.sh` asset that the next technical step reads directly.
+This file ships the `sync-agent-harness.sh` asset that the next technical step reads directly.
 
 Why this name is honest:
 
@@ -79,7 +79,7 @@ Why this name is honest:
 
 When the story opens this file:
 
-- when the `system/scripts/governance/` story needs this responsibility, it opens `sync-agent-governance.sh`
+- when the `system/scripts/governance/` story needs this responsibility, it opens `sync-agent-harness.sh`
 
 What arrives here:
 
@@ -87,7 +87,7 @@ What arrives here:
 
 What leaves this file:
 
-- the shipped `sync-agent-governance.sh` asset
+- the shipped `sync-agent-harness.sh` asset
 - a concrete file the next render or runtime step can read directly
 
 Why you open it first:
@@ -98,16 +98,16 @@ Why you open it first:
 sequenceDiagram
     autonumber
     participant Caller as ParentFlow
-    participant File as sync-agent-governance.sh
+    participant File as sync-agent-harness.sh
     participant Next as NextStep
 
     Note over Caller,File: Input: parent flow values, repo state, or shipped asset context
-    Caller->>File: Step 1: enter `sync-agent-governance.sh`
+    Caller->>File: Step 1: enter `sync-agent-harness.sh`
     File->>File: Step 2: do the file-owned work
     File->>Next: Step 3: hand the concrete result forward
 ```
 
-- **Step 1:** The story reaches `sync-agent-governance.sh` because this file owns the next small responsibility.
+- **Step 1:** The story reaches `sync-agent-harness.sh` because this file owns the next small responsibility.
 - **Step 2:** The file does its own narrow action instead of mixing it into a bigger caller.
 - **Step 3:** The next caller gets a concrete result, not another vague promise.
 
@@ -121,7 +121,7 @@ This folder has no child folders in scope.
 
 ## Debug first
 
-- start with `sync-agent-governance.sh` when the shipped asset or contract itself looks wrong
+- start with `sync-agent-harness.sh` when the shipped asset or contract itself looks wrong
 
 ## What to remember
 

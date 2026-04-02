@@ -1,6 +1,6 @@
 ---
-scope: system/docs/development/governance/shared/agent-governance/**
-contract_ref: agent-governance@41fdebe
+scope: system/docs/development/governance/shared/agent-harness/**
+contract_ref: agent-harness@41fdebe
 status: vendored
 ---
 

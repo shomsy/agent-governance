@@ -6,9 +6,9 @@ Scope: `./**`
 
 This file is the local child contract for PolyMoly.
 The reusable base rules live in `PARENT-AGENTS.md`, vendored from
-`shomsy/agent-governance`.
+`shomsy/agent-harness`.
 The shared governance snapshot for this repository lives under
-`system/docs/development/governance/shared/agent-governance/**`.
+`system/docs/development/governance/shared/agent-harness/**`.
 
 Do not treat the upstream GitHub repository as a live runtime dependency.
 PolyMoly uses explicit vendor-copy sync with a locked source commit.
@@ -32,7 +32,7 @@ Agents MUST follow this order:
 11. `system/docs/development/governance/review-template.md`
 12. `system/docs/development/governance/team-operating-model.md`
 13. `system/docs/development/governance/shell-debt-reduction-plan.md`
-14. `system/docs/development/governance/shared/agent-governance/**`
+14. `system/docs/development/governance/shared/agent-harness/**`
 15. `TODO.md`
 16. `BUGS.md`
 17. `README.md`

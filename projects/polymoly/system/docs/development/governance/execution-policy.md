@@ -4,7 +4,7 @@ contract_ref: v1
 status: stable
 ---
 
-Shared baseline: `system/docs/development/governance/shared/agent-governance/execution-policy.md`
+Shared baseline: `system/docs/development/governance/shared/agent-harness/execution-policy.md`
 Upstream source: `system/docs/development/governance/upstream-source.lock.json`
 Local role: PolyMoly-specific execution overlay and stricter local contract
 

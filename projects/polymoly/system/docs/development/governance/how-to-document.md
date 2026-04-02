@@ -4,7 +4,7 @@ contract_ref: v1
 status: stable
 ---
 
-Shared baseline: `system/docs/development/governance/shared/agent-governance/how-to-document.md`
+Shared baseline: `system/docs/development/governance/shared/agent-harness/how-to-document.md`
 Upstream source: `system/docs/development/governance/upstream-source.lock.json`
 Local role: PolyMoly-specific documentation style and operator language contract
 

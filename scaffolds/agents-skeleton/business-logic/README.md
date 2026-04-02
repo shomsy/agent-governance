@@ -1,6 +1,6 @@
 # Business Logic (Per-Project Only)
 
-This folder is intentionally empty in the reusable `agent-governance` repo.
+This folder is intentionally empty in the reusable `agent-harness` repo.
 
 Each child project must define its own `business-logic/` content.
 

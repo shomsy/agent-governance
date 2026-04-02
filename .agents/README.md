@@ -2,7 +2,7 @@
 
 This folder is the reusable agent operating system project.
 
-In the `agent-governance` source repository, every file under `.agents/` must
+In the `agent-harness` source repository, every file under `.agents/` must
 stay agnostic across unrelated projects. Child repos copy this entire tree into
 `.agents/.rules/`, then fill the visible `.agents/` scaffold with project-local
 workspace files.

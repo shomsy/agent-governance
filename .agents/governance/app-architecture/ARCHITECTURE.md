@@ -3,7 +3,7 @@
 This document is a template that binds the reusable standard from
 `.agents/governance/app-architecture/architecture-standard.md` to a concrete repository.
 
-In `agent-governance` it stays generic so that child projects can copy and specialize it.
+In `agent-harness` it stays generic so that child projects can copy and specialize it.
 
 ## Scope and Authority
 
@@ -39,5 +39,5 @@ Each child repo should define at least:
 
 ## Change Policy (For This Template)
 
-- Do not specialize this file to any one project inside `agent-governance`.
+- Do not specialize this file to any one project inside `agent-harness`.
 - Changes here should improve clarity for all child repos.

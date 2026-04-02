@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Agent OS Installer
+# Agent Harness Installer
 # Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,7 +18,7 @@ fi
 
 shift
 
-echo "🚀 Installing Agent OS into $TARGET_DIR..."
+echo "🚀 Installing Agent Harness into $TARGET_DIR..."
 
 format_code_list() {
     if [ "$#" -eq 0 ]; then
@@ -59,6 +59,23 @@ copy_rules_tree "$TARGET_DIR/.agents/.rules"
 if [ -d "$SCRIPT_DIR/scaffolds/agents-skeleton" ]; then
     cp -r "$SCRIPT_DIR/scaffolds/agents-skeleton/." "$TARGET_DIR/.agents/"
 fi
+
+# 4. Initialize the runtime .agent directory for memory, sessions, and strategic context
+mkdir -p "$TARGET_DIR/.agent/memory"
+mkdir -p "$TARGET_DIR/.agent/sessions"
+mkdir -p "$TARGET_DIR/.agent/context/product"
+mkdir -p "$TARGET_DIR/.agent/context/users"
+mkdir -p "$TARGET_DIR/.agent/context/strategy"
+mkdir -p "$TARGET_DIR/.agent/context/stakeholders"
+touch "$TARGET_DIR/.agent/memory/.gitkeep"
+touch "$TARGET_DIR/.agent/context/product/.gitkeep"
+touch "$TARGET_DIR/.agent/context/users/.gitkeep"
+touch "$TARGET_DIR/.agent/context/strategy/.gitkeep"
+touch "$TARGET_DIR/.agent/context/stakeholders/.gitkeep"
+
+# 5. Initialize the local .agents/skills directory
+mkdir -p "$TARGET_DIR/.agents/skills"
+touch "$TARGET_DIR/.agents/skills/.gitkeep"
 
 # 4. Copy the project-local AGENTS scaffold to root
 cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
@@ -127,5 +144,5 @@ else
     exit 1
 fi
 
-echo "✅ Agent OS installed successfully!"
+echo "✅ Agent Harness installed successfully!"
 echo "Next steps: cd $TARGET_DIR and finalize the Applied Governance Stack in AGENTS.md"
