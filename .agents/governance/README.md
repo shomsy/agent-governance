@@ -4,18 +4,18 @@ The governance tree is organized feature-first so related rules live together.
 
 ## Feature Map
 
-- `core/`: universal gates, flagging, and profile resolution
+- `core/`: universal gates, feature-gate lifecycle, and profile resolution
 - `execution/`: task execution, hooks, approvals, and sandbox boundaries
 - `standards/`: review, coding, naming, documentation, and governance authoring rules
 - `intelligence/`: memory lifecycle, context budgets, learning, and instincts
 - `agents/`: role definitions and multi-agent orchestration
 - `integrations/`: client/platform adapters and MCP policy
-- `delivery/`: release policy, workflow pipelines, and runtime operations
+- `delivery/`: release policy, workflow pipelines, runtime operations, and trace evidence
 - `skills/`: reusable skill contract
 - `product/`: reusable product-management standard
 - `architecture/`: reusable architecture baseline and overlays
 - `profiles/`: language, framework, reviewer persona, and repository-kind packs
-- `security/`: secure SDLC and operational security baselines
+- `security/`: secure SDLC, least-privilege, and capability-isolation baselines
 
 ## Read First
 

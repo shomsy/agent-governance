@@ -19,6 +19,8 @@ runbook lane.
   policy
 - `ci-cd-and-supply-chain-security.md`: pipeline, dependency, artifact, and
   provenance security
+- `tool-and-plugin-capability-isolation.md`: least-privilege and isolation law
+  for tools, plugins, MCP servers, and sandboxes
 - `threat-modeling-and-abuse-case-policy.md`: design-time threat and abuse-case
   discipline
 - `vulnerability-and-incident-response.md`: intake, triage, remediation, and

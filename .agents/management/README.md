@@ -15,6 +15,7 @@ This folder is the execution memory layer.
 - `evidence/RISK_REGISTER.md` for active and accepted risks
 - `evidence/TEST_STRATEGY.md` for current test approach
 - `evidence/TEST_REPORTS.md` for concrete test runs and outcomes
+- `evidence/TRACE_REPORTS.md` for execution traces, replays, and high-risk run evidence
 
 New work should be recorded only in the canonical files above.
 

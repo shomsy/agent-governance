@@ -139,6 +139,10 @@ specific client needs them. The portable hook entrypoints live in
 `.agents/hooks/` so client-specific adapters can point at the same runtime
 scripts instead of duplicating enforcement logic.
 
+Any platform-native plugin, extension, or sidecar config still inherits the
+least-privilege and capability-manifest rules from
+`../../security/tool-and-plugin-capability-isolation.md`.
+
 ---
 
 ## 5) Cross-Platform Skill Compatibility

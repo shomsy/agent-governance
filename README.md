@@ -13,7 +13,7 @@ Instead of managing floating markdown files, this project provides a structured 
 4.  **Skills Harness**: Reusable agent-facing workflows and slash-commands (`/prd-draft`, `/meeting-cleanup`, etc.).
 5.  **Strategic Context**: Living library for Personas, ROADMAP, and Stakeholders.
 6.  **Resolution Algorithm**: A deterministic stack and SDLC resolver.
-7.  **Operations & Flow-Doc Law**: Shared standards for observability, triggers, and results.
+7.  **Operations & Flow-Doc Law**: Shared standards for observability, trace/replay evidence, triggers, and results.
 8.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
 
 ---

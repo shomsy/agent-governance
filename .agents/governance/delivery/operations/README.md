@@ -14,6 +14,9 @@ stateful storage, or operator-managed runtime surfaces.
 - `backup-and-restore-runbook.md`
 - `runtime-handoff-contract.md`
 
+`observability-and-error-envelope.md` also defines the baseline trace and replay
+evidence contract for multi-step executions.
+
 ## Rule
 
 These files are reusable baselines.

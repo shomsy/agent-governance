@@ -79,7 +79,57 @@ gate:
 
 ---
 
-## 4) Immutable Flags
+## 4) Feature-Gate Lifecycle
+
+All non-trivial flags should be managed as feature gates with an explicit
+lifecycle instead of permanent ad hoc toggles.
+
+Use these maturity stages:
+
+| Stage | Intended Use | Default Posture | Compatibility Promise |
+|:---|:---|:---|:---|
+| `Alpha` | internal proving and narrow pilots | OFF | no compatibility guarantee |
+| `Beta` | broader validation in real repos | explicit opt-in or carefully chosen default | config shape should stabilize |
+| `GA` | standard reusable capability | ON or policy-driven | safe to depend on operationally |
+| `Deprecated` | scheduled removal | keep current behavior but warn | replacement and sunset date required |
+| `Removed` | no longer available | OFF and ignored | references must be cleaned up |
+
+Shared baseline flags in this file should be treated as `GA` unless explicitly
+marked otherwise by a future update.
+
+Project-local flags should declare at least:
+
+- `name`
+- `stage`
+- `owner`
+- `default`
+- `introduced`
+- `affected surfaces`
+- `rollback or kill-switch path`
+- `expiry review date` for `Alpha` and `Beta`
+
+---
+
+## 5) Compatibility And Disabled-Path Rules
+
+Enterprise-grade feature gates must fail predictably.
+
+- A disabled gate must remove, ignore, or reject its gated behavior in a stable
+  way.
+- If a gate controls schema, generated adapters, or API surface, disabled fields
+  should be dropped before validation or omitted from generated output.
+- A repo must not document an `Alpha` path as the default operational baseline.
+- Installers, scaffolds, and adapters must not silently assume a gated feature
+  exists when the gate is OFF.
+- If a gate affects security, approval, or trust behavior, OFF must never widen
+  privilege by accident.
+
+This is the same operational idea used by mature platforms: gate behavior must
+be explicit both when enabled and when disabled.
+
+---
+
+## 6) Immutable Flags
 
 Some flags cannot be set to OFF by project-level overrides. They can only
 be disabled at session-level by explicit human instruction:
@@ -92,7 +142,7 @@ be disabled at session-level by explicit human instruction:
 
 ---
 
-## 5) Flag Dependencies
+## 7) Flag Dependencies
 
 Some flags have upstream dependencies. If the upstream flag is OFF, the
 downstream flag is implicitly OFF regardless of its own setting:
@@ -109,7 +159,24 @@ approval_required ──► auto_approval_rules (no approval → rules unused)
 
 ---
 
-## 6) Relationship to Other Standards
+## 8) Flag Review And Retirement
+
+Every `Alpha`, `Beta`, or `Deprecated` flag should be reviewed on a defined
+cadence.
+
+At review time, choose one:
+
+1. promote to the next stage
+2. keep current stage with a new review date and explicit reason
+3. deprecate and define a migration path
+4. remove the gate and clean dependent docs, scaffolds, adapters, and tests
+
+Flags become governance debt when they no longer represent a real decision.
+Dead flags should be removed, not left as ceremonial switches.
+
+---
+
+## 9) Relationship to Other Standards
 
 | Standard | Controlled By Flag |
 |:---|:---|

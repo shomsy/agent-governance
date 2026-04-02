@@ -31,6 +31,17 @@ MCP servers should be registered per-project or globally via the agent client en
 
 The Agent OS assumes MCP capabilities are dynamically injected into its tool-calling context. When delegating tasks to specific agent roles (see `society-of-mind-pattern.md`), ensure that the specific sub-agent holds the required MCP tool context.
 
+Every MCP server should also publish a capability manifest that states:
+
+- read and write scope
+- network scope
+- credential requirements
+- approval posture
+- audit events and disable path
+
 ## 4. Sandboxing MCP Data
 
 All incoming data from `T1` and `T2` MCP Servers is considered **untrusted context**. Before invoking an MCP tool, the OS must check if the tool is being used to inject malicious prompt instructions. Avoid blindly writing large MCP responses to governance files or the core context loop without summarization or sanitization.
+
+For broader least-privilege and execution-boundary rules, see
+`../../security/tool-and-plugin-capability-isolation.md`.
