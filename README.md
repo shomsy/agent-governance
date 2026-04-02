@@ -23,17 +23,18 @@ Instead of managing floating markdown files, this project provides a structured 
 - **`/.agents/AGENTS.md`**: The Master Contract. Defines the Order of Precedence and non-negotiable rules.
 - **`/.agents/.rules/`**: Hidden mounted copy of the reusable `.agents` project in adopting repos.
 - **`/.agents/skills/`**: Reusable agent workflow and command definitions.
-- **`/.agent/`**: Runtime context, memory, and strategic strategic library for the active agent.
-- **`/.agents/governance/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
+- **`/.agent/`**: Runtime context, memory, and strategic library for the active agent.
+- **`/.agents/governance/README.md`**: Feature-first index for the governance tree.
+- **`/.agents/governance/core/resolution/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
 - **`/.agents/governance/profiles/`**: Tech-specific rules (PHP, JavaScript, TypeScript, Node.js, CSS, React, Laravel, etc.) that can be plugged into the project.
-- **`/.agents/governance/app-architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
+- **`/.agents/governance/architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
 - **`/.agents/governance/security/`**: Secure SDLC, OWASP-aligned web and API baseline, auth/session, secrets, supply-chain, CI/CD, and incident-response governance.
-- **`/.agents/governance/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
+- **`/.agents/governance/execution/policy/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
 - **`/.agents/hooks/`**: Reusable hook scripts for session bootstrap, trust checks, and observation capture.
-- **`/.agents/governance/how-to-strict-review.md`**: Independent first-principles review lane for high-stakes claims.
-- **`/.agents/governance/how-to-document-flow.md`**: The trigger-to-result law for flow documentation.
-- **`/.agents/governance/operations/`**: Runtime, release, and recovery governance for deployable systems.
-- **`/.agents/governance/naming-standard.md`**: The "Flow -> Responsibility -> Action" naming law.
+- **`/.agents/governance/standards/review/how-to-strict-review.md`**: Independent first-principles review lane for high-stakes claims.
+- **`/.agents/governance/standards/documentation/how-to-document-flow.md`**: The trigger-to-result law for flow documentation.
+- **`/.agents/governance/delivery/operations/`**: Runtime, release, and recovery governance for deployable systems.
+- **`/.agents/governance/standards/coding/naming-standard.md`**: The "Flow -> Responsibility -> Action" naming law.
 
 ---
 
@@ -72,7 +73,9 @@ The root `AGENTS.md` in your project should be minimal, only containing:
 The installer keeps `merge-files.sh` in the child repo on the latest version so
 the portable merged snapshot stays consistent across projects. By default it
 also writes lightweight adapter files for the common AI clients; pass
-`--platform=...` if you want to limit the generated adapters.
+`--platform=...` if you want to limit the generated adapters. The reusable
+governance tree is now organized feature-first, so child repos inherit the same
+navigation model under `.agents/.rules/governance/`.
 
 Canonical backlog and evidence files already live under `.agents/management/**`.
 
@@ -84,14 +87,14 @@ We continuously "vacuum" the best rules from active projects to improve the glob
 
 | Project Source | Generalized Rule | Destination in OS |
 |:---|:---|:---|
-| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `.agents/governance/naming-standard.md` |
-| `avax-bootcamp` | `state/render/actions` Pattern | `.agents/governance/app-architecture/architecture-standard.md` |
-| `avax-bootcamp` | Canonical source vs generated book/output discipline | `.agents/governance/how-to-document.md` |
+| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `.agents/governance/standards/coding/naming-standard.md` |
+| `avax-bootcamp` | `state/render/actions` Pattern | `.agents/governance/architecture/architecture-standard.md` |
+| `avax-bootcamp` | Canonical source vs generated book/output discipline | `.agents/governance/standards/documentation/how-to-document.md` |
 | `baraba` | Web Component Facades | `.agents/governance/profiles/frameworks/v-web-components.md` |
-| `components` | Public facade/kernel/pipeline law translated into screaming feature-first clean architecture | `.agents/governance/app-architecture/architecture-standard.md`, `.agents/governance/app-architecture/profiles/languages/php.md`, `.agents/governance/app-architecture/profiles/frameworks/laravel.md` |
+| `components` | Public facade/kernel/pipeline law translated into screaming feature-first clean architecture | `.agents/governance/architecture/architecture-standard.md`, `.agents/governance/architecture/profiles/languages/php.md`, `.agents/governance/architecture/profiles/frameworks/laravel.md` |
 | `OWASP` anchors | Web, API, ASVS, DevSecOps, and supply-chain security baseline | `.agents/governance/security/**` |
-| `polymoly` | Flow-document contract | `.agents/governance/how-to-document-flow.md` |
-| `polymoly` + `hotelsync-bridgeone` | Runtime hardening and proof posture | `.agents/governance/app-architecture/runtime-hardening.md` |
+| `polymoly` | Flow-document contract | `.agents/governance/standards/documentation/how-to-document-flow.md` |
+| `polymoly` + `hotelsync-bridgeone` | Runtime hardening and proof posture | `.agents/governance/architecture/runtime-hardening.md` |
 
 ---
 

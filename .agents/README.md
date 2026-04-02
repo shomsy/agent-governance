@@ -11,7 +11,7 @@ workspace files.
 
 | Domain | Responsibility | Reusable |
 |--------|----------------|----------|
-| `governance/` | Architecture rules, execution policy, quality gates, security policy, coding/review/documentation standards, release and rollback policy, and reusable operations contracts | Yes |
+| `governance/` | Feature-first reusable rules grouped into core, architecture, execution, standards, intelligence, integrations, delivery, product, profiles, and security | Yes |
 | `language-specific/` | Placeholder for child-repo local stack rules when reusable profiles are not enough | Template only |
 | `business-logic/` | Placeholder for child-repo domain meaning and product rules | Template only |
 | `management/` | Active planning, defects, decisions, timeline policy, risks, evidence, and test records | Yes |
@@ -33,51 +33,33 @@ Every idea, plan, architecture decision, and release-impacting change must answe
 ## Reading Order
 
 1. `../AGENTS.md`
-2. `governance/quality-gates.md`
-3. `governance/profile-resolution-algorithm.md`
-4. `governance/app-architecture/README.md`
-5. `governance/security/README.md`
-6. `governance/app-architecture/ARCHITECTURE.md`
-7. `business-logic/README.md`
-8. `management/README.md`
-9. `management/TIMELINE.md`
-10. `review/REVIEWS.md`
-11. `templates/`
+2. `governance/README.md`
+3. `governance/core/quality/quality-gates.md`
+4. `governance/core/resolution/profile-resolution-algorithm.md`
+5. `governance/architecture/README.md`
+6. `governance/security/README.md`
+7. `governance/architecture/ARCHITECTURE.md`
+8. `business-logic/README.md`
+9. `management/README.md`
+10. `management/TIMELINE.md`
+11. `review/REVIEWS.md`
+12. `templates/`
 
 ## Governance Index
 
-- `governance/quality-gates.md`
-- `governance/profile-resolution-algorithm.md`
-- `governance/execution-policy.md`
-- `governance/how-to-code-review.md`
-- `governance/how-to-strict-review.md`
-- `governance/how-to-coding-standards.md`
-- `governance/how-to-document-flow.md`
-- `governance/how-to-document.md`
-- `governance/release-and-rollback-policy.md`
-- `governance/security/README.md`
-- `governance/security/secure-development-lifecycle.md`
-- `governance/security/owasp-web-and-api-baseline.md`
-- `governance/security/authentication-and-session-security.md`
-- `governance/security/secrets-and-key-management.md`
-- `governance/security/ci-cd-and-supply-chain-security.md`
-- `governance/security/threat-modeling-and-abuse-case-policy.md`
-- `governance/security/vulnerability-and-incident-response.md`
-- `governance/operations/README.md`
-- `governance/operations/observability-and-error-envelope.md`
-- `governance/operations/staging-smoke-checklist.md`
-- `governance/operations/security-launch-checklist.md`
-- `governance/operations/backup-and-restore-runbook.md`
-- `governance/operations/runtime-handoff-contract.md`
-- `governance/profiles/README.md`
-- `governance/app-architecture/README.md`
-- `governance/app-architecture/architecture-standard.md`
-- `governance/app-architecture/ARCHITECTURE.md`
-- `governance/app-architecture/profiles/README.md`
-- `governance/app-architecture/contract-linting.md`
-- `governance/app-architecture/execution-profiles.md`
-- `governance/app-architecture/migration-governance.md`
-- `governance/app-architecture/runtime-hardening.md`
+- `governance/README.md`
+- `governance/core/`
+- `governance/execution/`
+- `governance/standards/`
+- `governance/intelligence/`
+- `governance/agents/`
+- `governance/integrations/`
+- `governance/delivery/`
+- `governance/skills/`
+- `governance/product/`
+- `governance/architecture/`
+- `governance/profiles/`
+- `governance/security/`
 
 ## Rule
 

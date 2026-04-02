@@ -4,8 +4,8 @@ This file is a thin execution scaffold for programming-facing flow documents.
 
 The real law lives in:
 
-- `../governance/how-to-document-flow.md`
-- `../governance/how-to-document.md`
+- `../governance/standards/documentation/how-to-document-flow.md`
+- `../governance/standards/documentation/how-to-document.md`
 
 If the template and the flow law disagree, the flow law wins.
 

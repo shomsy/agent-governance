@@ -1,169 +1,49 @@
 #!/bin/bash
 set -euo pipefail
 
-usage() {
-    cat <<'EOF'
-Usage:
-  ./scaffolds/create-skill.sh <skills-dir> <skill-name> <description> [--trust-tier=T0] [--author=NAME] [--tags=a,b] [--version=0.1.0]
+# create-skill.sh
+# Generates the directory layout and compliant YAML frontmatter for a new Agent Skill.
 
-Example:
-  ./scaffolds/create-skill.sh .agents/skills lint-fixer "Fixes lint errors in JS and TS files" --trust-tier=T1 --tags=lint,javascript
-EOF
-}
+SKILL_NAME="${1:-}"
 
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-    usage
-    exit 0
-fi
-
-if [ "$#" -lt 3 ]; then
-    usage
+if [ -z "$SKILL_NAME" ]; then
+    echo "Usage: ./create-skill.sh <skill-name-lowercase>"
+    echo "Example: ./create-skill.sh create-ui-component"
     exit 1
 fi
 
-SKILLS_DIR="$1"
-SKILL_NAME="$2"
-DESCRIPTION="$3"
-shift 3
+SKILL_DIR=".agents/skills/$SKILL_NAME"
 
-TRUST_TIER="T0"
-AUTHOR=""
-TAGS=""
-VERSION="0.1.0"
+echo "Scaffolding new skill: $SKILL_NAME..."
 
-for arg in "$@"; do
-    case "$arg" in
-        --trust-tier=*)
-            TRUST_TIER="${arg#*=}"
-            ;;
-        --author=*)
-            AUTHOR="${arg#*=}"
-            ;;
-        --tags=*)
-            TAGS="${arg#*=}"
-            ;;
-        --version=*)
-            VERSION="${arg#*=}"
-            ;;
-        *)
-            echo "Unknown option: $arg" >&2
-            usage
-            exit 2
-            ;;
-    esac
-done
+mkdir -p "$SKILL_DIR/scripts"
+mkdir -p "$SKILL_DIR/examples"
 
-if ! printf '%s' "$SKILL_NAME" | grep -Eq '^[a-z0-9][a-z0-9-]*$'; then
-    echo "skill-name must be kebab-case ASCII" >&2
-    exit 2
-fi
-
-case "$TRUST_TIER" in
-    T0|T1|T2|T3) ;;
-    *)
-        echo "trust tier must be one of T0, T1, T2, T3" >&2
-        exit 2
-        ;;
-esac
-
-TARGET_DIR="$SKILLS_DIR/$SKILL_NAME"
-if [ -e "$TARGET_DIR" ]; then
-    echo "target already exists: $TARGET_DIR" >&2
-    exit 2
-fi
-
-mkdir -p "$TARGET_DIR/agents" "$TARGET_DIR/scripts" "$TARGET_DIR/tests" "$TARGET_DIR/examples" "$TARGET_DIR/resources"
-
-if [ -n "$TAGS" ]; then
-    TAGS_LINE="tags: [$(printf '%s' "$TAGS" | sed 's/,/, /g')]"
-else
-    TAGS_LINE="tags: []"
-fi
-
-if [ -n "$AUTHOR" ]; then
-    AUTHOR_LINE="author: $AUTHOR"
-else
-    AUTHOR_LINE="author: <replace>"
-fi
-
-cat > "$TARGET_DIR/SKILL.md" <<EOF
+cat > "$SKILL_DIR/SKILL.md" <<EOF
 ---
 name: $SKILL_NAME
-description: $DESCRIPTION
-trust_tier: $TRUST_TIER
-version: $VERSION
-$TAGS_LINE
-$AUTHOR_LINE
+description: "ENTER_DESCRIPTION_HERE (Optimize this field for Cognitive Search Optimization so the agent knows when to invoke it)"
+version: 1.0.0
+author: "Agent OS"
+capabilities:
+  - Add relevant system capabilities
 ---
 
-## Purpose
+# $SKILL_NAME
 
-- Define when this skill should be used.
-- Keep the description optimized for search and intent matching.
+## 1) Purpose
+Explain what this skill provides to the orchestration layer.
 
-## Inputs
+## 2) Execution Trigger
+When should the Agent choose to invoke this skill instead of standard logic?
 
-- What the user provides
-- Required files or paths
+## 3) Steps
+1. First step
+2. Second step
 
-## Steps
-
-1. Inspect the relevant context.
-2. Apply the smallest correct change.
-3. Validate the result.
-
-## Outputs
-
-- Expected artifacts
-- Validation signals
-
-## Limits
-
-- State any safety or trust-tier boundaries here.
+## 4) Success Criteria
+Strict validation rules before the skill exits.
 EOF
 
-cat > "$TARGET_DIR/agents/openai.yaml" <<'EOF'
-tools: []
-
-permissions:
-  network: false
-  file_write: false
-  shell_exec: false
-EOF
-
-cat > "$TARGET_DIR/scripts/run.sh" <<'EOF'
-#!/bin/bash
-set -euo pipefail
-
-echo "Implement the runtime helper for this skill."
-EOF
-
-cat > "$TARGET_DIR/scripts/validate.sh" <<'EOF'
-#!/bin/bash
-set -euo pipefail
-
-echo "Implement validation for this skill."
-EOF
-
-cat > "$TARGET_DIR/tests/test.sh" <<'EOF'
-#!/bin/bash
-set -euo pipefail
-
-echo "Add concrete tests for this skill."
-EOF
-
-cat > "$TARGET_DIR/examples/example.md" <<'EOF'
-# Example Usage
-
-Describe one realistic invocation and the expected output.
-EOF
-
-cat > "$TARGET_DIR/resources/template.md" <<'EOF'
-# Resource Template
-
-Put reusable helper content for the skill here.
-EOF
-
-chmod +x "$TARGET_DIR/scripts/run.sh" "$TARGET_DIR/scripts/validate.sh" "$TARGET_DIR/tests/test.sh"
-
-echo "Created skill scaffold at $TARGET_DIR"
+echo "✅ Skill '$SKILL_NAME' successfully scaffolded at: $SKILL_DIR"
+echo "Next step: Open $SKILL_DIR/SKILL.md and fill in the CSO description."

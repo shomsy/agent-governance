@@ -1,6 +1,6 @@
 # AGENTS.md — Local Project Contract
 
-Version: 1.7.0
+Version: 1.8.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -15,27 +15,42 @@ Agents MUST follow this order:
 
 1. `AGENTS.md`
 2. `.agents/.rules/AGENTS.md`
-3. `.agents/.rules/governance/quality-gates.md`
-4. `.agents/.rules/governance/profile-resolution-algorithm.md`
+3. `.agents/.rules/governance/core/quality/quality-gates.md`
+4. `.agents/.rules/governance/core/resolution/profile-resolution-algorithm.md`
 5. `.agents/.rules/governance/profiles/**`
-6. `.agents/.rules/governance/app-architecture/**`
+6. `.agents/.rules/governance/architecture/**`
 7. `.agents/.rules/governance/security/**`
-8. `.agents/.rules/governance/execution-policy.md`
-9. `.agents/.rules/governance/how-to-code-review.md`
-10. `.agents/.rules/governance/how-to-strict-review.md`
-11. `.agents/.rules/governance/how-to-coding-standards.md`
-12. `.agents/.rules/governance/naming-standard.md`
-13. `.agents/.rules/governance/how-to-document-flow.md`
-14. `.agents/.rules/governance/how-to-document.md`
-15. `.agents/.rules/governance/release-and-rollback-policy.md`
-16. `.agents/.rules/governance/operations/**`
-17. `.agents/management/ACTIVE.md`
-18. `.agents/management/TIMELINE.md`
-19. `.agents/management/TODO.md`
-20. `.agents/management/BUGS.md`
-21. `.agents/review/REVIEWS.md`
-22. `README.md`
-23. `docs/**`
+8. `.agents/.rules/governance/execution/policy/execution-policy.md`
+9. `.agents/.rules/governance/execution/hooks/hooks-policy.md`
+10. `.agents/.rules/governance/execution/approvals/approval-policy.md`
+11. `.agents/.rules/governance/core/flags/feature-flags.md`
+12. `.agents/.rules/governance/standards/review/how-to-code-review.md`
+13. `.agents/.rules/governance/standards/review/how-to-strict-review.md`
+14. `.agents/.rules/governance/standards/coding/how-to-coding-standards.md`
+15. `.agents/.rules/governance/standards/coding/naming-standard.md`
+16. `.agents/.rules/governance/standards/documentation/how-to-document-flow.md`
+17. `.agents/.rules/governance/standards/documentation/how-to-document.md`
+18. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
+19. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
+20. `.agents/.rules/governance/skills/contract/skill-contract.md`
+21. `.agents/.rules/governance/agents/roles/agent-roles.md`
+22. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
+23. `.agents/.rules/governance/intelligence/context/context-management.md`
+24. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
+25. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
+26. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
+27. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
+28. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
+29. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
+30. `.agents/.rules/governance/delivery/operations/**`
+31. `.agents/skills/**`
+32. `.agents/management/ACTIVE.md`
+33. `.agents/management/TIMELINE.md`
+34. `.agents/management/TODO.md`
+35. `.agents/management/BUGS.md`
+36. `.agents/review/REVIEWS.md`
+37. `README.md`
+38. `docs/**`
 
 ## 1. Local Definitions
 

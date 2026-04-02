@@ -1,8 +1,8 @@
 # Learning Directory — Observations & Instincts Storage
 
 This directory hosts the Continuous Learning pipeline artifacts.
-See `.agents/governance/continuous-learning.md` for the governing contract
-and `.agents/governance/instincts-policy.md` for the instinct format.
+See `.agents/governance/intelligence/learning/continuous-learning.md` for the governing contract
+and `.agents/governance/intelligence/learning/instincts-policy.md` for the instinct format.
 
 ## Structure
 

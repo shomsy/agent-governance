@@ -154,8 +154,8 @@ for arg in "$@"; do
             echo "⚠️  Unknown reusable language profile: $LANGUAGE_NAME"
         fi
 
-        if [ -f "$SCRIPT_DIR/.agents/governance/app-architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
-            ARCH_PROFILES+=(".agents/.rules/governance/app-architecture/profiles/languages/$LANGUAGE_NAME.md")
+        if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
+            ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/languages/$LANGUAGE_NAME.md")
         fi
         ;;
         --framework=*)
@@ -168,8 +168,8 @@ for arg in "$@"; do
             echo "⚠️  Unknown reusable framework profile: $FRAME"
         fi
 
-        if [ -f "$SCRIPT_DIR/.agents/governance/app-architecture/profiles/frameworks/$FRAME.md" ]; then
-            ARCH_PROFILES+=(".agents/.rules/governance/app-architecture/profiles/frameworks/$FRAME.md")
+        if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/frameworks/$FRAME.md" ]; then
+            ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md")
         fi
         ;;
         --platform=*)
@@ -215,7 +215,7 @@ if sed \
     -e "s|__AGENTS_CODING_PROFILES__|$(escape_sed_replacement "$CODING_PROFILE_VALUE")|" \
     -e "s|__AGENTS_ARCH_PROFILES__|$(escape_sed_replacement "$ARCH_PROFILE_VALUE")|" \
     -e "s|__AGENTS_SECURITY_LANES__|security/**|" \
-    -e "s|__AGENTS_OPERATIONS_LANES__|operations/**|" \
+    -e "s|__AGENTS_OPERATIONS_LANES__|delivery/operations/**|" \
     "$TARGET_DIR/AGENTS.md" > "$target_agents_tmp"; then
     mv "$target_agents_tmp" "$TARGET_DIR/AGENTS.md"
 else

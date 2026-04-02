@@ -4,16 +4,17 @@
 
 1. `.agents/README.md`
 2. `AGENTS.md`
-3. `.agents/governance/quality-gates.md`
-4. `.agents/governance/profile-resolution-algorithm.md`
-5. `.agents/governance/security/README.md`
-6. `.agents/governance/app-architecture/README.md`
-7. `.agents/governance/app-architecture/ARCHITECTURE.md`
-8. `.agents/governance/how-to-code-review.md`
-9. `.agents/governance/release-and-rollback-policy.md`
-10. `.agents/business-logic/README.md`
-11. `.agents/management/README.md`
-12. `.agents/management/TIMELINE.md`
+3. `.agents/governance/README.md`
+4. `.agents/governance/core/quality/quality-gates.md`
+5. `.agents/governance/core/resolution/profile-resolution-algorithm.md`
+6. `.agents/governance/security/README.md`
+7. `.agents/governance/architecture/README.md`
+8. `.agents/governance/architecture/ARCHITECTURE.md`
+9. `.agents/governance/standards/review/how-to-code-review.md`
+10. `.agents/governance/delivery/release/release-and-rollback-policy.md`
+11. `.agents/business-logic/README.md`
+12. `.agents/management/README.md`
+13. `.agents/management/TIMELINE.md`
 
 ## Step 2: Understand Current State
 

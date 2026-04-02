@@ -8,7 +8,7 @@ Synthesize a comprehensive Launch and Go-To-Market checklist based on current pr
 - A major feature/PRD reaches `Approved` status.
 
 ## Inputs
-1. `.agents/governance/quality-gates.md`
+1. `.agents/governance/core/quality/quality-gates.md`
 2. `.agent/context/strategy/ROADMAP.md`
 3. Current technical completion and testing status.
 

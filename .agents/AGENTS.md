@@ -1,6 +1,6 @@
 # .agents/AGENTS.md — Global Agent Harness Master Contract
 
-Version: 2.1.0
+Version: 2.2.0
 Status: Normative / Universal
 Scope: `./**`
 
@@ -17,34 +17,34 @@ In any project using the `.agents` OS, agents MUST follow this order:
 
 1. **`AGENTS.md`** (project-specific local overrides)
 2. **`.agents/AGENTS.md`** (this file - global shared rules)
-3. `.agents/governance/quality-gates.md`
-4. `.agents/governance/profile-resolution-algorithm.md`
+3. `.agents/governance/core/quality/quality-gates.md`
+4. `.agents/governance/core/resolution/profile-resolution-algorithm.md`
 5. `.agents/governance/profiles/**`
-6. `.agents/governance/app-architecture/**`
+6. `.agents/governance/architecture/**`
 7. `.agents/governance/security/**`
-8. `.agents/governance/execution-policy.md`
-9. `.agents/governance/hooks-policy.md`
-10. `.agents/governance/approval-policy.md`
-11. `.agents/governance/feature-flags.md`
-12. `.agents/governance/how-to-code-review.md`
-13. `.agents/governance/how-to-strict-review.md`
-14. `.agents/governance/how-to-coding-standards.md`
-15. `.agents/governance/naming-standard.md`
-16. `.agents/governance/how-to-document-flow.md`
-17. `.agents/governance/how-to-document.md`
-18. `.agents/governance/release-and-rollback-policy.md`
-19. `.agents/governance/memory-lifecycle.md`
-20. `.agents/governance/skill-contract.md`
-21. `.agents/governance/agent-roles.md`
-22. `.agents/governance/workflow-pipelines.md`
-23. `.agents/governance/context-management.md`
-24. `.agents/governance/continuous-learning.md`
-25. `.agents/governance/instincts-policy.md`
-26. `.agents/governance/platform-compatibility.md`
-27. `.agents/governance/mcp-integration-policy.md`
-28. `.agents/governance/sandbox-boundary-policy.md`
-29. `.agents/governance/society-of-mind-pattern.md`
-30. `.agents/governance/operations/**`
+8. `.agents/governance/execution/policy/execution-policy.md`
+9. `.agents/governance/execution/hooks/hooks-policy.md`
+10. `.agents/governance/execution/approvals/approval-policy.md`
+11. `.agents/governance/core/flags/feature-flags.md`
+12. `.agents/governance/standards/review/how-to-code-review.md`
+13. `.agents/governance/standards/review/how-to-strict-review.md`
+14. `.agents/governance/standards/coding/how-to-coding-standards.md`
+15. `.agents/governance/standards/coding/naming-standard.md`
+16. `.agents/governance/standards/documentation/how-to-document-flow.md`
+17. `.agents/governance/standards/documentation/how-to-document.md`
+18. `.agents/governance/delivery/release/release-and-rollback-policy.md`
+19. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+20. `.agents/governance/skills/contract/skill-contract.md`
+21. `.agents/governance/agents/roles/agent-roles.md`
+22. `.agents/governance/delivery/workflows/workflow-pipelines.md`
+23. `.agents/governance/intelligence/context/context-management.md`
+24. `.agents/governance/intelligence/learning/continuous-learning.md`
+25. `.agents/governance/intelligence/learning/instincts-policy.md`
+26. `.agents/governance/integrations/platforms/platform-compatibility.md`
+27. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
+28. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
+29. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
+30. `.agents/governance/delivery/operations/**`
 31. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
 32. `README.md`
 
@@ -55,7 +55,7 @@ Any project using this OS is divided into specialized domains within the
 
 | Domain | Responsibility | Reusable |
 |:---|:---|:---|
-| **`governance/`** | Agnostic quality gates, architecture rules, execution policy, standards, and reusable operations contracts. | **Yes** |
+| **`governance/`** | Feature-first reusable rule system grouped into core, architecture, execution, standards, intelligence, integrations, delivery, product, profiles, and security. | **Yes** |
 | **`business-logic/`** | Placeholder for child-repo domain behavior and product-specific rules. | Template only |
 | **`language-specific/`** | Placeholder for child-repo local stack rules when reusable profiles are insufficient. | Template only |
 | **`management/`** | Active planning, task tracking, and delivery evidence. | **Yes** |

@@ -37,7 +37,7 @@ Every adopting repository should declare this explicitly in its root
 - applied coding profiles
 - applied architecture profiles
 - whether `security/**` is mandatory
-- whether `operations/**` is mandatory
+- whether `delivery/operations/**` is mandatory
 - canonical validation, development, and release entrypoints
 
 Explicit declaration is preferred over inference.
@@ -49,15 +49,15 @@ Resolve rules in this order:
 
 1. root `AGENTS.md`
 2. `.agents/AGENTS.md`
-3. `.agents/governance/quality-gates.md`
-13. `.agents/governance/universal-memory-standard.md`
-14. `.agents/governance/product-management-standard.md`
+3. `.agents/governance/core/quality/quality-gates.md`
+13. `.agents/governance/intelligence/memory/universal-memory-standard.md`
+14. `.agents/governance/product/standards/product-management-standard.md`
 15. this file
 16. `.agents/governance/profiles/**`
 17. `.agents/governance/profiles/roles/**` (Reviewer Personas)
-18. `.agents/governance/app-architecture/**`
+18. `.agents/governance/architecture/**`
 19. `.agents/governance/security/**`
-20. `.agents/governance/execution-policy.md`
+20. `.agents/governance/execution/policy/execution-policy.md`
 21. lane-specific governance such as review, documentation, release, or ops
 22. `.agents/business-logic/**`
 23. `.agents/language-specific/**`
@@ -138,10 +138,10 @@ Inference rules:
 
 Architecture resolution order is:
 
-1. `.agents/governance/app-architecture/architecture-standard.md`
-2. relevant app-architecture language profiles
-3. relevant app-architecture framework profiles
-4. child-repo `.agents/governance/app-architecture/ARCHITECTURE.md`
+1. `.agents/governance/architecture/architecture-standard.md`
+2. relevant architecture language profiles
+3. relevant architecture framework profiles
+4. child-repo `.agents/governance/architecture/ARCHITECTURE.md`
 5. repo-local exceptions in root `AGENTS.md`
 
 Architecture overlays answer:
@@ -176,8 +176,8 @@ These artifacts should inform the **"What"** and **"Why"** of any implementation
 
 Coding resolution order is:
 
-1. `.agents/governance/how-to-coding-standards.md`
-2. `.agents/governance/naming-standard.md`
+1. `.agents/governance/standards/coding/how-to-coding-standards.md`
+2. `.agents/governance/standards/coding/naming-standard.md`
 3. relevant language profiles from `.agents/governance/profiles/languages/**`
 4. relevant framework profiles from `.agents/governance/profiles/frameworks/**`
 5. repo-local `.agents/language-specific/**` only when reusable profiles are not
@@ -192,7 +192,7 @@ Use coding profiles for:
 - performance, cache, and resource posture
 - stack-specific security behavior
 
-## Step 6: Add Security And Operations Layers
+## Step 8: Add Security And Operations Layers
 
 Security is not optional when the system handles users, secrets, external
 input, state mutation, deployable infrastructure, or public interfaces.
@@ -205,13 +205,13 @@ Always add `.agents/governance/security/**` when the task touches:
 - CI/CD, release automation, artifact publication, or dependencies
 - vulnerability handling, threat modeling, or incident response
 
-Add `.agents/governance/operations/**` when the task touches:
+Add `.agents/governance/delivery/operations/**` when the task touches:
 
 - deployment, smoke, rollback, restore, backup, or recovery
 - runtime observability and operator evidence
 - handoff contracts between application and infrastructure
 
-## Step 7: Build The Lane-Specific Rule Pack
+## Step 9: Build The Lane-Specific Rule Pack
 
 After the stack is known, build the lane pack.
 
@@ -249,7 +249,7 @@ Use:
 
 - `quality-gates.md`
 - this file
-- app-architecture overlays
+- architecture overlays
 - coding profiles
 - `execution-policy.md`
 - `security/**` when relevant
@@ -307,7 +307,7 @@ Goal:
 Use:
 
 - `release-and-rollback-policy.md`
-- `operations/**`
+- `delivery/operations/**`
 - `security/**`
 - `quality-gates.md`
 - local evidence records and release entrypoint definitions
@@ -320,7 +320,7 @@ Goal:
 
 Use:
 
-- `operations/**`
+- `delivery/operations/**`
 - `security/vulnerability-and-incident-response.md` when trust or compromise is
   involved
 - `release-and-rollback-policy.md`
@@ -330,7 +330,7 @@ Goal:
 
 - recover or diagnose the system without guesswork
 
-## Step 8: Completion Contract By Lane
+## Step 10: Completion Contract By Lane
 
 The lane determines what done means:
 
