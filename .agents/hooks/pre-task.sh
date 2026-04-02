@@ -49,9 +49,9 @@ set_current_session_id "$ROOT" "$SESSION"
 
 if [ -z "$TASK_ID" ]; then
     if [ -n "$PROMPT" ]; then
-        TASK_ID="task-$(hash_string "$PROMPT")"
+        TASK_ID="task-$(date +%Y%m%d%H%M%S)-$$-$(hash_string "$PROMPT")"
     else
-        TASK_ID="task-$(date +%Y%m%d%H%M%S)"
+        TASK_ID="task-$(date +%Y%m%d%H%M%S)-$$"
     fi
 fi
 

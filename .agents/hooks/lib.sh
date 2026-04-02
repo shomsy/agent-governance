@@ -2,8 +2,18 @@
 set -euo pipefail
 
 resolve_project_root() {
+    local library_dir
+    local candidate_root
+
     if [ -n "${AGENT_HARNESS_PROJECT_ROOT:-}" ] && [ -d "${AGENT_HARNESS_PROJECT_ROOT}" ]; then
         printf '%s\n' "${AGENT_HARNESS_PROJECT_ROOT}"
+        return
+    fi
+
+    library_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    candidate_root="$(cd "$library_dir/../.." && pwd)"
+    if [ -d "$candidate_root/.agents" ] && [ -f "$candidate_root/AGENTS.md" ]; then
+        printf '%s\n' "$candidate_root"
         return
     fi
 
@@ -21,6 +31,10 @@ repo_agents_dir() {
 
 repo_agent_runtime_dir() {
     printf '%s/.agent\n' "$1"
+}
+
+runtime_logs_dir() {
+    printf '%s/logs\n' "$(repo_agent_runtime_dir "$1")"
 }
 
 learning_dir() {
@@ -138,6 +152,12 @@ ensure_session_layout() {
         "$runtime_dir/context/product" "$runtime_dir/context/users" \
         "$runtime_dir/context/strategy" "$runtime_dir/context/stakeholders"
     touch "$runtime_dir/sessions/$current_session_id/session_memory.md"
+}
+
+ensure_runtime_log_layout() {
+    local root="$1"
+
+    mkdir -p "$(runtime_logs_dir "$root")"
 }
 
 session_dir() {

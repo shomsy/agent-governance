@@ -58,7 +58,11 @@ def clean_scalar(raw: str | None) -> str | None:
     value = value.strip("`")
     if value in {"[replace]", "[declare explicitly]"}:
         return None
+    if "[replace]" in value or "[declare explicitly]" in value:
+        return None
     if value.startswith("__") and value.endswith("__"):
+        return None
+    if re.match(r"^\(e\.g\.,", value, flags=re.IGNORECASE):
         return None
     if value.lower() in {"none", "n/a"}:
         return None
@@ -152,6 +156,34 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
+IGNORED_SCAN_DIRS = {
+    ".git",
+    ".idea",
+    ".agent",
+    ".agents",
+    ".next",
+    "__pycache__",
+    "build",
+    "coverage",
+    "dist",
+    "node_modules",
+    "vendor",
+}
+
+
+def repo_contains_suffix(project_root: Path, suffixes: tuple[str, ...]) -> bool:
+    normalized_suffixes = tuple(suffix.lower() for suffix in suffixes)
+
+    for current_root, dirnames, filenames in os.walk(project_root):
+        dirnames[:] = [dirname for dirname in dirnames if dirname not in IGNORED_SCAN_DIRS]
+        for filename in filenames:
+            lowered = filename.lower()
+            if lowered.endswith(normalized_suffixes):
+                return True
+
+    return False
+
+
 def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[str, Any]:
     signals: dict[str, Any] = {
         "languages": [],
@@ -168,6 +200,17 @@ def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[s
     ):
         signals["repository_profiles"].append("governance-source")
 
+    if repo_contains_suffix(project_root, (".ts", ".tsx")):
+        signals["languages"].append("typescript")
+    elif repo_contains_suffix(project_root, (".js", ".jsx", ".mjs", ".cjs")):
+        signals["languages"].append("javascript")
+
+    if repo_contains_suffix(project_root, (".php",)):
+        signals["languages"].append("php")
+
+    if repo_contains_suffix(project_root, (".css", ".scss", ".sass", ".less")):
+        signals["languages"].append("css")
+
     package_json = project_root / "package.json"
     if package_json.is_file():
         package_data = load_json(package_json)
@@ -176,9 +219,7 @@ def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[s
             **package_data.get("devDependencies", {}),
             **package_data.get("peerDependencies", {}),
         }
-        if (project_root / "tsconfig.json").is_file() or any(project_root.rglob("*.ts")) or any(project_root.rglob("*.tsx")):
-            signals["languages"].append("typescript")
-        else:
+        if "typescript" not in signals["languages"]:
             signals["languages"].append("javascript")
         signals["languages"].append("nodejs")
         if "react" in deps:
@@ -201,9 +242,6 @@ def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[s
         if "laravel/framework" in deps or (project_root / "artisan").is_file():
             signals["frameworks"].append("laravel")
             signals["system_kind"] = signals["system_kind"] or "web app"
-
-    if any(project_root.rglob("*.css")):
-        signals["languages"].append("css")
 
     for language in signals["languages"]:
         if (reusable_rules_root / "governance" / "architecture" / "profiles" / "languages" / f"{language}.md").is_file():
@@ -308,6 +346,18 @@ LANE_KEYWORDS: dict[str, list[tuple[str, int]]] = {
     ],
 }
 
+LANE_TIE_PRIORITY: dict[str, int] = {
+    "governance": 90,
+    "coding": 80,
+    "release": 70,
+    "operations": 65,
+    "review": 60,
+    "planning": 55,
+    "documentation": 50,
+    "security": 45,
+    "brainstorm": 40,
+}
+
 
 def classify_prompt(prompt: str) -> dict[str, Any]:
     lower = prompt.lower()
@@ -317,10 +367,33 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
             if needle in lower:
                 scores[lane] += weight
 
+    execute_terms = ("implement", "create", "add", "update", "fix", "refactor", "build", "patch", "rename", "reorganize", "uradi")
+    bug_terms = ("bug", "broken", "regression", "issue", "defect")
+    review_terms = ("review", "audit", "inspect", "analyze")
+    planning_terms = ("plan", "implementation plan", "estimate", "break down")
+    documentation_terms = ("documentation", "document", "readme", "docs", "write up")
+
+    has_execute = any(term in lower for term in execute_terms)
+    has_bug = any(term in lower for term in bug_terms)
+    has_review = any(term in lower for term in review_terms)
+    has_planning = any(term in lower for term in planning_terms)
+    has_documentation = any(term in lower for term in documentation_terms)
+
+    if has_execute:
+        scores["coding"] += 2
+    if has_bug:
+        scores["coding"] += 3
+    if has_review and not has_execute:
+        scores["review"] += 2
+    if has_planning and not has_execute:
+        scores["planning"] += 2
+    if has_documentation and not has_execute:
+        scores["documentation"] += 2
+
     if not any(scores.values()):
         scores["coding"] = 1
 
-    primary_lane = max(scores, key=scores.get)
+    primary_lane = max(scores, key=lambda lane: (scores[lane], LANE_TIE_PRIORITY[lane]))
     primary_score = scores[primary_lane]
     secondary_lanes = [
         lane
@@ -359,7 +432,7 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
     intent_mode = "change"
     if any(word in lower for word in ("review", "audit", "analyze", "explain", "da li", "what", "why", "how")):
         intent_mode = "analysis"
-    if any(word in lower for word in ("implement", "create", "add", "update", "fix", "refactor", "uradi")):
+    if has_execute:
         intent_mode = "execute"
 
     return {

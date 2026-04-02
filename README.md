@@ -90,6 +90,24 @@ evolved.
 
 Canonical backlog and evidence files already live under `.agents/management/**`.
 
+## ✅ Validation
+
+The baseline regression check for the routing runtime is:
+
+```bash
+./tests/smoke-routing-hooks.sh
+```
+
+This smoke test verifies:
+- installer output in a fresh child repo
+- `session-start.sh` runtime artifact boundaries
+- `pre-task.sh` routing and task ID uniqueness
+- bugfix prompt classification
+- governance route selection
+- `pre-tool-use.sh` trust and network blocking
+- `post-tool-use.sh` observation logging
+- `post-task.sh` trace and result closure
+
 ---
 
 ## 🧪 Generalizing from Projects
