@@ -218,6 +218,10 @@ task_context_markdown_path() {
     printf '%s/context.md\n' "$(task_dir "$1" "$2" "$3")"
 }
 
+task_subagents_dir() {
+    printf '%s/subagents\n' "$(task_dir "$1" "$2" "$3")"
+}
+
 task_events_log_path() {
     printf '%s/events.log\n' "$(task_dir "$1" "$2" "$3")"
 }

@@ -7,7 +7,7 @@ The governance tree is organized feature-first so related rules live together.
 - `core/`: universal gates, feature-gate lifecycle, and profile resolution
 - `execution/`: task execution, prompt routing, hooks, approvals, and sandbox boundaries
 - `standards/`: review, coding, naming, documentation, and governance authoring rules
-- `intelligence/`: memory lifecycle, context budgets, learning, and instincts
+- `intelligence/`: memory lifecycle, context budgets, learning, instincts, and sub-agent delegation
 - `agents/`: role definitions and multi-agent orchestration
 - `integrations/`: client/platform adapters and MCP policy
 - `delivery/`: release policy, workflow pipelines, runtime operations, and trace evidence

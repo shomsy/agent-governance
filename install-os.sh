@@ -193,7 +193,7 @@ for arg in "$@"; do
                 all)
                     GENERATE_ALL_PLATFORM_ADAPTERS=true
                     ;;
-                claude|cursor|codex|gemini)
+                claude|cursor|codex|gemini|opencode|cline)
                     append_unique "$PLATFORM_ITEM"
                     ;;
                 antigravity|native)
@@ -211,7 +211,11 @@ for arg in "$@"; do
 done
 
 if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ] || [ "$PLATFORM_FLAGS_EXPLICITLY_SET" = false ]; then
-    PLATFORM_TARGETS=(claude cursor codex gemini)
+    if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ]; then
+        PLATFORM_TARGETS=(claude cursor codex gemini opencode cline)
+    else
+        PLATFORM_TARGETS=(claude cursor codex gemini)
+    fi
 fi
 
 LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
@@ -271,6 +275,115 @@ EOF
 Read and follow all rules in `.agents/AGENTS.md`.
 EOF
                 echo "🧩 Wrote GEMINI.md"
+                ;;
+            opencode)
+                write_file "opencode.json" <<'EOF'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "read": "allow",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "grep *": "allow",
+      "rg *": "allow",
+      "find *": "allow",
+      "ls *": "allow",
+      "cat *": "allow"
+    },
+    "task": {
+      "*": "deny",
+      "harness-*": "allow"
+    }
+  }
+}
+EOF
+                mkdir -p "$TARGET_DIR/.opencode/agents"
+                write_file ".opencode/agents/harness-explore.md" <<'EOF'
+---
+description: Harness exploration subagent for read-only discovery
+mode: subagent
+hidden: true
+permission:
+  edit: deny
+  webfetch: deny
+  bash:
+    "*": ask
+    "git *": allow
+    "grep *": allow
+    "rg *": allow
+    "find *": allow
+    "ls *": allow
+    "cat *": allow
+---
+
+Use this subagent to map files, paths, dependencies, and entry points without
+editing anything. Return the smallest useful file shortlist for the main agent.
+EOF
+                write_file ".opencode/agents/harness-review.md" <<'EOF'
+---
+description: Harness review subagent for read-only risk analysis
+mode: subagent
+hidden: true
+permission:
+  edit: deny
+  webfetch: deny
+  bash:
+    "*": ask
+    "git *": allow
+    "grep *": allow
+    "rg *": allow
+    "find *": allow
+    "ls *": allow
+    "cat *": allow
+---
+
+Use this subagent to inspect diffs, identify bugs, and summarize risks without
+editing files. Return findings, missing tests, and a recommendation.
+EOF
+                echo "🧩 Wrote opencode agents and opencode.json"
+                ;;
+            cline)
+                mkdir -p "$TARGET_DIR/.clinerules"
+                write_file ".clinerules/00-agent-harness.md" <<'EOF'
+# Agent Harness for Cline
+
+Read and follow all rules in `.agents/AGENTS.md`.
+
+When the task is broad or spans multiple areas, use Cline subagents for
+read-only discovery before editing. Prefer one focused subagent per topic
+cluster and keep the main context narrow.
+EOF
+                write_file ".clinerules/10-subagents.md" <<'EOF'
+# Subagent Workflow
+
+- Use subagents for codebase mapping, inventory, and trace gathering.
+- Keep subagent prompts focused on a single question.
+- Prefer pruned context bundles generated from `.agent/sessions/<SESSION>/`.
+- Use `./tests/smoke-routing-hooks.sh` and the task routing manifest as the
+  canonical references for execution flow.
+EOF
+                write_file ".clinerules/20-context-budgeting.md" <<'EOF'
+# Context Budgeting
+
+- Avoid loading runtime artifacts from `.agent/` unless the task needs them.
+- Ignore generated or noisy directories when possible.
+- Use `subagent-dispatch.sh` for token-heavy discovery tasks that benefit from
+  a pruned prompt.
+EOF
+                write_file ".clineignore" <<'EOF'
+.agent/
+node_modules/
+dist/
+build/
+coverage/
+vendor/
+tmp/
+EOF
+                echo "🧩 Wrote .clinerules/ and .clineignore"
                 ;;
         esac
     done

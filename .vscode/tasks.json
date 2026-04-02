@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dispatch Sub-Agent (Pruned Context)",
+      "type": "shell",
+      "command": "bash ./.agents/hooks/subagent-dispatch.sh",
+      "args": [
+        "--task",
+        "${input:taskMandate}",
+        "--files",
+        "${input:targetFiles}",
+        "--budget",
+        "${input:tokenBudget}",
+        "--client",
+        "${input:clientProfile}"
+      ],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "taskMandate",
+      "type": "promptString",
+      "description": "Enter the specific task mandate (e.g., Fix Navbar button)"
+    },
+    {
+      "id": "targetFiles",
+      "type": "promptString",
+      "description": "Enter comma-separated target files (e.g., src/app.ts,docs/api.md)"
+    },
+    {
+      "id": "tokenBudget",
+      "type": "pickString",
+      "description": "Select token budget",
+      "options": ["5k", "10k", "20k", "30k", "50k"],
+      "default": "10k"
+    },
+    {
+      "id": "clientProfile",
+      "type": "pickString",
+      "description": "Select target Client Profile",
+      "options": ["Cline", "OpenCode", "Blackbox", "Cursor", "generic"],
+      "default": "generic"
+    }
+  ]
+}

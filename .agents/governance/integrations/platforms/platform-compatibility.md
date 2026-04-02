@@ -40,6 +40,20 @@ configurations are derived from it, not the other way around.
 | **Trust Model** | `autoAllowBashIfSandboxed` | IDE permissions | `--approval-mode` | — | `approval-policy.md` |
 | **Memory** | `.claude/memories/` | IDE workspace | Session-scoped | — | `.agents/management/memories/` |
 
+## 2b) Subagent-Native Clients
+
+| Client | Open Source | Best Fit | Harness Adapter |
+|:---|:---:|:---|:---|
+| **OpenCode** | Yes | Primary/subagent orchestration with task permissions and hidden helper agents | `opencode.json` + `.opencode/agents/**` |
+| **Cline** | Yes | Read-only exploration, long tasks, and context trimming | `.clinerules/**` + `.clineignore` |
+| **Blackbox** | No | Remote multi-agent execution and MCP-driven branch tasks | Hosted remote tasks / MCP briefs |
+
+OpenCode is the best fit when the harness needs explicit `primary` and
+`subagent` roles with `permission.task` gating. Cline is the best fit when the
+goal is to keep the main context small and let read-only subagents map the
+codebase. Blackbox is useful as a hosted option for remote orchestration, but
+it should not be treated as the local open-source baseline.
+
 ---
 
 ## 3) Platform Adapters
@@ -132,6 +146,8 @@ generate_claude_adapter
 generate_cursor_adapter
 generate_codex_adapter
 generate_gemini_adapter
+generate_opencode_adapter
+generate_cline_adapter
 ```
 
 Optional platform-native hook or plugin configs can still be added by hand if a

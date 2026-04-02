@@ -42,10 +42,11 @@ The routing chain is:
 7. `PipelineSelected`
 8. `StartingRoleSelected`
 9. `ContextAssembled`
-10. `TrustResolved`
-11. `EvidenceTargetsResolved`
-12. `TaskManifestWritten`
-13. `TaskReady`
+10. `SubagentsPlanned`
+11. `TrustResolved`
+12. `EvidenceTargetsResolved`
+13. `TaskManifestWritten`
+14. `TaskReady`
 
 Each event must be explainable from repository facts, the prompt, or explicit
 local declarations.
@@ -77,6 +78,9 @@ Required artifact layout:
             └── <TASK_ID>/
                 ├── context.json
                 ├── context.md
+                ├── subagents/
+                │   ├── manifest.json
+                │   └── 01-explore-core.md
                 ├── events.log
                 └── result.json
 ```
@@ -94,6 +98,8 @@ Required artifact layout:
 - starting role and recommended role chain
 - trust tier and approval mode
 - declared and inferred stack facts
+- delegation plan and subagent briefs when the prompt is broad enough to benefit
+  from offloading discovery or review
 - relevant governance files:
   - `must_read`
   - `should_read`
@@ -157,6 +163,21 @@ The router must assemble context in this order:
 6. relevant skills when explicitly requested or strongly matched
 
 Context injection must name exact files, not only categories.
+
+## Subagent Planning
+
+When the task is broad, multi-topic, or clearly benefits from discovery offload,
+the router should emit a subagent plan.
+
+The plan SHOULD:
+
+- keep the main agent focused on synthesis and integration
+- assign read-only exploration to subagents whenever possible
+- prefer the smallest possible brief that still answers the prompt
+- keep the planned subagents visible as artifacts under the task directory
+
+This is where Cline-style read-only research subagents and OpenCode-style
+primary/subagent orchestration both fit the same harness contract.
 
 ## Trust And Approval Resolution
 

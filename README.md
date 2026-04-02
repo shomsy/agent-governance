@@ -63,6 +63,9 @@ To "install" this Agent OS into a project:
 # governance/scaffold source
 /path/to/agent-harness/install-os.sh /path/to/your/project --repository-profile=governance-source
 
+# Optional: generate subagent-native adapters for OpenCode and Cline
+/path/to/agent-harness/install-os.sh /path/to/your/project --platform=opencode,cline
+
 # The result is:
 # - .agents/.rules/ for the mounted reusable rules project
 # - .agents/ for the project workspace skeleton
@@ -84,6 +87,11 @@ also writes lightweight adapter files for the common AI clients; pass
 governance tree is now organized feature-first, so child repos inherit the same
 navigation model under `.agents/.rules/governance/`.
 
+For token-heavy work, this harness can also generate subagent-native adapters
+for OpenCode and Cline. OpenCode gets explicit `primary`/`subagent` roles and
+task permissions; Cline gets narrow rules, ignore filters, and subagent
+guidance for read-only discovery.
+
 This repository also dogfoods a repository-kind profile for governance-source
 repos, plus explicit standards for how governance itself should be written and
 evolved.
@@ -96,6 +104,7 @@ The baseline regression check for the routing runtime is:
 
 ```bash
 ./tests/smoke-routing-hooks.sh
+./tests/smoke-subagent-delegation.sh
 ```
 
 This smoke test verifies:
@@ -107,6 +116,8 @@ This smoke test verifies:
 - `pre-tool-use.sh` trust and network blocking
 - `post-tool-use.sh` observation logging
 - `post-task.sh` trace and result closure
+- subagent adapter generation for OpenCode and Cline
+- broad-task delegation planning and subagent brief materialization
 
 ---
 

@@ -16,6 +16,81 @@ from typing import Any
 SCHEMA_VERSION = "1.0.0"
 
 
+SUBAGENT_CLUSTER_KEYWORDS: dict[str, list[str]] = {
+    "core": [
+        "auth",
+        "session",
+        "login",
+        "token",
+        "permission",
+        "identity",
+        "jwt",
+        "oauth",
+        "user",
+    ],
+    "data": [
+        "db",
+        "database",
+        "schema",
+        "migration",
+        "model",
+        "cache",
+        "storage",
+        "sql",
+        "table",
+    ],
+    "interface": [
+        "api",
+        "route",
+        "routing",
+        "endpoint",
+        "controller",
+        "handler",
+        "frontend",
+        "backend",
+        "ui",
+        "cli",
+    ],
+    "delivery": [
+        "test",
+        "tests",
+        "smoke",
+        "deploy",
+        "release",
+        "rollback",
+        "ci",
+        "cd",
+        "trace",
+        "observability",
+        "runtime",
+    ],
+    "docs": [
+        "doc",
+        "docs",
+        "readme",
+        "documentation",
+        "guide",
+        "how-to",
+        "flow",
+        "changelog",
+    ],
+    "security": [
+        "security",
+        "threat",
+        "vulnerability",
+        "secret",
+        "abuse",
+        "owasp",
+        "cve",
+    ],
+}
+
+SUBAGENT_CLIENT_HINTS: dict[str, list[str]] = {
+    "research": ["cline", "opencode"],
+    "parallel-build": ["opencode", "blackbox"],
+}
+
+
 def iso_timestamp() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
 
@@ -154,6 +229,34 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+def prompt_clusters(prompt: str) -> list[str]:
+    lower = prompt.lower()
+    clusters: list[str] = []
+    for cluster, keywords in SUBAGENT_CLUSTER_KEYWORDS.items():
+        if any(keyword in lower for keyword in keywords):
+            clusters.append(cluster)
+    return clusters
+
+
+def candidate_subagent_files(
+    context_files: list[str], cluster_keywords: list[str], limit: int = 5
+) -> list[str]:
+    selected: list[str] = []
+    normalized_keywords = [keyword.lower() for keyword in cluster_keywords]
+
+    for path in context_files:
+        lowered = path.lower()
+        if any(keyword in lowered for keyword in normalized_keywords):
+            selected.append(path)
+        if len(selected) >= limit:
+            return unique(selected)
+
+    if not selected:
+        return context_files[:limit]
+
+    return unique(selected)
 
 
 IGNORED_SCAN_DIRS = {
@@ -522,6 +625,188 @@ def select_trust(primary_lane: str, task_kind: str, prompt: str) -> tuple[str, s
     return tier, approval_mode
 
 
+def should_delegate_to_subagents(
+    prompt: str,
+    classification: dict[str, Any],
+    must_read: list[str],
+    should_read: list[str],
+) -> tuple[bool, str, str]:
+    lower = prompt.lower()
+    clusters = prompt_clusters(prompt)
+    broad_cues = (
+        "map out",
+        "explore",
+        "trace",
+        "analyze",
+        "audit",
+        "find",
+        "where is",
+        "how does",
+        "what does",
+        "inventory",
+        "survey",
+        "understand",
+    )
+    explicit_delegate = any(cue in lower for cue in broad_cues) or "subagent" in lower
+    long_prompt = len(lower.split()) >= 18
+    broad_lane = classification["primary_lane"] in {
+        "planning",
+        "review",
+        "documentation",
+        "governance",
+        "security",
+        "operations",
+    }
+    wide_context = len(must_read) + len(should_read) >= 12
+    multi_topic = len(clusters) >= 2
+
+    if explicit_delegate or multi_topic or wide_context or (broad_lane and long_prompt):
+        if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and (multi_topic or explicit_delegate):
+            return True, "parallel-build", "parallel implementation split"
+        return True, "research", "broad context discovery"
+
+    return False, "none", "narrow task"
+
+
+def subagent_brief_filename(index: int, kind: str, cluster: str) -> str:
+    return f"{index:02d}-{kind}-{cluster}.md"
+
+
+def build_subagent_brief(
+    index: int,
+    prompt: str,
+    classification: dict[str, Any],
+    context_files: list[str],
+    cluster: str,
+    mode: str,
+) -> dict[str, Any]:
+    cluster_keywords = SUBAGENT_CLUSTER_KEYWORDS.get(cluster, [cluster])
+    focus_files = candidate_subagent_files(context_files, cluster_keywords)
+    role = "explore"
+    if cluster == "docs":
+        role = "synthesis"
+    elif cluster == "security" or classification["task_kind"] in {"review", "security"}:
+        role = "review"
+    elif classification["task_kind"] in {"planning", "governance"}:
+        role = "planner"
+
+    if role == "review":
+        budget = 2500 if mode == "research" else 3000
+    elif role == "planner":
+        budget = 3000
+    else:
+        budget = 4000 if mode == "research" else 6000
+
+    expected_output = {
+        "explore": "A short file map with the next 3 files the main agent should inspect.",
+        "review": "A risk list with correctness, security, and maintainability findings.",
+        "planner": "A minimal breakdown of the work and the smallest safe next step.",
+        "synthesis": "A concise documentation or governance summary with clear structure.",
+    }[role]
+
+    focus_label = cluster.replace("-", " ").title()
+    if cluster == "core":
+        goal = f"Map the core {focus_label.lower()} flow and identify the minimum file set needed to continue."
+    elif cluster == "data":
+        goal = f"Map the {focus_label.lower()} layer and identify dependencies, models, and migrations."
+    elif cluster == "interface":
+        goal = f"Map the {focus_label.lower()} surface and identify entrypoints and handoff points."
+    elif cluster == "delivery":
+        goal = "Map the delivery path, validation path, and release or observability touchpoints."
+    elif cluster == "docs":
+        goal = "Map the documentation and governance sources that explain the requested change."
+    elif cluster == "security":
+        goal = "Map the security boundaries, trust assumptions, and abuse cases that affect the task."
+    else:
+        goal = f"Map the relevant code paths for {focus_label.lower()}."
+
+    if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and role == "explore":
+        goal = f"Inspect {focus_label.lower()}-related code paths and return the tightest file shortlist for the main agent."
+
+    return {
+        "id": f"{role}-{cluster}",
+        "name": f"{role}-{cluster}",
+        "role": role,
+        "mode": "subagent",
+        "read_only": True,
+        "budget_tokens": budget,
+        "client_hints": SUBAGENT_CLIENT_HINTS[mode],
+        "focus_cluster": cluster,
+        "focus_keywords": cluster_keywords,
+        "focus_files": focus_files,
+        "goal": goal,
+        "prompt": prompt,
+        "expected_output": expected_output,
+        "exit_criteria": expected_output,
+        "index": index,
+        "summary": f"{role} on {focus_label.lower()}",
+    }
+
+
+def build_delegation_plan(
+    prompt: str,
+    classification: dict[str, Any],
+    must_read: list[str],
+    should_read: list[str],
+) -> dict[str, Any]:
+    recommended, mode, reason = should_delegate_to_subagents(prompt, classification, must_read, should_read)
+    clusters = prompt_clusters(prompt)
+    if not clusters:
+        clusters = ["core"] if classification["task_kind"] in {"feature", "bugfix", "refactoring"} else ["docs"]
+
+    subagents: list[dict[str, Any]] = []
+    if recommended:
+        for index, cluster in enumerate(clusters[:3], start=1):
+            subagents.append(
+                build_subagent_brief(
+                    index=index,
+                    prompt=prompt,
+                    classification=classification,
+                    context_files=unique(must_read + should_read),
+                    cluster=cluster,
+                    mode=mode,
+                )
+            )
+
+        if classification["task_kind"] in {"feature", "bugfix", "refactoring", "review", "security"}:
+            review_focus = clusters[0] if clusters else "core"
+            subagents.append(
+                {
+                    "id": "review-risk",
+                    "name": "review-risk",
+                    "role": "review",
+                    "mode": "subagent",
+                    "read_only": True,
+                    "budget_tokens": 2500,
+                    "client_hints": SUBAGENT_CLIENT_HINTS[mode],
+                    "focus_cluster": review_focus,
+                    "focus_keywords": SUBAGENT_CLUSTER_KEYWORDS.get(review_focus, [review_focus]),
+                    "focus_files": candidate_subagent_files(
+                        unique(must_read + should_read), SUBAGENT_CLUSTER_KEYWORDS.get(review_focus, [review_focus])
+                    ),
+                    "goal": "Identify correctness, security, and regression risks before the main agent edits files.",
+                    "prompt": prompt,
+                    "expected_output": "A terse review of risks, missing tests, and safer follow-up actions.",
+                    "exit_criteria": "A risk list with a clear allow/block recommendation.",
+                    "index": len(subagents) + 1,
+                    "summary": "review risk",
+                }
+            )
+
+    total_budget = sum(item["budget_tokens"] for item in subagents)
+    if subagents and total_budget < 8000:
+        total_budget = 8000
+
+    return {
+        "recommended": recommended,
+        "mode": mode,
+        "reason": reason,
+        "preferred_clients": SUBAGENT_CLIENT_HINTS.get(mode, []),
+        "total_budget_tokens": total_budget,
+        "subagents": subagents,
+    }
+
+
 def add_existing(paths: list[Path], path: Path) -> None:
     if path.is_file():
         paths.append(path.resolve())
@@ -720,6 +1005,7 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
     must_read, should_read = resolve_rule_files(project_root, reusable_rules_root, stack, signals, classification)
     context_sources = resolve_context_sources(project_root, session_id)
     evidence_targets = resolve_evidence_targets(project_root, classification["primary_lane"], classification["task_kind"], trust_tier)
+    delegation = build_delegation_plan(prompt, classification, must_read, should_read)
 
     project_identifier = sha12(str(project_root.resolve()))
     trace_id = f"trace-{sha12(project_identifier + session_id + task_id + prompt)}"
@@ -777,12 +1063,14 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
             "should_read": should_read,
         },
         "context_injection": context_sources,
+        "delegation": delegation,
         "evidence_targets": evidence_targets,
         "artifacts": {
             "session_dir": str(session_dir.resolve()),
             "task_dir": str(task_dir.resolve()),
             "context_json": str((task_dir / "context.json").resolve()),
             "context_markdown": str((task_dir / "context.md").resolve()),
+            "subagents_dir": str((task_dir / "subagents").resolve()),
             "events_log": str((task_dir / "events.log").resolve()),
             "result_json": str((task_dir / "result.json").resolve()),
             "trace_reports": str((project_root / ".agents" / "management" / "evidence" / "TRACE_REPORTS.md").resolve()),
@@ -797,6 +1085,7 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
             "PipelineSelected",
             "StartingRoleSelected",
             "ContextAssembled",
+            "SubagentsPlanned",
             "TrustResolved",
             "EvidenceTargetsResolved",
             "TaskManifestWritten",
@@ -808,6 +1097,7 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
 def markdown_manifest(manifest: dict[str, Any]) -> str:
     routing = manifest["routing"]
     stack = manifest["stack"]
+    delegation = manifest.get("delegation", {})
     lines = [
         f"# Task Routing Summary — {manifest['task_id']}",
         "",
@@ -841,6 +1131,20 @@ def markdown_manifest(manifest: dict[str, Any]) -> str:
     lines.extend([f"- `{path}`" for path in manifest["governance_pack"]["must_read"]] or ["- none"])
     lines.extend(["", "## Should Read", ""])
     lines.extend([f"- `{path}`" for path in manifest["governance_pack"]["should_read"]] or ["- none"])
+    lines.extend(["", "## Delegation", ""])
+    lines.append(f"- Recommended: `{str(delegation.get('recommended', False)).lower()}`")
+    lines.append(f"- Mode: `{delegation.get('mode', 'none')}`")
+    lines.append(f"- Reason: {delegation.get('reason', 'none')}")
+    lines.append(f"- Preferred Clients: `{', '.join(delegation.get('preferred_clients', [])) or 'none'}`")
+    lines.append(f"- Total Budget: `{delegation.get('total_budget_tokens', 0)}`")
+    lines.append("- Subagents:")
+    if delegation.get("subagents"):
+        for item in delegation["subagents"]:
+            lines.append(
+                f"  - `{item['name']}` | role=`{item['role']}` | budget=`{item['budget_tokens']}` | cluster=`{item['focus_cluster']}`"
+            )
+    else:
+        lines.append("  - none")
     lines.extend(["", "## Context Injection", ""])
     for section, paths in manifest["context_injection"].items():
         lines.append(f"- {section}:")
@@ -853,6 +1157,44 @@ def markdown_manifest(manifest: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def markdown_subagent_brief(manifest: dict[str, Any], subagent: dict[str, Any]) -> str:
+    lines = [
+        f"# Sub-Agent Brief — {subagent['name']}",
+        "",
+        f"- Task ID: `{manifest['task_id']}`",
+        f"- Trace ID: `{manifest['trace_id']}`",
+        f"- Role: `{subagent['role']}`",
+        f"- Mode: `{subagent['mode']}`",
+        f"- Read Only: `{str(subagent['read_only']).lower()}`",
+        f"- Budget Tokens: `{subagent['budget_tokens']}`",
+        f"- Preferred Clients: `{', '.join(subagent.get('client_hints', [])) or 'none'}`",
+        f"- Focus Cluster: `{subagent['focus_cluster']}`",
+        f"- Goal: {subagent['goal']}",
+        "",
+        "## Focus Files",
+        "",
+    ]
+    lines.extend([f"- `{path}`" for path in subagent.get("focus_files", [])] or ["- none"])
+    lines.extend(
+        [
+            "",
+            "## Exit Criteria",
+            "",
+            f"- {subagent['exit_criteria']}",
+            "",
+            "## Expected Output",
+            "",
+            f"- {subagent['expected_output']}",
+            "",
+            "## Prompt",
+            "",
+            subagent["prompt"],
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Resolve prompt-to-governance task context.")
     parser.add_argument("--project-root", default=os.getcwd())
@@ -862,6 +1204,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task-id", required=True)
     parser.add_argument("--write-json")
     parser.add_argument("--write-markdown")
+    parser.add_argument("--write-subagents-dir")
     parser.add_argument("--summary", action="store_true")
     return parser.parse_args()
 
@@ -885,6 +1228,35 @@ def main() -> int:
         output_path = Path(args.write_markdown)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(markdown_manifest(manifest), encoding="utf-8")
+
+    if args.write_subagents_dir:
+        output_dir = Path(args.write_subagents_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        subagents = manifest.get("delegation", {}).get("subagents", [])
+        output_dir.joinpath("manifest.json").write_text(
+            json.dumps(
+                {
+                    "task_id": manifest["task_id"],
+                    "trace_id": manifest["trace_id"],
+                    "recommended": manifest.get("delegation", {}).get("recommended", False),
+                    "mode": manifest.get("delegation", {}).get("mode", "none"),
+                    "reason": manifest.get("delegation", {}).get("reason", "none"),
+                    "preferred_clients": manifest.get("delegation", {}).get("preferred_clients", []),
+                    "subagents": subagents,
+                },
+                indent=2,
+                ensure_ascii=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        for subagent in subagents:
+            brief_path = output_dir / subagent_brief_filename(
+                int(subagent.get("index", 1)),
+                subagent.get("role", "explore"),
+                subagent.get("focus_cluster", "general"),
+            )
+            brief_path.write_text(markdown_subagent_brief(manifest, subagent), encoding="utf-8")
 
     if args.summary:
         print(
