@@ -136,6 +136,7 @@ fi
 
 if [ -d "$TARGET_DIR/.agents/hooks" ]; then
     chmod +x "$TARGET_DIR/.agents/hooks/"*.sh 2>/dev/null || true
+    chmod +x "$TARGET_DIR/.agents/hooks/"*.py 2>/dev/null || true
 fi
 
 if [ -f "$TARGET_DIR/.agents/management/learning/analyze-instincts.py" ]; then

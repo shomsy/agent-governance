@@ -106,11 +106,14 @@ concatenated. The agent receives all injected context, not just the last.
 2. Resolve the governance stack (from `profile-resolution-algorithm.md`).
 3. Check feature flags (from `feature-flags.md`).
 4. Assign trust tier (from `approval-policy.md`).
+5. Write the task routing manifest and selected rule pack (from
+   `execution/routing/prompt-to-governance-flow.md`).
 
 ### PostTask
 1. Extract task summary for memory system (from `memory-lifecycle.md`).
 2. Update backlog in `.agents/management/TODO.md`.
 3. Record evidence with timestamp.
+4. Close the task routing manifest with final status and evidence references.
 
 ### PreReview
 1. Inject the appropriate review checklist.
@@ -153,8 +156,11 @@ Evidence format:
 
 The reusable baseline hook implementations live in `.agents/hooks/`:
 - `session-start.sh`
+- `pre-task.sh`
 - `pre-tool-use.sh`
 - `post-tool-use.sh`
+- `post-task.sh`
+- `resolve-task-context.py`
 
 Compatible clients MAY call these scripts directly or adapt them through their
 native hook system. Projects MAY extend them locally, but the shared scripts are

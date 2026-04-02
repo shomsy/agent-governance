@@ -5,7 +5,7 @@ The governance tree is organized feature-first so related rules live together.
 ## Feature Map
 
 - `core/`: universal gates, feature-gate lifecycle, and profile resolution
-- `execution/`: task execution, hooks, approvals, and sandbox boundaries
+- `execution/`: task execution, prompt routing, hooks, approvals, and sandbox boundaries
 - `standards/`: review, coding, naming, documentation, and governance authoring rules
 - `intelligence/`: memory lifecycle, context budgets, learning, and instincts
 - `agents/`: role definitions and multi-agent orchestration

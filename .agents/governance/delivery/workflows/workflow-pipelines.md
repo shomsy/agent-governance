@@ -153,7 +153,130 @@ For documentation-only changes:
 
 ---
 
-## 6) Refactoring Pipeline
+## 6) Brainstorm Flow
+
+For option exploration before commitment:
+
+```
+🧠 Gather Context → ⚖️ Compare Options → 🧾 Recommend Direction
+   (planner)         (architect)         (planner)
+```
+
+Outputs:
+
+1. bounded problem statement
+2. viable options with tradeoffs
+3. recommended direction and open risks
+
+---
+
+## 7) Planning Pipeline
+
+For turning broad scope into an executable plan:
+
+```
+📋 Scope → 🔎 Inventory → 📐 Plan → 🧾 Queue/Handoff
+ (planner)  (planner)    (architect)   (planner)
+```
+
+Minimum outputs:
+
+1. exact scope and non-goals
+2. file-level or surface-level impact map
+3. executable plan with validation path
+4. backlog or handoff record
+
+---
+
+## 8) Governance Pipeline
+
+For changes to rules, profiles, scaffolds, installers, adapters, or precedence:
+
+```
+📋 Scope → 🧭 Impact Map → 🛠 Update Governance → ✅ Validate Surfaces → 🔍 Review → 🧾 Snapshot
+ (planner)   (architect)      (implementer)           (implementer)       (reviewer)   (documenter)
+```
+
+Mandatory outputs:
+
+1. affected precedence and path list
+2. synchronized governance, scaffold, installer, and README changes
+3. validation results
+4. refreshed generated or merged artifacts when versioned
+
+---
+
+## 9) Review Pipeline
+
+For review-only tasks where findings are the primary deliverable:
+
+```
+📋 Scope → 🔎 Inspect → 🧪 Validate Claims → 📝 Findings
+ (reviewer)  (reviewer)    (reviewer)         (reviewer)
+```
+
+Primary output:
+
+- ordered findings with file references, assumptions, and residual risks
+
+---
+
+## 10) Operations Pipeline
+
+For incident, restore, runtime diagnosis, or operator tasks:
+
+```
+🚨 Triage → 🔎 Diagnose → 🛠 Repair/Contain → ✅ Verify → 🧾 Evidence
+ (reviewer)  (reviewer)      (implementer)        (implementer)  (documenter)
+```
+
+Mandatory outputs:
+
+1. trigger and impact statement
+2. trace or incident identifiers
+3. repair or containment action
+4. verification result
+5. operator evidence and rollback or follow-up note
+
+---
+
+## 11) Investigation Flow
+
+For discovery tasks where diagnosis is the deliverable:
+
+```
+🔎 Scope → 📚 Read Evidence → 🧠 Form Hypothesis → 🧾 Findings/Next Step
+ (reviewer)  (reviewer)       (architect)        (reviewer)
+```
+
+---
+
+## 12) Security Review Flow
+
+For security-focused review, audit, or triage work:
+
+```
+🔐 Scope → 🔎 Inspect Surface → 🧪 Validate Controls → 📝 Security Findings
+ (security-reviewer) (security-reviewer) (security-reviewer) (security-reviewer)
+```
+
+---
+
+## 13) Release Pipeline
+
+For release, publish, or rollback preparation:
+
+```
+📦 Prepare Candidate → ✅ Verify Gates → 🧾 Release Evidence → 🚀 Execute / Rollback
+   (releaser)          (reviewer)         (documenter)          (releaser)
+```
+
+The detailed release procedure is still governed by
+`release-and-rollback-policy.md`.
+
+---
+
+## 14) Refactoring Pipeline
 
 For code improvements without feature changes:
 
@@ -166,7 +289,7 @@ Key constraint: **Baseline tests must pass both before AND after refactoring.**
 
 ---
 
-## 7) Verification-Before-Completion
+## 15) Verification-Before-Completion
 
 No task is considered complete until:
 
@@ -182,23 +305,29 @@ verification steps have passed. This is a **non-negotiable** rule.
 
 ---
 
-## 8) Pipeline Selection
+## 16) Pipeline Selection
 
 The agent selects the appropriate pipeline based on task classification
 from `execution-policy.md`:
 
 | Task Lane | Pipeline | Minimum Stages |
 |:---|:---|:---|
+| Brainstorm | Brainstorm Flow | 3 stages |
+| Planning | Planning Pipeline | 4 stages |
 | Feature | Standard Feature Pipeline | All 8 stages |
 | Bugfix | Bugfix Pipeline | 5 stages |
+| Governance | Governance Pipeline | 6 stages |
+| Review | Review Pipeline | 4 stages |
 | Documentation | Documentation Pipeline | 4 stages |
+| Operations | Operations Pipeline | 5 stages |
+| Security | Security Review Flow or Bugfix Pipeline | scoped subset |
 | Refactoring | Refactoring Pipeline | 5 stages |
-| Investigation | No pipeline (ad-hoc) | N/A |
-| Release | Defined in `release-and-rollback-policy.md` | Per policy |
+| Investigation | Investigation Flow | 4 stages |
+| Release | Release Pipeline | 4 stages |
 
 ---
 
-## 9) Relationship to Other Standards
+## 17) Relationship to Other Standards
 
 | Standard | Relationship |
 |:---|:---|

@@ -15,6 +15,7 @@ Instead of managing floating markdown files, this project provides a structured 
 6.  **Resolution Algorithm**: A deterministic stack and SDLC resolver.
 7.  **Operations & Flow-Doc Law**: Shared standards for observability, trace/replay evidence, triggers, and results.
 8.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
+9.  **Prompt Routing Engine**: `PreTask` turns `AGENTS.md` plus the current prompt into a concrete rule pack, pipeline, role chain, trust posture, and evidence route.
 
 ---
 

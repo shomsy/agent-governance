@@ -1,19 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
-# session-start.sh
-# Extracted from hooks-policy.md
-# Bootstraps the context budget and verifies security constraints on startup.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.agents/hooks/lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+ROOT="$(resolve_project_root)"
+SESSION="$(session_id)"
+
+ensure_learning_layout "$ROOT"
+ensure_memory_layout "$ROOT"
+ensure_session_layout "$ROOT" "$SESSION"
+ensure_trace_layout "$ROOT"
+set_current_session_id "$ROOT" "$SESSION"
 
 echo "[Agent OS] Session Starting. Verifying Governance Context..."
+echo "[Agent OS] project_root=$ROOT session_id=$SESSION"
 
-# If memory injection is enabled and available, log it
-if [ -f ".agents/management/memories/memory_summary.md" ]; then
+if [ -f "$ROOT/.agents/management/memories/memory_summary.md" ]; then
     echo "[Agent OS] Active memory_summary.md found. Injecting into context."
 fi
 
-# Rotate session logs if necessary
-mkdir -p .agents/management/memories
-date -Iseconds >> .agents/management/memories/session-starts.log
+date -Iseconds >> "$ROOT/.agents/management/memories/session-starts.log"
 
 echo "[Agent OS] Governance boundaries successfully established."

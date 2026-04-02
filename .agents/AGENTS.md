@@ -1,6 +1,6 @@
 # .agents/AGENTS.md — Global Agent Harness Master Contract
 
-Version: 2.3.0
+Version: 2.4.0
 Status: Normative / Universal
 Scope: `./**`
 
@@ -23,32 +23,33 @@ In any project using the `.agents` OS, agents MUST follow this order:
 6. `.agents/governance/architecture/**`
 7. `.agents/governance/security/**`
 8. `.agents/governance/execution/policy/execution-policy.md`
-9. `.agents/governance/execution/hooks/hooks-policy.md`
-10. `.agents/governance/execution/approvals/approval-policy.md`
-11. `.agents/governance/core/flags/feature-flags.md`
-12. `.agents/governance/standards/review/how-to-code-review.md`
-13. `.agents/governance/standards/review/how-to-strict-review.md`
-14. `.agents/governance/standards/coding/how-to-coding-standards.md`
-15. `.agents/governance/standards/coding/naming-standard.md`
-16. `.agents/governance/standards/documentation/how-to-document-flow.md`
-17. `.agents/governance/standards/documentation/how-to-document.md`
-18. `.agents/governance/standards/governance/governance-authoring-standard.md`
-19. `.agents/governance/standards/governance/governance-evolution-policy.md`
-20. `.agents/governance/delivery/release/release-and-rollback-policy.md`
-21. `.agents/governance/intelligence/memory/memory-lifecycle.md`
-22. `.agents/governance/skills/contract/skill-contract.md`
-23. `.agents/governance/agents/roles/agent-roles.md`
-24. `.agents/governance/delivery/workflows/workflow-pipelines.md`
-25. `.agents/governance/intelligence/context/context-management.md`
-26. `.agents/governance/intelligence/learning/continuous-learning.md`
-27. `.agents/governance/intelligence/learning/instincts-policy.md`
-28. `.agents/governance/integrations/platforms/platform-compatibility.md`
-29. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
-30. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
-31. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
-32. `.agents/governance/delivery/operations/**`
-33. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
-34. `README.md`
+9. `.agents/governance/execution/routing/prompt-to-governance-flow.md`
+10. `.agents/governance/execution/hooks/hooks-policy.md`
+11. `.agents/governance/execution/approvals/approval-policy.md`
+12. `.agents/governance/core/flags/feature-flags.md`
+13. `.agents/governance/standards/review/how-to-code-review.md`
+14. `.agents/governance/standards/review/how-to-strict-review.md`
+15. `.agents/governance/standards/coding/how-to-coding-standards.md`
+16. `.agents/governance/standards/coding/naming-standard.md`
+17. `.agents/governance/standards/documentation/how-to-document-flow.md`
+18. `.agents/governance/standards/documentation/how-to-document.md`
+19. `.agents/governance/standards/governance/governance-authoring-standard.md`
+20. `.agents/governance/standards/governance/governance-evolution-policy.md`
+21. `.agents/governance/delivery/release/release-and-rollback-policy.md`
+22. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+23. `.agents/governance/skills/contract/skill-contract.md`
+24. `.agents/governance/agents/roles/agent-roles.md`
+25. `.agents/governance/delivery/workflows/workflow-pipelines.md`
+26. `.agents/governance/intelligence/context/context-management.md`
+27. `.agents/governance/intelligence/learning/continuous-learning.md`
+28. `.agents/governance/intelligence/learning/instincts-policy.md`
+29. `.agents/governance/integrations/platforms/platform-compatibility.md`
+30. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
+31. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
+32. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
+33. `.agents/governance/delivery/operations/**`
+34. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
+35. `README.md`
 
 ## 1) Agent OS Repository Structure
 

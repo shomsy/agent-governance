@@ -73,8 +73,15 @@ Standard directory structure:
 │   └── architecture.md   # Project-specific design decisions
 └── sessions/
     └── <SESSION_ID>/
+        ├── current-task
         ├── transcript.json
         └── session_memory.md
+        └── tasks/
+            └── <TASK_ID>/
+                ├── context.json
+                ├── context.md
+                ├── events.log
+                └── result.json
 ```
 
 ## 8) Phase 8: Cross-Session Feedback Loop

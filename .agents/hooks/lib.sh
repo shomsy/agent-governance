@@ -85,6 +85,8 @@ project_id() {
 }
 
 session_id() {
+    local root
+
     if [ -n "${AGENT_HARNESS_SESSION_ID:-}" ]; then
         printf '%s\n' "${AGENT_HARNESS_SESSION_ID}"
         return
@@ -92,6 +94,12 @@ session_id() {
 
     if [ -n "${SESSION_ID:-}" ]; then
         printf '%s\n' "${SESSION_ID}"
+        return
+    fi
+
+    root="$(resolve_project_root)"
+    if [ -f "$(current_session_pointer_file "$root")" ]; then
+        sed -n '1p' "$(current_session_pointer_file "$root")"
         return
     fi
 
@@ -126,9 +134,91 @@ ensure_session_layout() {
 
     runtime_dir="$(repo_agent_runtime_dir "$root")"
     mkdir -p "$runtime_dir/sessions/$current_session_id" "$runtime_dir/memory" \
+        "$runtime_dir/sessions/$current_session_id/tasks" \
         "$runtime_dir/context/product" "$runtime_dir/context/users" \
         "$runtime_dir/context/strategy" "$runtime_dir/context/stakeholders"
     touch "$runtime_dir/sessions/$current_session_id/session_memory.md"
+}
+
+session_dir() {
+    printf '%s/sessions/%s\n' "$(repo_agent_runtime_dir "$1")" "$2"
+}
+
+current_session_pointer_file() {
+    printf '%s/current-session\n' "$(repo_agent_runtime_dir "$1")"
+}
+
+set_current_session_id() {
+    local root="$1"
+    local current_session_id="$2"
+
+    mkdir -p "$(repo_agent_runtime_dir "$root")"
+    printf '%s\n' "$current_session_id" > "$(current_session_pointer_file "$root")"
+}
+
+task_dir() {
+    printf '%s/tasks/%s\n' "$(session_dir "$1" "$2")" "$3"
+}
+
+current_task_pointer_file() {
+    printf '%s/current-task\n' "$(session_dir "$1" "$2")"
+}
+
+set_current_task_id() {
+    local root="$1"
+    local current_session_id="$2"
+    local current_task_id="$3"
+
+    mkdir -p "$(session_dir "$root" "$current_session_id")"
+    printf '%s\n' "$current_task_id" > "$(current_task_pointer_file "$root" "$current_session_id")"
+}
+
+current_task_id() {
+    local root="$1"
+    local current_session_id="$2"
+
+    if [ -n "${AGENT_HARNESS_TASK_ID:-}" ]; then
+        printf '%s\n' "${AGENT_HARNESS_TASK_ID}"
+        return
+    fi
+
+    if [ -f "$(current_task_pointer_file "$root" "$current_session_id")" ]; then
+        sed -n '1p' "$(current_task_pointer_file "$root" "$current_session_id")"
+        return
+    fi
+
+    printf 'task-%s\n' "$(date +%Y%m%d%H%M%S)"
+}
+
+task_context_json_path() {
+    printf '%s/context.json\n' "$(task_dir "$1" "$2" "$3")"
+}
+
+task_context_markdown_path() {
+    printf '%s/context.md\n' "$(task_dir "$1" "$2" "$3")"
+}
+
+task_events_log_path() {
+    printf '%s/events.log\n' "$(task_dir "$1" "$2" "$3")"
+}
+
+task_result_json_path() {
+    printf '%s/result.json\n' "$(task_dir "$1" "$2" "$3")"
+}
+
+trace_reports_file() {
+    printf '%s/management/evidence/TRACE_REPORTS.md\n' "$(repo_agents_dir "$1")"
+}
+
+trace_bundles_dir() {
+    printf '%s/management/evidence/traces\n' "$(repo_agents_dir "$1")"
+}
+
+ensure_trace_layout() {
+    local root="$1"
+
+    mkdir -p "$(trace_bundles_dir "$root")"
+    touch "$(trace_reports_file "$root")"
 }
 
 sanitize_text() {
@@ -322,4 +412,47 @@ payload = {
 }
 print(json.dumps(payload, ensure_ascii=True))
 PY
+}
+
+json_get() {
+    local json_file="$1"
+    local dotted_path="$2"
+
+    python3 - "$json_file" "$dotted_path" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+if not path.exists():
+    sys.exit(1)
+
+payload = json.loads(path.read_text(encoding="utf-8"))
+value = payload
+for segment in sys.argv[2].split("."):
+    if isinstance(value, dict):
+        value = value.get(segment)
+    else:
+        value = None
+    if value is None:
+        break
+
+if isinstance(value, list):
+    print(",".join(str(item) for item in value))
+elif value is not None:
+    print(value)
+PY
+}
+
+append_task_event() {
+    local root="$1"
+    local current_session_id="$2"
+    local current_task_id="$3"
+    local event_name="$4"
+    local message="$5"
+    local event_log
+
+    event_log="$(task_events_log_path "$root" "$current_session_id" "$current_task_id")"
+    mkdir -p "$(dirname "$event_log")"
+    printf '[%s] %s: %s\n' "$(iso_timestamp)" "$event_name" "$message" >> "$event_log"
 }
