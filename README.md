@@ -5,7 +5,7 @@
 
 ## Vision: The Complete Harness
 
-Instead of managing floating markdown files, this project provides a structured harness that contientizes the entire agent-human collaboration:
+Instead of managing floating markdown files, this project provides a structured harness that organizes the entire agent-human collaboration:
 
 1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
 2.  **Specialized Profiles**: Modular rules grouped by **Language**, **Framework**, and **Architecture**.
@@ -14,7 +14,7 @@ Instead of managing floating markdown files, this project provides a structured 
 5.  **Strategic Context**: Living library for Personas, ROADMAP, and Stakeholders.
 6.  **Resolution Algorithm**: A deterministic stack and SDLC resolver.
 7.  **Operations & Flow-Doc Law**: Shared standards for observability, triggers, and results.
-7.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
+8.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
 
 ---
 
@@ -29,6 +29,7 @@ Instead of managing floating markdown files, this project provides a structured 
 - **`/.agents/governance/app-architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
 - **`/.agents/governance/security/`**: Secure SDLC, OWASP-aligned web and API baseline, auth/session, secrets, supply-chain, CI/CD, and incident-response governance.
 - **`/.agents/governance/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
+- **`/.agents/hooks/`**: Reusable hook scripts for session bootstrap, trust checks, and observation capture.
 - **`/.agents/governance/how-to-strict-review.md`**: Independent first-principles review lane for high-stakes claims.
 - **`/.agents/governance/how-to-document-flow.md`**: The trigger-to-result law for flow documentation.
 - **`/.agents/governance/operations/`**: Runtime, release, and recovery governance for deployable systems.
@@ -57,6 +58,8 @@ To "install" this Agent OS into a project:
 # The result is:
 # - .agents/.rules/ for the mounted reusable rules project
 # - .agents/ for the project workspace skeleton
+# - .agents/hooks/ plus learning and memory runtime support under .agents/management/
+# - common front-door adapters such as CLAUDE.md, .cursorrules, .codex/INSTALL.md, and GEMINI.md
 # - merge-files.sh at the project root, kept in sync
 ```
 
@@ -67,7 +70,9 @@ The root `AGENTS.md` in your project should be minimal, only containing:
 - Any specific overrides that differ from the global OS rules.
 
 The installer keeps `merge-files.sh` in the child repo on the latest version so
-the portable merged snapshot stays consistent across projects.
+the portable merged snapshot stays consistent across projects. By default it
+also writes lightweight adapter files for the common AI clients; pass
+`--platform=...` if you want to limit the generated adapters.
 
 Canonical backlog and evidence files already live under `.agents/management/**`.
 

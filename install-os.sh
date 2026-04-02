@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Agent Harness Installer
-# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME]
+# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME] [--platform=NAME]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${1:-}"
@@ -10,9 +10,12 @@ SELECTED_LANGUAGES=()
 SELECTED_FRAMEWORKS=()
 CODING_PROFILES=()
 ARCH_PROFILES=()
+PLATFORM_TARGETS=()
+PLATFORM_FLAGS_EXPLICITLY_SET=false
+GENERATE_ALL_PLATFORM_ADAPTERS=false
 
 if [ -z "$TARGET_DIR" ]; then
-    echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME]"
+    echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME] [--platform=NAME]"
     exit 1
 fi
 
@@ -44,6 +47,40 @@ copy_rules_tree() {
     cp -R "$SCRIPT_DIR/.agents/." "$target_rules_dir/"
 }
 
+copy_visible_support_tree() {
+    local relative_path="$1"
+    local source_path="$SCRIPT_DIR/.agents/$relative_path"
+    local target_path="$TARGET_DIR/.agents/$relative_path"
+
+    if [ ! -d "$source_path" ]; then
+        return
+    fi
+
+    mkdir -p "$target_path"
+    cp -R "$source_path/." "$target_path/"
+}
+
+append_unique() {
+    local item="$1"
+    local existing
+
+    for existing in "${PLATFORM_TARGETS[@]}"; do
+        if [ "$existing" = "$item" ]; then
+            return
+        fi
+    done
+
+    PLATFORM_TARGETS+=("$item")
+}
+
+write_file() {
+    local relative_path="$1"
+    local target_file="$TARGET_DIR/$relative_path"
+
+    mkdir -p "$(dirname "$target_file")"
+    cat > "$target_file"
+}
+
 escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
 }
@@ -60,6 +97,11 @@ if [ -d "$SCRIPT_DIR/scaffolds/agents-skeleton" ]; then
     cp -r "$SCRIPT_DIR/scaffolds/agents-skeleton/." "$TARGET_DIR/.agents/"
 fi
 
+# 3b. Copy reusable runtime support into the visible `.agents` workspace
+copy_visible_support_tree "hooks"
+copy_visible_support_tree "management/learning"
+copy_visible_support_tree "management/memories"
+
 # 4. Initialize the runtime .agent directory for memory, sessions, and strategic context
 mkdir -p "$TARGET_DIR/.agent/memory"
 mkdir -p "$TARGET_DIR/.agent/sessions"
@@ -68,6 +110,7 @@ mkdir -p "$TARGET_DIR/.agent/context/users"
 mkdir -p "$TARGET_DIR/.agent/context/strategy"
 mkdir -p "$TARGET_DIR/.agent/context/stakeholders"
 touch "$TARGET_DIR/.agent/memory/.gitkeep"
+touch "$TARGET_DIR/.agent/sessions/.gitkeep"
 touch "$TARGET_DIR/.agent/context/product/.gitkeep"
 touch "$TARGET_DIR/.agent/context/users/.gitkeep"
 touch "$TARGET_DIR/.agent/context/strategy/.gitkeep"
@@ -88,6 +131,14 @@ if [ ! -f "$TARGET_DIR/merge-files.sh" ] || ! cmp -s "$SCRIPT_DIR/merge-files.sh
 else
     chmod +x "$TARGET_DIR/merge-files.sh"
     echo "🧩 merge-files.sh already up to date"
+fi
+
+if [ -d "$TARGET_DIR/.agents/hooks" ]; then
+    chmod +x "$TARGET_DIR/.agents/hooks/"*.sh 2>/dev/null || true
+fi
+
+if [ -f "$TARGET_DIR/.agents/management/learning/analyze-instincts.py" ]; then
+    chmod +x "$TARGET_DIR/.agents/management/learning/analyze-instincts.py"
 fi
 
 # 6. Resolve selected reusable profiles for the local AGENTS scaffold
@@ -121,8 +172,36 @@ for arg in "$@"; do
             ARCH_PROFILES+=(".agents/.rules/governance/app-architecture/profiles/frameworks/$FRAME.md")
         fi
         ;;
+        --platform=*)
+        PLATFORM_FLAGS_EXPLICITLY_SET=true
+        PLATFORM_VALUE="${arg#*=}"
+        IFS=',' read -r -a PLATFORM_ITEMS <<< "$PLATFORM_VALUE"
+
+        for PLATFORM_ITEM in "${PLATFORM_ITEMS[@]}"; do
+            case "$PLATFORM_ITEM" in
+                all)
+                    GENERATE_ALL_PLATFORM_ADAPTERS=true
+                    ;;
+                claude|cursor|codex|gemini)
+                    append_unique "$PLATFORM_ITEM"
+                    ;;
+                antigravity|native)
+                    echo "ℹ️  Native AGENTS.md already covers the Antigravity-style entry point."
+                    ;;
+                "")
+                    ;;
+                *)
+                    echo "⚠️  Unknown platform adapter: $PLATFORM_ITEM"
+                    ;;
+            esac
+        done
+        ;;
     esac
 done
+
+if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ] || [ "$PLATFORM_FLAGS_EXPLICITLY_SET" = false ]; then
+    PLATFORM_TARGETS=(claude cursor codex gemini)
+fi
 
 LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
 FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
@@ -142,6 +221,51 @@ if sed \
 else
     rm -f "$target_agents_tmp"
     exit 1
+fi
+
+generate_platform_adapters() {
+    local platform
+
+    for platform in "${PLATFORM_TARGETS[@]}"; do
+        case "$platform" in
+            claude)
+                write_file "CLAUDE.md" <<'EOF'
+# Claude Code Setup
+
+Read and follow all rules in `.agents/AGENTS.md`.
+EOF
+                echo "🧩 Wrote CLAUDE.md"
+                ;;
+            cursor)
+                write_file ".cursorrules" <<'EOF'
+Read and follow all rules in `.agents/AGENTS.md`.
+EOF
+                echo "🧩 Wrote .cursorrules"
+                ;;
+            codex)
+                write_file ".codex/INSTALL.md" <<'EOF'
+# Codex Project Setup
+
+Read and follow all rules in `.agents/AGENTS.md`.
+
+Keep the Codex approval mode aligned with the harness trust tier and the
+current task lane.
+EOF
+                echo "🧩 Wrote .codex/INSTALL.md"
+                ;;
+            gemini)
+                write_file "GEMINI.md" <<'EOF'
+Read and follow all rules in `.agents/AGENTS.md`.
+EOF
+                echo "🧩 Wrote GEMINI.md"
+                ;;
+        esac
+    done
+}
+
+if [ "${#PLATFORM_TARGETS[@]}" -gt 0 ]; then
+    echo "📦 Generating platform adapters: $(format_code_list "${PLATFORM_TARGETS[@]}")"
+    generate_platform_adapters
 fi
 
 echo "✅ Agent Harness installed successfully!"

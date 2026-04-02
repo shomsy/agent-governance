@@ -57,6 +57,7 @@ Replace this section with project-specific truth:
    - `.agents/business-logic/`
    - `.agents/language-specific/`
    - `.agents/management/`
+   - `.agents/hooks/`
    - `.agents/review/`
 7. **Project-Specific Exceptions or Forbidden Shortcuts**:
 

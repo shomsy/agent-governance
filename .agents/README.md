@@ -19,6 +19,7 @@ workspace files.
 | `templates/` | Reusable templates for tasking, planning, review, ADR, and DoD | Yes |
 | `glossary/` | Shared vocabulary for terms and naming | Yes |
 | `onboarding/` | Bootstrap and contributor operating flow | Yes |
+| `hooks/` | Reusable runtime hook entrypoints that connect policy to execution | Yes |
 
 ## Required Questions
 

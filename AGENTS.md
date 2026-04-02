@@ -1,6 +1,6 @@
 # AGENTS.md — Agent Harness Repository Contract
 
-Version: 1.7.0
+Version: 1.10.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -20,17 +20,31 @@ Agents MUST follow this order in this repository:
 6. `.agents/governance/app-architecture/**`
 7. `.agents/governance/security/**`
 8. `.agents/governance/execution-policy.md`
-9. `.agents/governance/how-to-code-review.md`
-10. `.agents/governance/how-to-strict-review.md`
-11. `.agents/governance/how-to-coding-standards.md`
-12. `.agents/governance/naming-standard.md`
-13. `.agents/governance/how-to-document-flow.md`
-14. `.agents/governance/how-to-document.md`
-15. `.agents/governance/release-and-rollback-policy.md`
-16. `.agents/governance/operations/**`
-17. `.agents/skills/**` (Reusable Agent Skills)
-18. `README.md`
-19. `scaffolds/**`
+9. `.agents/governance/hooks-policy.md`
+10. `.agents/governance/approval-policy.md`
+11. `.agents/governance/feature-flags.md`
+12. `.agents/governance/how-to-code-review.md`
+13. `.agents/governance/how-to-strict-review.md`
+14. `.agents/governance/how-to-coding-standards.md`
+15. `.agents/governance/naming-standard.md`
+16. `.agents/governance/how-to-document-flow.md`
+17. `.agents/governance/how-to-document.md`
+18. `.agents/governance/release-and-rollback-policy.md`
+19. `.agents/governance/memory-lifecycle.md`
+20. `.agents/governance/skill-contract.md`
+21. `.agents/governance/agent-roles.md`
+22. `.agents/governance/workflow-pipelines.md`
+23. `.agents/governance/context-management.md`
+24. `.agents/governance/continuous-learning.md`
+25. `.agents/governance/instincts-policy.md`
+26. `.agents/governance/platform-compatibility.md`
+27. `.agents/governance/mcp-integration-policy.md`
+28. `.agents/governance/sandbox-boundary-policy.md`
+29. `.agents/governance/society-of-mind-pattern.md`
+30. `.agents/governance/operations/**`
+31. `.agents/skills/**` (Reusable Agent Skills)
+32. `README.md`
+33. `scaffolds/**`
 
 ## 1) Local Rules
 

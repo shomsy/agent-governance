@@ -1,6 +1,6 @@
 # .agents/AGENTS.md — Global Agent Harness Master Contract
 
-Version: 1.9.0
+Version: 2.1.0
 Status: Normative / Universal
 Scope: `./**`
 
@@ -23,16 +23,30 @@ In any project using the `.agents` OS, agents MUST follow this order:
 6. `.agents/governance/app-architecture/**`
 7. `.agents/governance/security/**`
 8. `.agents/governance/execution-policy.md`
-9. `.agents/governance/how-to-code-review.md`
-10. `.agents/governance/how-to-strict-review.md`
-11. `.agents/governance/how-to-coding-standards.md`
-12. `.agents/governance/naming-standard.md`
-13. `.agents/governance/how-to-document-flow.md`
-14. `.agents/governance/how-to-document.md`
-15. `.agents/governance/release-and-rollback-policy.md`
-16. `.agents/governance/operations/**`
-17. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
-18. `README.md`
+9. `.agents/governance/hooks-policy.md`
+10. `.agents/governance/approval-policy.md`
+11. `.agents/governance/feature-flags.md`
+12. `.agents/governance/how-to-code-review.md`
+13. `.agents/governance/how-to-strict-review.md`
+14. `.agents/governance/how-to-coding-standards.md`
+15. `.agents/governance/naming-standard.md`
+16. `.agents/governance/how-to-document-flow.md`
+17. `.agents/governance/how-to-document.md`
+18. `.agents/governance/release-and-rollback-policy.md`
+19. `.agents/governance/memory-lifecycle.md`
+20. `.agents/governance/skill-contract.md`
+21. `.agents/governance/agent-roles.md`
+22. `.agents/governance/workflow-pipelines.md`
+23. `.agents/governance/context-management.md`
+24. `.agents/governance/continuous-learning.md`
+25. `.agents/governance/instincts-policy.md`
+26. `.agents/governance/platform-compatibility.md`
+27. `.agents/governance/mcp-integration-policy.md`
+28. `.agents/governance/sandbox-boundary-policy.md`
+29. `.agents/governance/society-of-mind-pattern.md`
+30. `.agents/governance/operations/**`
+31. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
+32. `README.md`
 
 ## 1) Agent OS Repository Structure
 
@@ -49,6 +63,7 @@ Any project using this OS is divided into specialized domains within the
 | **`review/`** | Canonical review findings and archive. | **Yes** |
 | **`glossary/`** | Shared vocabulary, naming dictionaries, and term definitions. | **Yes** |
 | **`onboarding/`** | Guided flows for safe project adoption and contributor entry. | **Yes** |
+| **`hooks/`** | Reusable runtime hook entrypoints for session bootstrap, trust checks, and observation capture. | **Yes** |
 | **`skills/`** | Reusable agent-facing command and workflow definitions. | **Yes** |
 
 ## 2) Non-Negotiable Rules (Shared)
