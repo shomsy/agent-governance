@@ -1,0 +1,217 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "version": "1.0.0",
+  "name": "Agent Harness Fullstack Stack",
+  "description": "Complete MCP stack for fullstack development with sub-agent orchestration",
+
+  "permission": {
+    "*": "ask",
+    "read": "allow",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "grep *": "allow",
+      "rg *": "allow",
+      "find *": "allow",
+      "ls *": "allow",
+      "cat *": "allow",
+      "npm *": "ask",
+      "python *": "ask",
+      "pytest *": "allow"
+    },
+    "task": {
+      "*": "deny",
+      "harness-*": "allow"
+    },
+    "edit": "deny",
+    "webfetch": "ask"
+  },
+
+  "mcpServers": {
+    "vscode": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-vscode"],
+      "description": "VS Code editor integration - symbol search, outlines, navigation"
+    },
+    "serena": {
+      "command": "uvx",
+      "args": ["serena-mcp"],
+      "description": "Semantic code retrieval via LSP - 40+ languages, token efficient"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" },
+      "description": "GitHub API - repos, PRs, issues, commits"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": { "DATABASE_URL": "${DATABASE_URL}" },
+      "description": "PostgreSQL - schema, queries, data manipulation"
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sqlite"],
+      "description": "SQLite - lightweight local database"
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+      "description": "Web search for documentation and research"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-playwright"],
+      "description": "Browser automation for E2E testing"
+    },
+    "docker": {
+      "command": "npx",
+      "args": ["-y", "docker-mcp-server"],
+      "description": "Docker container management"
+    },
+    "kubernetes": {
+      "command": "npx",
+      "args": ["-y", "kubernetes-mcp-server"],
+      "description": "Kubernetes cluster management"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": { "ALLOWED_DIRECTORIES": ["${PROJECT_ROOT}"] },
+      "description": "File system access - RESTRICTED to project directory"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Persistent knowledge graph for context retention"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Enhanced reasoning with thought chains"
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "HTTP requests for web APIs"
+    }
+  },
+
+  "agents": {
+    "harness-supervisor": {
+      "description": "Main orchestration - routes tasks to appropriate sub-agents",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "edit": "deny",
+        "webfetch": "deny",
+        "task": { "*": "deny", "harness-*": "allow" },
+        "bash": { "*": "ask" },
+        "mcp": {
+          "vscode": "allow",
+          "serena": "allow",
+          "github": "read",
+          "filesystem": "read"
+        }
+      }
+    },
+    "harness-mapper": {
+      "description": "Code mapping - finds relevant files via semantic search",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "edit": "deny",
+        "webfetch": "deny",
+        "mcp": {
+          "vscode": "allow",
+          "serena": "allow",
+          "filesystem": "read"
+        }
+      }
+    },
+    "harness-researcher": {
+      "description": "Documentation and API research",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "edit": "deny",
+        "webfetch": "allow",
+        "mcp": {
+          "brave-search": "allow",
+          "github": "read",
+          "docs": "allow",
+          "fetch": "allow"
+        }
+      }
+    },
+    "harness-executor": {
+      "description": "Code implementation - implements features and fixes",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "edit": "allow",
+        "webfetch": "deny",
+        "bash": {
+          "*": "ask",
+          "npm *": "ask",
+          "python *": "ask",
+          "pytest *": "allow",
+          "jest *": "allow",
+          "git *": "allow"
+        },
+        "mcp": {
+          "vscode": "allow",
+          "serena": "allow",
+          "postgres": "read",
+          "docker": "read"
+        }
+      }
+    },
+    "harness-reviewer": {
+      "description": "Code review - analyzes changes for risks",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "edit": "deny",
+        "webfetch": "deny",
+        "mcp": {
+          "vscode": "allow",
+          "github": "read",
+          "serena": "allow"
+        }
+      }
+    }
+  },
+
+  "routing": {
+    "system": "harness-supervisor",
+    "default": "harness-mapper",
+    "rules": {
+      "map|where|find|explore|trace|understand|explain": "harness-mapper",
+      "docs|documentation|api|version|learn about": "harness-researcher",
+      "implement|fix|refactor|change|modify|add|create|update|bug|error": "harness-executor",
+      "review|check|verify|audit|risks|security": "harness-reviewer",
+      "ci|build|deploy|failed|log|test failure": "harness-researcher"
+    }
+  },
+
+  "trustTiers": {
+    "T0": {
+      "description": "Read-only, local operations",
+      "servers": ["vscode", "serena", "brave-search", "filesystem", "memory", "sequential-thinking", "fetch"]
+    },
+    "T1": {
+      "description": "Workspace write, no external side effects",
+      "servers": ["github", "postgres", "sqlite", "playwright", "docker"]
+    },
+    "T2": {
+      "description": "External operations - requires approval",
+      "servers": ["kubernetes"],
+      "requiresApproval": true
+    }
+  }
+}

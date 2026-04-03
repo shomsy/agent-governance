@@ -1,0 +1,183 @@
+{
+  "$schema": "https://modelcontextprotocol.io/specification/2024-11-05/config",
+  "version": "1.0.0",
+  "name": "Fullstack Coding MCP Stack",
+  "description": "Complete MCP stack for fullstack development - VS Code, Serena, GitHub, PostgreSQL, Brave Search, Playwright, Docker, Kubernetes",
+  
+  "mcpServers": {
+    "vscode": {
+      "name": "VS Code",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-vscode"],
+      "description": "VS Code editor integration - symbol search, outlines, file navigation",
+      "trustTier": "T0",
+      "capabilities": ["read", "symbols", "outlines"],
+      "env": {}
+    },
+    "serena": {
+      "name": "Serena",
+      "command": "uvx",
+      "args": ["serena-mcp"],
+      "description": "Semantic code retrieval via LSP - symbol-level access to 40+ languages",
+      "trustTier": "T0",
+      "capabilities": ["semantic-retrieval", "symbols", "code-analysis"],
+      "env": {
+        "SERENA_LSP_BACKEND": "typescript-language-server"
+      }
+    },
+    "github": {
+      "name": "GitHub",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "description": "GitHub API - repos, PRs, issues, commits, code search",
+      "trustTier": "T1",
+      "capabilities": ["read", "repo-management"],
+      "requiredEnv": ["GITHUB_TOKEN"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "postgres": {
+      "name": "PostgreSQL",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "description": "PostgreSQL database - schema inspection, queries, data manipulation",
+      "trustTier": "T1",
+      "capabilities": ["read", "write", "query"],
+      "requiredEnv": ["DATABASE_URL"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    },
+    "sqlite": {
+      "name": "SQLite",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sqlite"],
+      "description": "SQLite database - lightweight local development",
+      "trustTier": "T1",
+      "capabilities": ["read", "write", "query"],
+      "env": {
+        "DB_PATH": "${DB_PATH:-./data.db}"
+      }
+    },
+    "brave-search": {
+      "name": "Brave Search",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "description": "Web search for documentation and research",
+      "trustTier": "T0",
+      "capabilities": ["search"],
+      "requiredEnv": ["BRAVE_API_KEY"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "playwright": {
+      "name": "Playwright",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-playwright"],
+      "description": "Browser automation for E2E testing and web scraping",
+      "trustTier": "T1",
+      "capabilities": ["browser", "automation", "testing"],
+      "env": {}
+    },
+    "docker": {
+      "name": "Docker",
+      "command": "npx",
+      "args": ["-y", "docker-mcp-server"],
+      "description": "Docker container management - containers, images, networks",
+      "trustTier": "T1",
+      "capabilities": ["container-management"],
+      "env": {
+        "DOCKER_HOST": "${DOCKER_HOST:-}"
+      }
+    },
+    "kubernetes": {
+      "name": "Kubernetes",
+      "command": "npx",
+      "args": ["-y", "kubernetes-mcp-server"],
+      "description": "Kubernetes cluster management - pods, services, deployments",
+      "trustTier": "T2",
+      "capabilities": ["cluster-management"],
+      "requiresApproval": true,
+      "env": {
+        "KUBECONFIG": "${KUBECONFIG:-}"
+      }
+    },
+    "filesystem": {
+      "name": "Filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "description": "File system access - restricted to project directory only",
+      "trustTier": "T0",
+      "capabilities": ["read", "write"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "${PROJECT_ROOT}"
+      },
+      "restrictions": {
+        "maxFiles": 50,
+        "maxFileSize": "1MB",
+        "allowedExtensions": [".js", ".ts", ".jsx", ".tsx", ".vue", ".py", ".php", ".md", ".json", ".yaml", ".yml", ".toml", ".sh", ".sql"]
+      }
+    },
+    "memory": {
+      "name": "Memory",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Persistent knowledge graph for context retention",
+      "trustTier": "T0",
+      "capabilities": ["memory", "knowledge-graph"],
+      "env": {}
+    },
+    "sequential-thinking": {
+      "name": "Sequential Thinking",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Enhanced reasoning with thought chains",
+      "trustTier": "T0",
+      "capabilities": ["reasoning", "analysis"],
+      "env": {}
+    },
+    "fetch": {
+      "name": "Fetch",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "HTTP requests for web APIs",
+      "trustTier": "T0",
+      "capabilities": ["http", "api"],
+      "env": {}
+    }
+  },
+
+  "usage": {
+    "primaryClients": ["VS Code", "Cursor", "Cline", "OpenCode", "Blackbox"],
+    "recommendedStack": [
+      "vscode",
+      "serena", 
+      "github",
+      "postgres",
+      "brave-search",
+      "playwright"
+    ],
+    "optionalStack": [
+      "docker",
+      "kubernetes",
+      "sqlite",
+      "filesystem",
+      "memory"
+    ]
+  },
+
+  "trustTiers": {
+    "T0": "Read-only, local operations only",
+    "T1": "Read-write within workspace, no external side effects",
+    "T2": "External operations requiring human approval"
+  },
+
+  "tokenBudget": {
+    "mapper": 2000,
+    "researcher": 3000,
+    "executor": 15000,
+    "reviewer": 5000
+  }
+}
