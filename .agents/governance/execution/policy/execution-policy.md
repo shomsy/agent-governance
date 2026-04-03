@@ -8,9 +8,21 @@ Status: Normative
 Define the transition from analysis to execution and prevent endless re-analysis,
 scope drift, and undocumented deviations.
 
-## 1. Execution Mode
+## 1. Execution Modes
 
-Execution mode means implementation is expected and the approved direction is fixed.
+The Agent OS operates in two distinct modes to optimize for both discovery and implementation:
+
+### 1.1 Explore Mode (Read-Only)
+- **Goal**: Discovery, mapping, research, documentation analysis.
+- **Constraints**: **NO CODE CHANGES ALLOWED**.
+- **Agent Choice**: Use "cheap" or "mini" models (Mapper, Docs Researcher).
+- **Output**: Mandatory artifact summarizing findings (Brief/Research).
+
+### 1.2 Execute Mode (Implementation)
+- **Goal**: Code writing, refactoring, bug fixes, integration.
+- **Constraints**: Restricted to the **approved scope** and file list from Explore Mode.
+- **Agent Choice**: Use primary/powerful models (Codex Executor).
+- **Execution Lane**: Implementation must follow the predefined role chain.
 
 Rules:
 

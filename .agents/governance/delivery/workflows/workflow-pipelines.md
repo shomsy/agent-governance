@@ -13,8 +13,25 @@ failure definitions, 1% skill invocation rule, and verification-before-
 completion philosophy.
 
 ---
-
-## 1) The 1% Rule
+ 
+ ## 1) Minimal Supervisor Flow (v1 Default)
+ 
+ This is the canonical pipeline for Token-Aware Orchestration. It minimizes Codex usage by pre-filtering context through specialized sub-agents.
+ 
+ ```
+  📥 Task Input ──► 🧩 Classify ──► 🔍 Explore ──► 📝 Artifact ──► 🛠 Execute ──► ✅ Review ──► 🚀 Done
+     (Supervisor)    (Supervisor)    (Mapper)       (Mapper)      (Codex)        (Reviewer)
+ ```
+ 
+ ### Stage Details:
+ 1. **Classify**: Supervisor decides if it's an Explore or Execute task.
+ 2. **Explore**: Mapper/Docs Researcher explores the repo (Read-only, cheap model).
+ 3. **Artifact**: Sub-agent returns the Mandatory 9-field Artifact.
+ 4. **Decision**: Supervisor decides if the task is complete (stop) or requires Execute Mode (next).
+ 5. **Execute**: Codex Executor performs the change based ON the artifact (High-reasoning).
+ 6. **Review**: Final Reviewer checks the diff before completion.
+ 
+ ## 2) The 1% Rule
 
 If there is even a **1% chance** that a governance rule, skill, or standard
 applies to the current task, the agent MUST invoke it. This ensures:

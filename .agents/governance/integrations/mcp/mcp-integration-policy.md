@@ -7,8 +7,6 @@ version: 1.0.0
 
 Agent OS natively supports extending its capabilities through the **Model Context Protocol (MCP)**. While `SKILL.md` operates as local file-based capabilities, MCP serves as the bridge to living, dynamic external services securely.
 
-## 1. When to Use MCP vs SKILL.md
-
 | Feature Need                  | Recommendation               |
 |:------------------------------|:-----------------------------|
 | File system editing           | `SKILL.md`                   |
@@ -17,13 +15,32 @@ Agent OS natively supports extending its capabilities through the **Model Contex
 | Dynamic context streaming     | `MCP Server`                 |
 | Persistent stateful sessions  | `MCP Server`                 |
 
-## 2. Integration Tiers (Trust Model)
+## 2. Priority "First 3" MCP Servers (v1)
+
+For the initial rollout, only the following MCP categories are permitted to reduce scope and hallucination:
+
+1.  **Docs MCP**: Knowledge base for project-specific and external documentation (e.g., OpenAI, Stripe, AWS). Prevents "web-wandering" and outdated API patterns.
+2.  **GitHub Read-only MCP**: Access to Issues, PRs, Diffs, and Review comments. **Write access is forbidden in v1.**
+3.  **CI / Logs MCP**: Access to failing job logs, build summaries, and test excerpts. Provides real-world signals for debugging.
+
+## 3. Forbidden MCP Servers (v1)
+
+To prevent unapproved external side effects, the following are strictly **FORBIDDEN** for autonomous use:
+- **Database Write MCP**: Direct data modification.
+- **Production Write / Deployment MCP**: Remote deployment or environment changes.
+- **Email / Calendar / Notification Write MCP**: External stakeholder communication.
+
+All external write actions MUST be routed through **Human Approval (T2)**.
+
+## 4. Integration Tiers (Trust Model)
 
 Before any MCP Server is integrated, it must be evaluated under the OS trust tiers:
 
-- **T0 (System / Local-only)**: MCP Servers running locally without external internet access (e.g., local database read). Trusted; auto-approved.
-- **T1 (Read-only External)**: MCP Servers fetching data from known external APIs (e.g., Weather API, GitHub Read-only). Requires initial user consent, then persisted.
-- **T2 (Write External)**: MCP Servers that modify external systems (e.g., sending emails, pushing to remote repositories). **Must use human-in-the-loop approval at invocation time.**
+- **T0 (ReadOnly / System)**: Fully internal or read-only tools. Auto-approved.
+- **T1 (WorkspaceWrite)**: Local file modifications within the project. Requires initial session approval or task-level consent.
+- **T2 (External Write / Side-Effect)**: Any modification to an external system (MCP write, git push, deployment). **MUST USE HUMAN-IN-THE-LOOP APPROVAL AT EVERY INVOCATION.**
+
+Default Rule: If a tool or MCP server is not explicitly tagged, it is treated as **Forbidden (ReadOnly)**.
 
 ## 3. Server Registration & Discovery
 

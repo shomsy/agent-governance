@@ -32,6 +32,8 @@ The agent's total context window is divided into priority tiers:
    (10,000 tokens each, 30,000 total per `skill-contract.md`)
 3. **P2 truncates gracefully**: Memory summary can be shortened if needed
 4. **P3 is the compaction target**: Working context is compacted first
+5. **Sub-Agent Context Limit**: Sub-agents (Mapper, Docs Researcher) are strictly limited to **2-5 files** and **1 primary goal** per pass.
+6. **Codex Context Limit**: Codex Executor is limited to the files and goals identified in the sub-agent's artifact.
 
 ---
 

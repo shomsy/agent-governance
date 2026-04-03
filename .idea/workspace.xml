@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ae05ac6a-1456-4a87-b47b-2ff169c42edd" name="Changes" comment="" />
+    <list default="true" id="ae05ac6a-1456-4a87-b47b-2ff169c42edd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.agents/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/AGENTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/governance/agents/roles/agent-roles.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/governance/agents/roles/agent-roles.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/governance/delivery/workflows/workflow-pipelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/governance/delivery/workflows/workflow-pipelines.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/governance/execution/policy/execution-policy.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/governance/execution/policy/execution-policy.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/governance/integrations/mcp/mcp-integration-policy.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/governance/integrations/mcp/mcp-integration-policy.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/governance/intelligence/context/context-management.md" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/governance/intelligence/context/context-management.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.agents/hooks/resolve-task-context.py" beforeDir="false" afterPath="$PROJECT_DIR$/.agents/hooks/resolve-task-context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +23,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="1261" />
+    <option name="cachedIndexableFilesCount" value="1345" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -25,12 +34,12 @@
     &quot;assignee&quot;: &quot;shomsy&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/shomsy/agent-harness.git&quot;,
-    &quot;accountId&quot;: &quot;2020b00e-2c0f-4378-b272-f37be4fbc782&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/shomsy/agent-governance.git",
+    "accountId": "2020b00e-2c0f-4378-b272-f37be4fbc782"
   }
-}</component>
+}]]></component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -56,7 +65,7 @@
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/home/shomsy/projects/step-by-step-animator",
+    "last_opened_file_path": "/home/shomsy/projects/agent-harness",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -88,6 +97,7 @@
       <workItem from="1774734336519" duration="605000" />
       <workItem from="1774784446430" duration="3491000" />
       <workItem from="1774801472356" duration="15000" />
+      <workItem from="1775169531903" duration="3975000" />
     </task>
     <servers />
   </component>

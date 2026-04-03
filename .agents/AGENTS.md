@@ -79,6 +79,9 @@ Any project using this OS is divided into specialized domains within the
 6. **DoD = implementation + validation + evidence + backlog update + ceremony.**
 7. **What can be automated MUST be automated or gated.**
 8. **Production-ready claims require proof**: review, validation, rollback, and operational evidence must agree.
+9. **Codex is not the default agent for all tasks**: Use specialized sub-agents (Mapper, Docs Researcher) before involving Codex for execution.
+10. **Explore mode vs Execute mode**: Maintain a clear boundary between read-only discovery (Explore) and code-modifying implementation (Execute).
+11. **Every agent MUST return an artifact**: No raw conversational logs as the primary output; all sub-agents must emit a structured result.
 
 ## 3) Common Operating Flow
 

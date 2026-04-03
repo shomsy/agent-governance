@@ -25,101 +25,51 @@ Software quality is maximized when each role:
 
 ---
 
-## 2) Role Catalog
+## 2) Core v1 Role Catalog
 
-### Planning & Design Roles
-
-#### Planner
+### 2.1 Supervisor / Router
 | Attribute | Value |
 |:---|:---|
-| **Responsibility** | Task decomposition, timeline estimation, backlog management |
+| **Responsibility** | Task classification, delegating to sub-agents, merging results |
 | **Trust Tier** | T0 (ReadOnly) |
-| **SOP Input** | User requirement, existing backlog |
-| **SOP Output** | Task breakdown in TODO.md, priority assignments |
-| **Watches For** | New requirements, scope changes |
-| **Invocation** | "Operating as: planner" |
+| **Constraint** | **NO Deep Research; NO Code Changes** |
+| **SOP Output** | Task delegation manifest (`task.json`) |
+| **Model** | Fast/Context-efficient model |
 
-#### Architect
+### 2.2 Mapper / Researcher
 | Attribute | Value |
 |:---|:---|
-| **Responsibility** | System design, API contracts, component boundaries |
+| **Responsibility** | Repository exploration, file discovery, impact mapping |
 | **Trust Tier** | T0 (ReadOnly) |
-| **SOP Input** | Task breakdown, existing codebase analysis |
-| **SOP Output** | Design document, API specifications, data models |
-| **Watches For** | Architectural changes, new component proposals |
-| **Invocation** | "Operating as: architect" |
+| **Constraint** | **NO Code Changes**; Max 5 files per pass |
+| **SOP Output** | Pruned context brief (`mapper-brief.md`) |
+| **Model** | "Mini" / Cheap model (gpt-4o-mini / Gemini Flash) |
 
----
-
-### Implementation Roles
-
-#### Implementer
+### 2.3 Docs / API Researcher
 | Attribute | Value |
 |:---|:---|
-| **Responsibility** | Code writing, feature implementation, bug fixes |
+| **Responsibility** | Documentation analysis, API verification, MCP source analysis |
+| **Trust Tier** | T0 (ReadOnly) |
+| **Constraint** | Only returns relevant references and summaries |
+| **SOP Output** | API/Docs findings artifact (`docs-brief.md`) |
+| **Model** | "Mini" / Cheap model |
+
+### 2.4 Codex Executor
+| Attribute | Value |
+|:---|:---|
+| **Responsibility** | Final implementation, refactoring, complex reasoning |
 | **Trust Tier** | T1 (WorkspaceWrite) |
-| **SOP Input** | Design document, test specifications |
-| **SOP Output** | Source code, implementation notes |
-| **Watches For** | Implementation tasks, assigned work items |
-| **Invocation** | "Operating as: implementer" |
+| **Constraint** | Requires a "Compressed Brief" from Mapper/Docs roles |
+| **SOP Output** | Verified source code + execution evidence |
+| **Model** | Primary/Strong model (gpt-4o / o1 / Codex) |
 
-#### Tester
+### 2.5 Reviewer (Optional/Final)
 | Attribute | Value |
 |:---|:---|
-| **Responsibility** | Test writing, test execution, coverage analysis |
-| **Trust Tier** | T1 (WorkspaceWrite) |
-| **SOP Input** | Design document, source code |
-| **SOP Output** | Test files, coverage report, validation results |
-| **Watches For** | Test coverage gaps, new implementations |
-| **Invocation** | "Operating as: tester" |
-
----
-
-### Quality Roles
-
-#### Reviewer
-| Attribute | Value |
-|:---|:---|
-| **Responsibility** | Code review, quality gate validation, standards compliance |
+| **Responsibility** | Final diff audit, risk assessment, sanity check |
 | **Trust Tier** | T0 (ReadOnly) |
-| **SOP Input** | Source code, test results, coding standards |
-| **SOP Output** | Review findings, approval/rejection, improvement suggestions |
-| **Watches For** | Completed implementations, PRs |
-| **Invocation** | "Operating as: reviewer" |
-
-#### Security Reviewer
-| Attribute | Value |
-|:---|:---|
-| **Responsibility** | Security audit, vulnerability detection, CVE assessment |
-| **Trust Tier** | T0 (ReadOnly) |
-| **SOP Input** | Source code, dependency list, security standards |
-| **SOP Output** | Security findings, risk assessment, remediation guidance |
-| **Watches For** | Security-sensitive changes, dependency updates |
-| **Invocation** | "Operating as: security-reviewer" |
-
----
-
-### Operations Roles
-
-#### Documenter
-| Attribute | Value |
-|:---|:---|
-| **Responsibility** | Documentation writing, changelog updates, API docs |
-| **Trust Tier** | T1 (WorkspaceWrite) |
-| **SOP Input** | Source code, design documents, review findings |
-| **SOP Output** | Documentation files, updated README, changelogs |
-| **Watches For** | Documentation gaps, completed features |
-| **Invocation** | "Operating as: documenter" |
-
-#### Releaser
-| Attribute | Value |
-|:---|:---|
-| **Responsibility** | Release management, versioning, rollback preparation |
-| **Trust Tier** | T3 (FullAccess) |
-| **SOP Input** | All completed work, test results, review approvals |
-| **SOP Output** | Release candidate, version tag, release notes |
-| **Watches For** | Release candidates, version milestones |
-| **Invocation** | "Operating as: releaser" |
+| **SOP Output** | Approval/Rejection report with risk score |
+| **Model** | Primary/Strong model |
 
 ---
 

@@ -447,6 +447,17 @@ LANE_KEYWORDS: dict[str, list[tuple[str, int]]] = {
         ("fix", 4),
         ("refactor", 4),
     ],
+    "exploration": [
+        ("explain", 5),
+        ("what is", 4),
+        ("how does", 4),
+        ("where is", 5),
+        ("find", 4),
+        ("show me", 3),
+        ("explore", 5),
+        ("map", 5),
+        ("analyze repo", 5),
+    ],
 }
 
 LANE_TIE_PRIORITY: dict[str, int] = {
@@ -496,8 +507,13 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
     if not any(scores.values()):
         scores["coding"] = 1
 
-    primary_lane = max(scores, key=lambda lane: (scores[lane], LANE_TIE_PRIORITY[lane]))
+    primary_lane = max(scores, key=lambda lane: (scores[lane], LANE_TIE_PRIORITY.get(lane, 0)))
     primary_score = scores[primary_lane]
+    
+    # Rule: If task is not clear or score is low, default to Exploration (Mapper)
+    if primary_score < 3:
+        primary_lane = "exploration"
+
     secondary_lanes = [
         lane
         for lane, score in scores.items()
@@ -548,48 +564,36 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
 
 
 PIPELINE_BY_KIND = {
-    "brainstorm": "Brainstorm Flow",
-    "planning": "Planning Pipeline",
-    "feature": "Standard Feature Pipeline",
-    "bugfix": "Bugfix Pipeline",
-    "refactoring": "Refactoring Pipeline",
-    "documentation": "Documentation Pipeline",
-    "review": "Review Pipeline",
-    "governance": "Governance Pipeline",
-    "operations": "Operations Pipeline",
-    "release": "Release Pipeline",
-    "investigation": "Investigation Flow",
-    "security": "Security Review Flow",
+    "brainstorm": "Minimal Supervisor Flow",
+    "planning": "Minimal Supervisor Flow",
+    "feature": "Minimal Supervisor Flow",
+    "bugfix": "Minimal Supervisor Flow",
+    "refactoring": "Minimal Supervisor Flow",
+    "documentation": "Minimal Supervisor Flow",
+    "review": "Minimal Supervisor Flow",
+    "governance": "Minimal Supervisor Flow",
+    "operations": "Minimal Supervisor Flow",
+    "release": "Minimal Supervisor Flow",
+    "investigation": "Minimal Supervisor Flow",
+    "security": "Minimal Supervisor Flow",
+    "exploration": "Minimal Supervisor Flow",
 }
 
 STARTING_ROLE_BY_PIPELINE = {
-    "Brainstorm Flow": "planner",
-    "Planning Pipeline": "planner",
-    "Standard Feature Pipeline": "planner",
-    "Bugfix Pipeline": "reviewer",
-    "Refactoring Pipeline": "architect",
-    "Documentation Pipeline": "planner",
-    "Review Pipeline": "reviewer",
-    "Governance Pipeline": "planner",
-    "Operations Pipeline": "reviewer",
-    "Release Pipeline": "releaser",
-    "Investigation Flow": "reviewer",
-    "Security Review Flow": "security-reviewer",
+    "Minimal Supervisor Flow": "supervisor",
 }
 
 ROLE_CHAIN_BY_PIPELINE = {
-    "Brainstorm Flow": ["planner", "architect"],
-    "Planning Pipeline": ["planner", "architect", "planner"],
-    "Standard Feature Pipeline": ["planner", "architect", "tester", "implementer", "reviewer", "documenter", "releaser"],
-    "Bugfix Pipeline": ["reviewer", "tester", "implementer", "reviewer"],
-    "Refactoring Pipeline": ["architect", "tester", "implementer", "reviewer"],
-    "Documentation Pipeline": ["planner", "documenter", "reviewer", "implementer"],
-    "Review Pipeline": ["reviewer"],
-    "Governance Pipeline": ["planner", "architect", "implementer", "reviewer", "documenter"],
-    "Operations Pipeline": ["reviewer", "implementer", "documenter"],
-    "Release Pipeline": ["releaser", "reviewer", "documenter"],
-    "Investigation Flow": ["reviewer", "architect"],
-    "Security Review Flow": ["security-reviewer", "reviewer"],
+    "Minimal Supervisor Flow": ["supervisor", "mapper", "docs-researcher", "codex-executor", "reviewer"],
+}
+
+# Model Mapping for v1 Alignment
+MODEL_BY_ROLE = {
+    "supervisor": "gpt-4o-mini",
+    "mapper": "gpt-4o-mini",
+    "docs-researcher": "gpt-4o-mini",
+    "codex-executor": "gpt-4o",
+    "reviewer": "gpt-4o",
 }
 
 
@@ -723,6 +727,9 @@ def build_subagent_brief(
     if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and role == "explore":
         goal = f"Inspect {focus_label.lower()}-related code paths and return the tightest file shortlist for the main agent."
 
+    # Enforce v1 Context Budget: max 5 files
+    focus_files = focus_files[:5]
+
     return {
         "id": f"{role}-{cluster}",
         "name": f"{role}-{cluster}",
@@ -730,6 +737,7 @@ def build_subagent_brief(
         "mode": "subagent",
         "read_only": True,
         "budget_tokens": budget,
+        "model_recommendation": MODEL_BY_ROLE.get(role, "gpt-4o-mini"),
         "client_hints": SUBAGENT_CLIENT_HINTS[mode],
         "focus_cluster": cluster,
         "focus_keywords": cluster_keywords,
@@ -1038,6 +1046,7 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
             "pipeline": pipeline,
             "starting_role": starting_role,
             "role_chain": role_chain,
+            "model_recommendations": {role: MODEL_BY_ROLE.get(role, "unknown") for role in role_chain},
             "trust_tier": trust_tier,
             "approval_mode": approval_mode,
         },
@@ -1164,6 +1173,7 @@ def markdown_subagent_brief(manifest: dict[str, Any], subagent: dict[str, Any]) 
         f"- Task ID: `{manifest['task_id']}`",
         f"- Trace ID: `{manifest['trace_id']}`",
         f"- Role: `{subagent['role']}`",
+        f"- Model Recommendation: `{subagent.get('model_recommendation', 'unknown')}`",
         f"- Mode: `{subagent['mode']}`",
         f"- Read Only: `{str(subagent['read_only']).lower()}`",
         f"- Budget Tokens: `{subagent['budget_tokens']}`",
