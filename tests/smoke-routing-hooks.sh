@@ -36,7 +36,7 @@ if [ -z "$first_task" ] || [ -z "$second_task" ] || [ "$first_task" = "$second_t
     exit 1
 fi
 
-test -f "$TMPDIR/.agent/logs/session-starts.log"
+test -f "$TMPDIR/.agents/logs/session-starts.log"
 test ! -f "$TMPDIR/.agents/management/memories/session-starts.log"
 
 "$TMPDIR/.agents/hooks/pre-task.sh" \
@@ -52,7 +52,7 @@ import sys
 
 root = pathlib.Path(sys.argv[1])
 context = json.loads(
-    (root / ".agent/sessions/smoke-session/tasks/route-check/context.json").read_text(
+    (root / ".agents/sessions/smoke-session/tasks/route-check/context.json").read_text(
         encoding="utf-8"
     )
 )
@@ -81,7 +81,7 @@ fi
     --summary validated \
     >/dev/null
 
-test -f "$TMPDIR/.agent/sessions/smoke-session/tasks/route-check/result.json"
+test -f "$TMPDIR/.agents/sessions/smoke-session/tasks/route-check/result.json"
 rg -q 'outcome=routed' "$TMPDIR/.agents/management/evidence/TRACE_REPORTS.md"
 rg -q 'outcome=completed' "$TMPDIR/.agents/management/evidence/TRACE_REPORTS.md"
 

@@ -2,7 +2,7 @@
 
 Version: 1.0.0
 Status: Normative
-Scope: `.agent/tasks/**`, `.agents/management/artifacts/**`
+Scope: `.agents/tasks/**`, `.agents/management/artifacts/**`
 
 This document defines the mandatory **9-field schema** that every specialized sub-agent (Mapper, Docs Researcher) MUST return. This structure ensures that the Supervisor and Codex Executor receive optimized, actionable inputs.
 

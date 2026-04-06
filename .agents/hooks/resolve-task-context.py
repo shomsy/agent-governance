@@ -278,7 +278,9 @@ def repo_contains_suffix(project_root: Path, suffixes: tuple[str, ...]) -> bool:
     normalized_suffixes = tuple(suffix.lower() for suffix in suffixes)
 
     for current_root, dirnames, filenames in os.walk(project_root):
-        dirnames[:] = [dirname for dirname in dirnames if dirname not in IGNORED_SCAN_DIRS]
+        dirnames[:] = [
+            dirname for dirname in dirnames if dirname not in IGNORED_SCAN_DIRS
+        ]
         for filename in filenames:
             lowered = filename.lower()
             if lowered.endswith(normalized_suffixes):
@@ -287,7 +289,9 @@ def repo_contains_suffix(project_root: Path, suffixes: tuple[str, ...]) -> bool:
     return False
 
 
-def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[str, Any]:
+def gather_repo_signals(
+    project_root: Path, reusable_rules_root: Path
+) -> dict[str, Any]:
     signals: dict[str, Any] = {
         "languages": [],
         "frameworks": [],
@@ -332,7 +336,9 @@ def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[s
         if "express" in deps:
             signals["frameworks"].append("express")
         if signals["system_kind"] is None:
-            signals["system_kind"] = "web app" if "react" in deps or "next" in deps else "service"
+            signals["system_kind"] = (
+                "web app" if "react" in deps or "next" in deps else "service"
+            )
 
     composer_json = project_root / "composer.json"
     if composer_json.is_file():
@@ -347,11 +353,25 @@ def gather_repo_signals(project_root: Path, reusable_rules_root: Path) -> dict[s
             signals["system_kind"] = signals["system_kind"] or "web app"
 
     for language in signals["languages"]:
-        if (reusable_rules_root / "governance" / "architecture" / "profiles" / "languages" / f"{language}.md").is_file():
+        if (
+            reusable_rules_root
+            / "governance"
+            / "architecture"
+            / "profiles"
+            / "languages"
+            / f"{language}.md"
+        ).is_file():
             signals["architecture_profiles"].append(language)
 
     for framework in signals["frameworks"]:
-        if (reusable_rules_root / "governance" / "architecture" / "profiles" / "frameworks" / f"{framework}.md").is_file():
+        if (
+            reusable_rules_root
+            / "governance"
+            / "architecture"
+            / "profiles"
+            / "frameworks"
+            / f"{framework}.md"
+        ).is_file():
             signals["architecture_profiles"].append(framework)
 
     return {
@@ -481,7 +501,19 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
             if needle in lower:
                 scores[lane] += weight
 
-    execute_terms = ("implement", "create", "add", "update", "fix", "refactor", "build", "patch", "rename", "reorganize", "uradi")
+    execute_terms = (
+        "implement",
+        "create",
+        "add",
+        "update",
+        "fix",
+        "refactor",
+        "build",
+        "patch",
+        "rename",
+        "reorganize",
+        "uradi",
+    )
     bug_terms = ("bug", "broken", "regression", "issue", "defect")
     review_terms = ("review", "audit", "inspect", "analyze")
     planning_terms = ("plan", "implementation plan", "estimate", "break down")
@@ -507,9 +539,11 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
     if not any(scores.values()):
         scores["coding"] = 1
 
-    primary_lane = max(scores, key=lambda lane: (scores[lane], LANE_TIE_PRIORITY.get(lane, 0)))
+    primary_lane = max(
+        scores, key=lambda lane: (scores[lane], LANE_TIE_PRIORITY.get(lane, 0))
+    )
     primary_score = scores[primary_lane]
-    
+
     # Rule: If task is not clear or score is low, default to Exploration (Mapper)
     if primary_score < 3:
         primary_lane = "exploration"
@@ -521,11 +555,18 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
     ]
 
     if primary_lane == "coding":
-        if any(word in lower for word in ("bug", "fix", "broken", "regression", "issue", "defect")):
+        if any(
+            word in lower
+            for word in ("bug", "fix", "broken", "regression", "issue", "defect")
+        ):
             task_kind = "bugfix"
-        elif any(word in lower for word in ("refactor", "cleanup", "rename", "reorganize")):
+        elif any(
+            word in lower for word in ("refactor", "cleanup", "rename", "reorganize")
+        ):
             task_kind = "refactoring"
-        elif any(word in lower for word in ("investigate", "analyze", "why", "root cause")):
+        elif any(
+            word in lower for word in ("investigate", "analyze", "why", "root cause")
+        ):
             task_kind = "investigation"
         else:
             task_kind = "feature"
@@ -549,7 +590,19 @@ def classify_prompt(prompt: str) -> dict[str, Any]:
         task_kind = "investigation"
 
     intent_mode = "change"
-    if any(word in lower for word in ("review", "audit", "analyze", "explain", "da li", "what", "why", "how")):
+    if any(
+        word in lower
+        for word in (
+            "review",
+            "audit",
+            "analyze",
+            "explain",
+            "da li",
+            "what",
+            "why",
+            "how",
+        )
+    ):
         intent_mode = "analysis"
     if has_execute:
         intent_mode = "execute"
@@ -584,7 +637,13 @@ STARTING_ROLE_BY_PIPELINE = {
 }
 
 ROLE_CHAIN_BY_PIPELINE = {
-    "Minimal Supervisor Flow": ["supervisor", "mapper", "docs-researcher", "codex-executor", "reviewer"],
+    "Minimal Supervisor Flow": [
+        "supervisor",
+        "mapper",
+        "docs-researcher",
+        "codex-executor",
+        "reviewer",
+    ],
 }
 
 # Model Mapping for v1 Alignment
@@ -597,7 +656,9 @@ MODEL_BY_ROLE = {
 }
 
 
-def select_pipeline_and_roles(classification: dict[str, Any]) -> tuple[str, str, list[str]]:
+def select_pipeline_and_roles(
+    classification: dict[str, Any],
+) -> tuple[str, str, list[str]]:
     task_kind = classification["task_kind"]
     pipeline = PIPELINE_BY_KIND.get(task_kind, "Standard Feature Pipeline")
     starting_role = STARTING_ROLE_BY_PIPELINE[pipeline]
@@ -612,8 +673,25 @@ def select_trust(primary_lane: str, task_kind: str, prompt: str) -> tuple[str, s
     elif primary_lane == "operations":
         tier = "T2"
     elif primary_lane == "security":
-        tier = "T2" if any(word in lower for word in ("fix", "patch", "rotate", "remediate", "update")) else "T0"
-    elif any(word in lower for word in ("dependency", "npm install", "composer require", "package update", "ci", "infrastructure")):
+        tier = (
+            "T2"
+            if any(
+                word in lower
+                for word in ("fix", "patch", "rotate", "remediate", "update")
+            )
+            else "T0"
+        )
+    elif any(
+        word in lower
+        for word in (
+            "dependency",
+            "npm install",
+            "composer require",
+            "package update",
+            "ci",
+            "infrastructure",
+        )
+    ):
         tier = "T2"
     elif primary_lane in {"brainstorm", "planning", "review"}:
         tier = "T0"
@@ -665,7 +743,9 @@ def should_delegate_to_subagents(
     multi_topic = len(clusters) >= 2
 
     if explicit_delegate or multi_topic or wide_context or (broad_lane and long_prompt):
-        if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and (multi_topic or explicit_delegate):
+        if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and (
+            multi_topic or explicit_delegate
+        ):
             return True, "parallel-build", "parallel implementation split"
         return True, "research", "broad context discovery"
 
@@ -724,7 +804,10 @@ def build_subagent_brief(
     else:
         goal = f"Map the relevant code paths for {focus_label.lower()}."
 
-    if classification["task_kind"] in {"feature", "bugfix", "refactoring"} and role == "explore":
+    if (
+        classification["task_kind"] in {"feature", "bugfix", "refactoring"}
+        and role == "explore"
+    ):
         goal = f"Inspect {focus_label.lower()}-related code paths and return the tightest file shortlist for the main agent."
 
     # Enforce v1 Context Budget: max 5 files
@@ -757,10 +840,16 @@ def build_delegation_plan(
     must_read: list[str],
     should_read: list[str],
 ) -> dict[str, Any]:
-    recommended, mode, reason = should_delegate_to_subagents(prompt, classification, must_read, should_read)
+    recommended, mode, reason = should_delegate_to_subagents(
+        prompt, classification, must_read, should_read
+    )
     clusters = prompt_clusters(prompt)
     if not clusters:
-        clusters = ["core"] if classification["task_kind"] in {"feature", "bugfix", "refactoring"} else ["docs"]
+        clusters = (
+            ["core"]
+            if classification["task_kind"] in {"feature", "bugfix", "refactoring"}
+            else ["docs"]
+        )
 
     subagents: list[dict[str, Any]] = []
     if recommended:
@@ -776,7 +865,13 @@ def build_delegation_plan(
                 )
             )
 
-        if classification["task_kind"] in {"feature", "bugfix", "refactoring", "review", "security"}:
+        if classification["task_kind"] in {
+            "feature",
+            "bugfix",
+            "refactoring",
+            "review",
+            "security",
+        }:
             review_focus = clusters[0] if clusters else "core"
             subagents.append(
                 {
@@ -788,9 +883,12 @@ def build_delegation_plan(
                     "budget_tokens": 2500,
                     "client_hints": SUBAGENT_CLIENT_HINTS[mode],
                     "focus_cluster": review_focus,
-                    "focus_keywords": SUBAGENT_CLUSTER_KEYWORDS.get(review_focus, [review_focus]),
+                    "focus_keywords": SUBAGENT_CLUSTER_KEYWORDS.get(
+                        review_focus, [review_focus]
+                    ),
                     "focus_files": candidate_subagent_files(
-                        unique(must_read + should_read), SUBAGENT_CLUSTER_KEYWORDS.get(review_focus, [review_focus])
+                        unique(must_read + should_read),
+                        SUBAGENT_CLUSTER_KEYWORDS.get(review_focus, [review_focus]),
                     ),
                     "goal": "Identify correctness, security, and regression risks before the main agent edits files.",
                     "prompt": prompt,
@@ -902,25 +1000,83 @@ def resolve_rule_files(
         for relative in lane_paths["coding"]:
             add_existing(must_read, reusable_rules_root / relative)
 
-    repository_profiles = unique(stack.repository_profiles + signals["repository_profiles"])
+    repository_profiles = unique(
+        stack.repository_profiles + signals["repository_profiles"]
+    )
     languages = unique(stack.languages + signals["languages"])
     frameworks = unique(stack.frameworks + signals["frameworks"])
-    architecture_profiles = unique(stack.architecture_profiles + signals["architecture_profiles"])
+    architecture_profiles = unique(
+        stack.architecture_profiles + signals["architecture_profiles"]
+    )
 
     for profile in repository_profiles:
-        add_existing(must_read, reusable_rules_root / "governance" / "profiles" / "repository-kinds" / f"{profile}.md")
+        add_existing(
+            must_read,
+            reusable_rules_root
+            / "governance"
+            / "profiles"
+            / "repository-kinds"
+            / f"{profile}.md",
+        )
     for language in languages:
-        add_existing(must_read, reusable_rules_root / "governance" / "profiles" / "languages" / f"{language}.md")
+        add_existing(
+            must_read,
+            reusable_rules_root
+            / "governance"
+            / "profiles"
+            / "languages"
+            / f"{language}.md",
+        )
     for framework in frameworks:
-        add_existing(must_read, reusable_rules_root / "governance" / "profiles" / "frameworks" / f"{framework}.md")
+        add_existing(
+            must_read,
+            reusable_rules_root
+            / "governance"
+            / "profiles"
+            / "frameworks"
+            / f"{framework}.md",
+        )
     for profile in architecture_profiles:
-        add_existing(should_read, reusable_rules_root / "governance" / "architecture" / "profiles" / "languages" / f"{profile}.md")
-        add_existing(should_read, reusable_rules_root / "governance" / "architecture" / "profiles" / "frameworks" / f"{profile}.md")
+        add_existing(
+            should_read,
+            reusable_rules_root
+            / "governance"
+            / "architecture"
+            / "profiles"
+            / "languages"
+            / f"{profile}.md",
+        )
+        add_existing(
+            should_read,
+            reusable_rules_root
+            / "governance"
+            / "architecture"
+            / "profiles"
+            / "frameworks"
+            / f"{profile}.md",
+        )
 
-    if lane in {"security", "release", "operations"} or "security" in secondary_lanes or stack.security_lanes:
-        add_existing(must_read, reusable_rules_root / "governance" / "security" / "README.md")
-    if lane in {"operations", "release"} or "operations" in secondary_lanes or stack.operations_lanes:
-        add_existing(must_read, reusable_rules_root / "governance" / "delivery" / "operations" / "README.md")
+    if (
+        lane in {"security", "release", "operations"}
+        or "security" in secondary_lanes
+        or stack.security_lanes
+    ):
+        add_existing(
+            must_read, reusable_rules_root / "governance" / "security" / "README.md"
+        )
+    if (
+        lane in {"operations", "release"}
+        or "operations" in secondary_lanes
+        or stack.operations_lanes
+    ):
+        add_existing(
+            must_read,
+            reusable_rules_root
+            / "governance"
+            / "delivery"
+            / "operations"
+            / "README.md",
+        )
 
     local_support = [
         project_root / "README.md",
@@ -933,11 +1089,15 @@ def resolve_rule_files(
     for path in local_support:
         add_existing(should_read, path)
 
-    return unique([str(path) for path in must_read]), unique([str(path) for path in should_read if path not in must_read])
+    return unique([str(path) for path in must_read]), unique(
+        [str(path) for path in should_read if path not in must_read]
+    )
 
 
-def resolve_context_sources(project_root: Path, session_id: str) -> dict[str, list[str]]:
-    session_dir = project_root / ".agent" / "sessions" / session_id
+def resolve_context_sources(
+    project_root: Path, session_id: str
+) -> dict[str, list[str]]:
+    session_dir = project_root / ".agents" / "sessions" / session_id
     sources = {
         "memory": [],
         "session": [],
@@ -946,7 +1106,7 @@ def resolve_context_sources(project_root: Path, session_id: str) -> dict[str, li
     }
 
     for path in [
-        project_root / ".agent" / "memory" / "MEMORY.md",
+        project_root / ".agents" / "memory" / "MEMORY.md",
         project_root / ".agents" / "management" / "memories" / "memory_summary.md",
     ]:
         if path.is_file():
@@ -969,10 +1129,10 @@ def resolve_context_sources(project_root: Path, session_id: str) -> dict[str, li
             sources["project"].append(str(path.resolve()))
 
     for directory in [
-        project_root / ".agent" / "context" / "product",
-        project_root / ".agent" / "context" / "strategy",
-        project_root / ".agent" / "context" / "stakeholders",
-        project_root / ".agent" / "context" / "users",
+        project_root / ".agents" / "context" / "product",
+        project_root / ".agents" / "context" / "strategy",
+        project_root / ".agents" / "context" / "stakeholders",
+        project_root / ".agents" / "context" / "users",
     ]:
         if directory.is_dir():
             for candidate in sorted(directory.glob("*.md"))[:5]:
@@ -981,7 +1141,9 @@ def resolve_context_sources(project_root: Path, session_id: str) -> dict[str, li
     return sources
 
 
-def resolve_evidence_targets(project_root: Path, primary_lane: str, task_kind: str, trust_tier: str) -> list[str]:
+def resolve_evidence_targets(
+    project_root: Path, primary_lane: str, task_kind: str, trust_tier: str
+) -> list[str]:
     candidates: list[Path] = []
 
     if task_kind == "bugfix":
@@ -992,27 +1154,55 @@ def resolve_evidence_targets(project_root: Path, primary_lane: str, task_kind: s
     if primary_lane == "review":
         candidates.append(project_root / ".agents" / "review" / "REVIEWS.md")
     if primary_lane in {"documentation", "governance", "release"}:
-        candidates.append(project_root / ".agents" / "management" / "evidence" / "CHANGELOG.md")
+        candidates.append(
+            project_root / ".agents" / "management" / "evidence" / "CHANGELOG.md"
+        )
     if primary_lane in {"security", "operations", "release"}:
-        candidates.append(project_root / ".agents" / "management" / "evidence" / "RISK_REGISTER.md")
+        candidates.append(
+            project_root / ".agents" / "management" / "evidence" / "RISK_REGISTER.md"
+        )
     if primary_lane == "release":
-        candidates.append(project_root / ".agents" / "management" / "evidence" / "RELEASE_CHECKLIST.md")
-    if trust_tier in {"T2", "T3"} or primary_lane in {"governance", "security", "operations", "release"}:
-        candidates.append(project_root / ".agents" / "management" / "evidence" / "TRACE_REPORTS.md")
+        candidates.append(
+            project_root
+            / ".agents"
+            / "management"
+            / "evidence"
+            / "RELEASE_CHECKLIST.md"
+        )
+    if trust_tier in {"T2", "T3"} or primary_lane in {
+        "governance",
+        "security",
+        "operations",
+        "release",
+    }:
+        candidates.append(
+            project_root / ".agents" / "management" / "evidence" / "TRACE_REPORTS.md"
+        )
 
     return unique([str(path.resolve()) for path in candidates if path.is_file()])
 
 
-def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: str) -> dict[str, Any]:
+def build_manifest(
+    project_root: Path, prompt: str, session_id: str, task_id: str
+) -> dict[str, Any]:
     reusable_rules_root = rules_root(project_root)
     stack = parse_agents_stack(project_root / "AGENTS.md")
     signals = gather_repo_signals(project_root, reusable_rules_root)
     classification = classify_prompt(prompt)
     pipeline, starting_role, role_chain = select_pipeline_and_roles(classification)
-    trust_tier, approval_mode = select_trust(classification["primary_lane"], classification["task_kind"], prompt)
-    must_read, should_read = resolve_rule_files(project_root, reusable_rules_root, stack, signals, classification)
+    trust_tier, approval_mode = select_trust(
+        classification["primary_lane"], classification["task_kind"], prompt
+    )
+    must_read, should_read = resolve_rule_files(
+        project_root, reusable_rules_root, stack, signals, classification
+    )
     context_sources = resolve_context_sources(project_root, session_id)
-    evidence_targets = resolve_evidence_targets(project_root, classification["primary_lane"], classification["task_kind"], trust_tier)
+    evidence_targets = resolve_evidence_targets(
+        project_root,
+        classification["primary_lane"],
+        classification["task_kind"],
+        trust_tier,
+    )
     delegation = build_delegation_plan(prompt, classification, must_read, should_read)
 
     project_identifier = sha12(str(project_root.resolve()))
@@ -1020,7 +1210,7 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
     prompt_preview = re.sub(r"\s+", " ", prompt).strip()
     prompt_preview = prompt_preview[:220] + ("..." if len(prompt_preview) > 220 else "")
 
-    session_dir = project_root / ".agent" / "sessions" / session_id
+    session_dir = project_root / ".agents" / "sessions" / session_id
     task_dir = session_dir / "tasks" / task_id
 
     return {
@@ -1046,7 +1236,9 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
             "pipeline": pipeline,
             "starting_role": starting_role,
             "role_chain": role_chain,
-            "model_recommendations": {role: MODEL_BY_ROLE.get(role, "unknown") for role in role_chain},
+            "model_recommendations": {
+                role: MODEL_BY_ROLE.get(role, "unknown") for role in role_chain
+            },
             "trust_tier": trust_tier,
             "approval_mode": approval_mode,
         },
@@ -1082,7 +1274,15 @@ def build_manifest(project_root: Path, prompt: str, session_id: str, task_id: st
             "subagents_dir": str((task_dir / "subagents").resolve()),
             "events_log": str((task_dir / "events.log").resolve()),
             "result_json": str((task_dir / "result.json").resolve()),
-            "trace_reports": str((project_root / ".agents" / "management" / "evidence" / "TRACE_REPORTS.md").resolve()),
+            "trace_reports": str(
+                (
+                    project_root
+                    / ".agents"
+                    / "management"
+                    / "evidence"
+                    / "TRACE_REPORTS.md"
+                ).resolve()
+            ),
         },
         "events": [
             "AGENTSLoaded",
@@ -1137,14 +1337,24 @@ def markdown_manifest(manifest: dict[str, Any]) -> str:
         "## Must Read",
         "",
     ]
-    lines.extend([f"- `{path}`" for path in manifest["governance_pack"]["must_read"]] or ["- none"])
+    lines.extend(
+        [f"- `{path}`" for path in manifest["governance_pack"]["must_read"]]
+        or ["- none"]
+    )
     lines.extend(["", "## Should Read", ""])
-    lines.extend([f"- `{path}`" for path in manifest["governance_pack"]["should_read"]] or ["- none"])
+    lines.extend(
+        [f"- `{path}`" for path in manifest["governance_pack"]["should_read"]]
+        or ["- none"]
+    )
     lines.extend(["", "## Delegation", ""])
-    lines.append(f"- Recommended: `{str(delegation.get('recommended', False)).lower()}`")
+    lines.append(
+        f"- Recommended: `{str(delegation.get('recommended', False)).lower()}`"
+    )
     lines.append(f"- Mode: `{delegation.get('mode', 'none')}`")
     lines.append(f"- Reason: {delegation.get('reason', 'none')}")
-    lines.append(f"- Preferred Clients: `{', '.join(delegation.get('preferred_clients', [])) or 'none'}`")
+    lines.append(
+        f"- Preferred Clients: `{', '.join(delegation.get('preferred_clients', [])) or 'none'}`"
+    )
     lines.append(f"- Total Budget: `{delegation.get('total_budget_tokens', 0)}`")
     lines.append("- Subagents:")
     if delegation.get("subagents"):
@@ -1184,7 +1394,9 @@ def markdown_subagent_brief(manifest: dict[str, Any], subagent: dict[str, Any]) 
         "## Focus Files",
         "",
     ]
-    lines.extend([f"- `{path}`" for path in subagent.get("focus_files", [])] or ["- none"])
+    lines.extend(
+        [f"- `{path}`" for path in subagent.get("focus_files", [])] or ["- none"]
+    )
     lines.extend(
         [
             "",
@@ -1206,7 +1418,9 @@ def markdown_subagent_brief(manifest: dict[str, Any], subagent: dict[str, Any]) 
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Resolve prompt-to-governance task context.")
+    parser = argparse.ArgumentParser(
+        description="Resolve prompt-to-governance task context."
+    )
     parser.add_argument("--project-root", default=os.getcwd())
     parser.add_argument("--prompt")
     parser.add_argument("--prompt-file")
@@ -1222,7 +1436,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if not args.prompt and not args.prompt_file:
-        print("resolve-task-context.py requires --prompt or --prompt-file", file=sys.stderr)
+        print(
+            "resolve-task-context.py requires --prompt or --prompt-file",
+            file=sys.stderr,
+        )
         return 2
 
     prompt = args.prompt or read_text(Path(args.prompt_file))
@@ -1232,7 +1449,9 @@ def main() -> int:
     if args.write_json:
         output_path = Path(args.write_json)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+        output_path.write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8"
+        )
 
     if args.write_markdown:
         output_path = Path(args.write_markdown)
@@ -1248,10 +1467,14 @@ def main() -> int:
                 {
                     "task_id": manifest["task_id"],
                     "trace_id": manifest["trace_id"],
-                    "recommended": manifest.get("delegation", {}).get("recommended", False),
+                    "recommended": manifest.get("delegation", {}).get(
+                        "recommended", False
+                    ),
                     "mode": manifest.get("delegation", {}).get("mode", "none"),
                     "reason": manifest.get("delegation", {}).get("reason", "none"),
-                    "preferred_clients": manifest.get("delegation", {}).get("preferred_clients", []),
+                    "preferred_clients": manifest.get("delegation", {}).get(
+                        "preferred_clients", []
+                    ),
                     "subagents": subagents,
                 },
                 indent=2,
@@ -1266,7 +1489,9 @@ def main() -> int:
                 subagent.get("role", "explore"),
                 subagent.get("focus_cluster", "general"),
             )
-            brief_path.write_text(markdown_subagent_brief(manifest, subagent), encoding="utf-8")
+            brief_path.write_text(
+                markdown_subagent_brief(manifest, subagent), encoding="utf-8"
+            )
 
     if args.summary:
         print(

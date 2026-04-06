@@ -51,8 +51,8 @@ At minimum, closure must:
 2. record how it was validated
 3. update the active queue or bug record with timestamps
 4. perform any local release, sync, or archival step required by the repo
-5. **Phase 5 & 8: Memory Extraction** - Extract learnings and update the `.agent/` memory or session logs as per the **Universal Memory Standard**.
-6. **ProdOps: Meeting Snapshot to Action** - If the iteration involves a meeting cleanup, extract triggers, decisions, and actions into `.agents/management/TODO.md` and `.agent/context/`.
+5. **Phase 5 & 8: Memory Extraction** - Extract learnings and update the `.agents/memory/` memory or session logs as per the **Universal Memory Standard**.
+6. **ProdOps: Meeting Snapshot to Action** - If the iteration involves a meeting cleanup, extract triggers, decisions, and actions into `.agents/management/TODO.md` and `.agents/context/`.
 
 ## 4. Evidence Requirements
 
@@ -63,4 +63,4 @@ A completed iteration must include:
 - backlog status update in `.agents/management/TODO.md` or `.agents/management/BUGS.md`
 - timestamped evidence or management update using the local timeline policy
 - any local evidence artifact required by project governance
-- **Memory Delta**: Updated `.agent/memory/` or session-specific context extraction.
+- **Memory Delta**: Updated `.agents/memory/` or session-specific context extraction.

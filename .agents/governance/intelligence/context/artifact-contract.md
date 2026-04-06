@@ -2,7 +2,7 @@
 
 Version: 1.0.0
 Status: Normative
-Scope: `.agents/**`, `.agent/**`
+Scope: `.agents/**`
 
 This document defines the **standard artifact format** that EVERY sub-agent
 MUST return. Without this contract, the supervisor cannot validate, route,

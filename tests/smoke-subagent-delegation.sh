@@ -32,7 +32,7 @@ import pathlib
 import sys
 
 root = pathlib.Path(sys.argv[1])
-task_dir = root / ".agent/sessions/delegate-session/tasks/broad-task"
+task_dir = root / ".agents/sessions/delegate-session/tasks/broad-task"
 context = json.loads((task_dir / "context.json").read_text(encoding="utf-8"))
 manifest = json.loads((task_dir / "subagents/manifest.json").read_text(encoding="utf-8"))
 
@@ -43,7 +43,7 @@ assert len(manifest["subagents"]) >= 2
 assert any(client in context["delegation"]["preferred_clients"] for client in ("cline", "opencode"))
 PY
 
-test -f "$TMPDIR/.agent/sessions/delegate-session/tasks/broad-task/subagents/manifest.json"
-find "$TMPDIR/.agent/sessions/delegate-session/tasks/broad-task/subagents" -name '*.md' | grep -q .
+test -f "$TMPDIR/.agents/sessions/delegate-session/tasks/broad-task/subagents/manifest.json"
+find "$TMPDIR/.agents/sessions/delegate-session/tasks/broad-task/subagents" -name '*.md' | grep -q .
 
 echo "smoke-subagent-delegation: ok"

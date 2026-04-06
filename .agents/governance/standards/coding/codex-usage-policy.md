@@ -2,7 +2,7 @@
 
 Version: 1.0.0
 Status: Normative
-Scope: `.agent/**`, `.agents/**`
+Scope: `.agents/**`
 
 This document defines the strategic boundaries for using **Codex** (or comparable high-reasoning models) within the Agent OS. The goal is to maximize the value per token by reserving Codex for complex implementation while offloading research to cheaper "Mapper" agents.
 

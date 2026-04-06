@@ -2,7 +2,7 @@
 
 Version: 1.0.0
 Status: Normative
-Scope: `.agent/sessions/**`, `.agents/management/metrics/**`
+Scope: `.agents/sessions/**`, `.agents/management/metrics/**`
 
 To ensure the Agent OS is delivering on its promise of token efficiency and high context discipline, we track the following core metrics.
 

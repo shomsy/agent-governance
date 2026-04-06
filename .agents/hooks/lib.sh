@@ -30,7 +30,7 @@ repo_agents_dir() {
 }
 
 repo_agent_runtime_dir() {
-    printf '%s/.agent\n' "$1"
+    printf '%s/.agents\n' "$1"
 }
 
 runtime_logs_dir() {

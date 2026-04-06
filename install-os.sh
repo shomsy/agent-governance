@@ -103,19 +103,19 @@ copy_visible_support_tree "hooks"
 copy_visible_support_tree "management/learning"
 copy_visible_support_tree "management/memories"
 
-# 4. Initialize the runtime .agent directory for memory, sessions, and strategic context
-mkdir -p "$TARGET_DIR/.agent/memory"
-mkdir -p "$TARGET_DIR/.agent/sessions"
-mkdir -p "$TARGET_DIR/.agent/context/product"
-mkdir -p "$TARGET_DIR/.agent/context/users"
-mkdir -p "$TARGET_DIR/.agent/context/strategy"
-mkdir -p "$TARGET_DIR/.agent/context/stakeholders"
-touch "$TARGET_DIR/.agent/memory/.gitkeep"
-touch "$TARGET_DIR/.agent/sessions/.gitkeep"
-touch "$TARGET_DIR/.agent/context/product/.gitkeep"
-touch "$TARGET_DIR/.agent/context/users/.gitkeep"
-touch "$TARGET_DIR/.agent/context/strategy/.gitkeep"
-touch "$TARGET_DIR/.agent/context/stakeholders/.gitkeep"
+# 4. Initialize the runtime .agents directory for memory, sessions, and strategic context
+mkdir -p "$TARGET_DIR/.agents/memory"
+mkdir -p "$TARGET_DIR/.agents/sessions"
+mkdir -p "$TARGET_DIR/.agents/context/product"
+mkdir -p "$TARGET_DIR/.agents/context/users"
+mkdir -p "$TARGET_DIR/.agents/context/strategy"
+mkdir -p "$TARGET_DIR/.agents/context/stakeholders"
+touch "$TARGET_DIR/.agents/memory/.gitkeep"
+touch "$TARGET_DIR/.agents/sessions/.gitkeep"
+touch "$TARGET_DIR/.agents/context/product/.gitkeep"
+touch "$TARGET_DIR/.agents/context/users/.gitkeep"
+touch "$TARGET_DIR/.agents/context/strategy/.gitkeep"
+touch "$TARGET_DIR/.agents/context/stakeholders/.gitkeep"
 
 # 5. Initialize the local .agents/skills directory
 mkdir -p "$TARGET_DIR/.agents/skills"
@@ -362,20 +362,20 @@ EOF
 
 - Use subagents for codebase mapping, inventory, and trace gathering.
 - Keep subagent prompts focused on a single question.
-- Prefer pruned context bundles generated from `.agent/sessions/<SESSION>/`.
+- Prefer pruned context bundles generated from `.agents/sessions/<SESSION>/`.
 - Use `./tests/smoke-routing-hooks.sh` and the task routing manifest as the
   canonical references for execution flow.
 EOF
                 write_file ".clinerules/20-context-budgeting.md" <<'EOF'
 # Context Budgeting
 
-- Avoid loading runtime artifacts from `.agent/` unless the task needs them.
+- Avoid loading runtime artifacts from `.agents/` unless the task needs them.
 - Ignore generated or noisy directories when possible.
 - Use `subagent-dispatch.sh` for token-heavy discovery tasks that benefit from
   a pruned prompt.
 EOF
                 write_file ".clineignore" <<'EOF'
-.agent/
+.agents/
 node_modules/
 dist/
 build/
