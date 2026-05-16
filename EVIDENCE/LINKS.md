@@ -17,6 +17,7 @@
 - [Performance](../.agents/management/evidence/performance/)
 - [Releases](../.agents/management/evidence/releases/)
 - [Truth](../.agents/management/evidence/truth/)
+- [Schema Examples](../.agents/config/schemas/examples/)
 - [Raw](../.agents/management/evidence/raw/)
 
 ## Governance
@@ -27,6 +28,7 @@
 - [Quality Gates](../.agents/governance/core/quality/quality-gates.md)
 - [Profile Resolution](../.agents/governance/core/resolution/profile-resolution-algorithm.md)
 - [Agent Bootstrap](../.agents/governance/core/bootstrap/agent-bootstrap.md)
+- [Adoption Model](../.agents/governance/architecture/adoption-model.md)
 - [Recursive Review](../.agents/governance/standards/review/recursive-review-contract.md)
 
 ## Management
