@@ -4,6 +4,7 @@ set -euo pipefail
 node --input-type=module - "$@" <<'NODE'
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const SCRIPT_NAME = 'merge-files.sh';
 const DEFAULT_PIECES = 1;
@@ -501,13 +502,26 @@ function splitTextIntoPieces(text, totalPieces) {
 }
 
 function writeOutputFiles(outputFile, text, pieces) {
+  let gitSha = 'unknown';
+  try {
+    gitSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+  } catch (e) {}
+
+  const header = `============================================================
+AGENT HARNESS TRUTH DUMP
+Commit: ${gitSha}
+Timestamp: ${new Date().toISOString()}
+============================================================\n\n`;
+
+  const final_text = header + text;
+
   if (pieces === 1) {
-    fs.writeFileSync(outputFile, text, 'utf8');
+    fs.writeFileSync(outputFile, final_text, 'utf8');
 
     return [outputFile];
   }
 
-  return splitTextIntoPieces(text, pieces).map((pieceText, index) => {
+  return splitTextIntoPieces(final_text, pieces).map((pieceText, index) => {
     const piecePath = outputPiecePath(outputFile, index + 1, pieces);
 
     fs.writeFileSync(piecePath, pieceText, 'utf8');

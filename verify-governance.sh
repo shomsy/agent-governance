@@ -37,7 +37,6 @@ echo "📊 Claimed SHA: $CLAIMED_SHA"
 
 if [ "$HEAD_SHA" != "not-a-git-repo" ] && [ "$CLAIMED_SHA" != "$HEAD_SHA" ]; then
     echo "⚠️  WARNING: Truth Drift detected! (HEAD: $HEAD_SHA vs Claimed: $CLAIMED_SHA)"
-    # In strict CI, we might exit 1 here.
 fi
 
 # 3. Anti-Bloat Check
@@ -71,7 +70,30 @@ else
     echo "ℹ️  Skipping Schema Verification (python3 missing)."
 fi
 
-# 5. OS Validation (via Installer)
+# 5. Strict Integrity Gates (V4 Enterprise)
+echo "🔍 Running Strict Integrity Gates..."
+
+# No Version 1.1.0 in root or scaffolds
+if grep "Version: 1.1.0" "$TARGET_DIR/AGENTS.md" >/dev/null 2>&1; then
+    echo "❌ ERROR: Root AGENTS.md contains stale Version 1.1.0"
+    exit 1
+fi
+
+# No nested .rules/.rules
+if [ -d "$TARGET_DIR/.agents/.rules/.rules" ]; then
+    echo "❌ ERROR: Nested .rules/.rules directory detected."
+    exit 1
+fi
+
+# No PARENT-AGENTS.md anywhere
+if find "$TARGET_DIR" -name "PARENT-AGENTS.md" | grep -v "node_modules" >/dev/null 2>&1; then
+    echo "❌ ERROR: Legacy PARENT-AGENTS.md files detected."
+    exit 1
+fi
+
+echo "✅ Strict Integrity Gates Passed."
+
+# 6. OS Validation (via Installer)
 if [ -f "./install-os.sh" ]; then
     ./install-os.sh "$TARGET_DIR" --validate
 fi
