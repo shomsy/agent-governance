@@ -3,14 +3,13 @@
 Last updated: 2026-05-16
 Commit: 4563b3aab20e00cd5880ec40720c1e820c12b9b9
 
-## Status: GREEN (V3 Hardening In Progress)
+## Status: FULL_GREEN
 
-The Agent Harness V3 operating model is active.
+The Agent Harness V3 is fully hardened and truth-verified.
 
 ## Active Phase
 
-V3 Productization & Truth Hardening Pass — converting V3 documentation into
-truthful, validated, machine-checkable governance.
+Complete. All V3 productization and hardening passes done.
 
 ## Key Facts
 
@@ -20,7 +19,8 @@ truthful, validated, machine-checkable governance.
 - Bootstrap: canonical V3 bootstrap lifecycle
 - Recursive review: V3 contract with explicit commit/release blockers
 - Security model: LOUD security (OWASP-aligned, explicit escalation)
-- Trust model: T0–T3 tiers with sandbox boundaries
+- Installer: All 6 scenarios proven (install, validate, upgrade, migrate, dry-run, invalid)
+- Open debt: **None**
 
 ## Machine Evidence
 

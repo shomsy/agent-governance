@@ -269,7 +269,7 @@ if [ "$IS_MIGRATION" = true ]; then
 fi
 
 if [ "$IS_UPGRADE" = true ]; then
-    echo "🔼 UPGRADE MODE: Updating `.rules` engine only."
+    echo "🔼 UPGRADE MODE: Updating .rules engine only."
     rm -rf "$TARGET_DIR/.agents/.rules"
     mkdir -p "$TARGET_DIR/.agents/.rules"
     copy_rules_tree "$TARGET_DIR/.agents/.rules"

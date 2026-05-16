@@ -1,25 +1,22 @@
 # Risks Register
 
 Last updated: 2026-05-16
+Commit: 6bcadbf4f1db36a47acd5b4650b1766395b47353
 
 ## Active Risks
 
-### RISK-INSTALLER-01 — Partial Installer Smoke Coverage
+*None.*
+
+## Resolved Risks
+
+### RISK-INSTALLER-01 — Partial Installer Smoke Coverage (RESOLVED)
 
 | Field | Value |
 |---|---|
 | **ID** | RISK-INSTALLER-01 |
 | **Severity** | MEDIUM |
 | **Owner** | maintainer |
-| **Description** | `--upgrade` and `--migrate` flags are implemented in `install-os.sh` but not verified against a clean external target in this pass |
-| **Impact** | Docs may describe behavior not yet smoke-proven |
-| **Likelihood** | LOW — flags are implemented, pattern is consistent with --dry-run |
-| **Mitigation** | `--dry-run` works. Profile selection works. Core install works. |
-| **Expiry** | 2026-06-16 |
-| **Evidence** | `.agents/management/evidence/phases/v3-hardening-05-installer-proof.md` |
-| **Blocking Decision** | Accepted as YELLOW debt. Does not block commit. Blocks final productization sign-off. |
-| **Status** | ACTIVE |
-
-## Resolved Risks
-
-*(None this pass)*
+| **Resolved** | 2026-05-16 |
+| **Resolution** | All 6 installer scenarios smoke-tested: clean install, validate, upgrade, migrate, invalid profile, dry-run — all PASS |
+| **Evidence** | `.agents/management/evidence/phases/v3-hardening-05-installer-proof.md` + `evidence/raw/v3-hardening/installer-full-smoke.txt` |
+| **Status** | RESOLVED |
