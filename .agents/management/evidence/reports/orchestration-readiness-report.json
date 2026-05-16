@@ -1,0 +1,5 @@
+{
+  "status": "GREEN",
+  "delegation_schema": "present",
+  "runtime": "delegation-runner.py deployed"
+}

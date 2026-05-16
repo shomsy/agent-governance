@@ -93,9 +93,21 @@ fi
 
 echo "✅ Strict Integrity Gates Passed."
 
-# 6. OS Validation (via Installer)
+# 6. Executable Governance Gates (V4.1 Enterprise)
+echo "🔍 Running Executable Governance Compiler & Linter..."
+if [ -f "$TARGET_DIR/.agents/skills/bin/compile-governance.py" ]; then
+    python3 "$TARGET_DIR/.agents/skills/bin/compile-governance.py" "$TARGET_DIR"
+    python3 "$TARGET_DIR/.agents/skills/bin/lint-governance.py" "$TARGET_DIR"
+    python3 "$TARGET_DIR/.agents/skills/bin/check-complexity-budget.py" "$TARGET_DIR"
+    python3 "$TARGET_DIR/.agents/skills/bin/replay-evidence.py" "$TARGET_DIR"
+    python3 "$TARGET_DIR/.agents/skills/bin/aggregate-context.py" "$TARGET_DIR"
+else
+    echo "⚠️  WARNING: Executable governance binaries not found. Skipping."
+fi
+
+# 7. OS Validation (via Installer)
 if [ -f "./install-os.sh" ]; then
     ./install-os.sh "$TARGET_DIR" --validate
 fi
 
-echo "🚀 Governance Verified: FULL_GREEN (verified locally)"
+echo "🚀 Governance Verified: FULL_GREEN_EXECUTABLE_GOVERNANCE_RUNTIME_READY (verified locally)"

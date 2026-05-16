@@ -1,3 +1,9 @@
+---
+owner: governance-core
+status: active
+machine-enforced: true
+---
+
 # Profile Resolution Algorithm
 
 Version: 3.0.0

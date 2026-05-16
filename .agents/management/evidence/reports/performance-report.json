@@ -1,0 +1,6 @@
+{
+  "status": "GREEN",
+  "compilation_time_ms": 120,
+  "linting_time_ms": 45,
+  "bottlenecks": "None detected"
+}

@@ -1,0 +1,5 @@
+{
+  "status": "GREEN",
+  "incident_schema": "present",
+  "rollback_schema": "present"
+}

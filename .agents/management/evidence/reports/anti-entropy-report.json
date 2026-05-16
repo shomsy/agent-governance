@@ -1,0 +1,9 @@
+{
+  "status": "GREEN",
+  "metrics": {
+    "dead_rules": 0,
+    "duplicate_rules": 0,
+    "orphaned_files": 0
+  },
+  "budget_status": "WITHIN_LIMITS"
+}

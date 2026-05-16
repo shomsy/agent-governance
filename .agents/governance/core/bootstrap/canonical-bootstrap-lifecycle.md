@@ -1,3 +1,9 @@
+---
+owner: governance-core
+status: active
+machine-enforced: true
+---
+
 # Canonical Bootstrap Lifecycle
 
 Version: 3.0.0

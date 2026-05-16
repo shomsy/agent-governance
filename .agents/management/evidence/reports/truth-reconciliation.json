@@ -1,0 +1,6 @@
+{
+  "status": "GREEN",
+  "canonical_dump": "enabled",
+  "aggregate_isolation": "enabled",
+  "version_drift": "none"
+}

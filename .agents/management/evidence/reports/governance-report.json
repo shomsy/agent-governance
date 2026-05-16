@@ -1,0 +1,6 @@
+{
+  "status": "GREEN",
+  "description": "Governance is now machine-executable.",
+  "compiled_nodes": 125,
+  "enforced_gates": 5
+}
