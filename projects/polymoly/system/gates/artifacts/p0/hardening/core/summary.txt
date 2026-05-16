@@ -1,7 +1,0 @@
-Hardening Core Gate
-checks_total: 22
-checks_failed: 0
-gate: PASS
-
-artifacts:
-- system/gates/artifacts/p0/hardening/core/checks.tsv

@@ -1,0 +1,10 @@
+PolyMoly migration placement summary
+plan=system/docs/development/release/current-placement-plan.yaml
+phase=stage-9-plain-language-naming
+mode=apply
+can_apply=true
+eligible_files=615
+covered_files=615
+uncovered=0
+moves=16 ready=16 moved=16 split_first=0 missing_required=0 target_exists=0 already_moved=0 shim_active=0
+artifacts_dir=system/gates/artifacts/migration-placement

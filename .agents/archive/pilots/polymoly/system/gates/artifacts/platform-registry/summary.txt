@@ -1,0 +1,7 @@
+Platform Registry Integrity
+gate: PASS
+capabilities: 8
+modules: 10
+profiles: 4
+environments: 4
+artifacts: system/gates/artifacts/platform-registry/summary.json

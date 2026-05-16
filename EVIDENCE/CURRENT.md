@@ -3,7 +3,7 @@
 Last updated: 2026-05-16
 Commit: 89749206b159aba6f320d69e5e84dc6ea193e5e2
 
-## Status: FULL_GREEN_AGENT_HARNESS_V4_EXECUTED_FLOW_READY
+## Status: FULL_GREEN_CANONICAL_TRUTH_READY
 
 The Agent Harness V3 is fully hardened, truth-verified, and 11/11 Enterprise Ready.
 

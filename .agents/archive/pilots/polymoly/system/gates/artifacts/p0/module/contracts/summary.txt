@@ -1,0 +1,8 @@
+External Module Contract
+checks_total: 51
+checks_failed: 0
+gate: PASS
+
+modules: configurator, doc-engine
+artifacts:
+- system/gates/artifacts/p0/module/contracts/checks.tsv

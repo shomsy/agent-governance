@@ -1,0 +1,8 @@
+Docs Scope Drift Gate
+changed_files: 1
+code_scopes: 0
+doc_scopes: 0
+failures: 0
+strict: true
+gate: PASS
+artifacts: system/gates/artifacts/docs-scope-drift/checks.tsv

@@ -1,0 +1,7 @@
+Secrets Rotation Gate
+checks_total: 9
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/secrets-rotation/checks.tsv

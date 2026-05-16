@@ -1,0 +1,99 @@
+# AGENTS.md — Local Project Contract
+
+Version: 3.0.0
+Status: Normative / Local
+Scope: `./**`
+
+This file is the project-specific child contract.
+The reusable `.agents` project is mounted in `.agents/.rules/`.
+The mounted copy is the source of reusable rules for the child repo.
+The visible `.agents/` folders are the project workspace skeleton.
+
+## 0) Order Of Precedence
+
+Agents MUST follow this order:
+
+1. `AGENTS.md`
+2. `.agents/.rules/AGENTS.md`
+3. `.agents/.rules/governance/core/quality/quality-gates.md`
+4. `.agents/.rules/governance/core/bootstrap/agent-bootstrap.md`
+5. `.agents/.rules/governance/core/resolution/profile-resolution-algorithm.md`
+6. `.agents/.rules/governance/standards/governance/canonical-governance-map.md`
+7. `.agents/.rules/governance/standards/governance/capability-maturity-model.md`
+8. `.agents/.rules/governance/profiles/**`
+9. `.agents/.rules/governance/architecture/**`
+10. `.agents/.rules/governance/security/**`
+11. `.agents/.rules/governance/security/security-operating-model.md`
+9. `.agents/.rules/governance/execution/policy/execution-policy.md`
+10. `.agents/.rules/governance/execution/routing/prompt-to-governance-flow.md`
+11. `.agents/.rules/governance/execution/hooks/hooks-policy.md`
+12. `.agents/.rules/governance/execution/approvals/approval-policy.md`
+13. `.agents/.rules/governance/core/flags/feature-flags.md`
+14. `.agents/.rules/governance/standards/review/how-to-code-review.md`
+15. `.agents/.rules/governance/standards/review/how-to-strict-review.md`
+16. `.agents/.rules/governance/standards/review/recursive-review-contract.md`
+17. `.agents/.rules/governance/standards/coding/how-to-coding-standards.md`
+18. `.agents/.rules/governance/standards/coding/naming-standard.md`
+19. `.agents/.rules/governance/standards/documentation/how-to-document-flow.md`
+20. `.agents/.rules/governance/standards/documentation/how-to-document.md`
+21. `.agents/.rules/governance/standards/documentation/evidence-model.md`
+22. `.agents/.rules/governance/standards/governance/governance-authoring-standard.md`
+23. `.agents/.rules/governance/standards/governance/governance-evolution-policy.md`
+24. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
+25. `.agents/.rules/governance/delivery/operations/management-model.md`
+26. `.agents/.rules/governance/delivery/operations/enterprise-operational-lifecycle.md`
+27. `.agents/.rules/governance/intelligence/memory/v3-intelligence-lifecycle.md`
+27. `.agents/.rules/governance/skills/contract/skill-contract.md`
+28. `.agents/.rules/governance/agents/roles/agent-roles.md`
+29. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
+30. `.agents/.rules/governance/intelligence/context/context-management.md`
+31. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
+32. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
+33. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
+34. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
+35. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
+36. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
+37. `.agents/.rules/governance/delivery/operations/**`
+38. `.agents/skills/**`
+39. `.agents/management/CURRENT.md`
+40. `.agents/management/ACTIVE.md`
+41. `.agents/management/TODO.md`
+42. `.agents/management/BUGS.md`
+43. `.agents/management/STATUS.md`
+44. `.agents/review/REVIEWS.md`
+45. `EVIDENCE/**`
+46. `README.md`
+47. `docs/**`
+
+## 1. Local Definitions
+
+Replace this section with project-specific truth:
+
+1. **Canonical Validation Entrypoint**: (e.g., `npm test`, `./verify.sh`)
+2. **Canonical Local Development Entrypoint**: (e.g., `npm run dev`)
+3. **Canonical Release or Publish Entrypoint**: (e.g., `./publish.sh`)
+4. **Project-Specific Architecture Boundaries**: (e.g., `product/`, `system/`)
+5. **Applied Governance Stack**:
+   - **Delivery Kind**: `web app` | `API` | `worker` | `CLI` | `library` | [replace]
+   - **Applied Repository Profiles**: `[declare explicitly]`
+   - **Languages**: `[declare explicitly]`
+   - **Frameworks Or Runtimes**: `[declare explicitly]`
+   - **Project Types**: `[declare explicitly]`
+   - **Applied Coding Profiles**: `[declare explicitly]`
+   - **Applied Architecture Profiles**: `[declare explicitly]`
+   - **Security Lanes Required**: `security/**`
+   - **Operations Lanes Required**: `delivery/operations/**`
+6. **Project Workspace**:
+   - `.agents/business-logic/`
+   - `.agents/language-specific/`
+   - `.agents/management/`
+   - `.agents/hooks/`
+   - `.agents/review/`
+   - `.agents/config/project.json`
+7. **Project-Specific Exceptions or Forbidden Shortcuts**:
+
+Keep this file short. Long procedures belong in governance docs, and active
+queues belong in `.agents/management/**`.
+
+---
+*No offload recommended for this step.*

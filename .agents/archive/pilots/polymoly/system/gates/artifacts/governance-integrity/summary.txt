@@ -1,0 +1,7 @@
+Governance Integrity Gate
+source: AGENTS.md
+refs_checked: 11
+failed: 0
+duration_ms: 0
+gate: PASS
+artifacts: system/gates/artifacts/governance-integrity/checks.tsv

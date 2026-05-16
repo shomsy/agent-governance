@@ -203,6 +203,8 @@ function parseOptions(args) {
     exceptRules: new Set(),
     dryRun: false,
     pieces: DEFAULT_PIECES,
+    canonical: false,
+    aggregate: false,
   };
 
   for (const arg of args.slice(1)) {
@@ -252,6 +254,16 @@ function parseOptions(args) {
       continue;
     }
 
+    if (arg === '--canonical') {
+      options.canonical = true;
+      continue;
+    }
+
+    if (arg === '--aggregate') {
+      options.aggregate = true;
+      continue;
+    }
+
     console.error(`Unknown option: ${arg}`);
     usage();
     process.exit(2);
@@ -282,8 +294,12 @@ function resolveRootDirectory(targetArg) {
   return rootDir;
 }
 
-function shouldIgnoreDirectory(dirName, relDir, exceptRules) {
+function shouldIgnoreDirectory(dirName, relDir, exceptRules, canonical) {
   if (DEFAULT_IGNORED_DIRECTORY_NAMES.has(dirName)) {
+    return true;
+  }
+
+  if (canonical && relDir.startsWith('.agents/archive')) {
     return true;
   }
 
@@ -302,7 +318,9 @@ function shouldIgnoreDirectory(dirName, relDir, exceptRules) {
   return false;
 }
 
-function collectTextFiles(rootDir, exceptRules, outputFamilies) {
+function collectTextFiles(rootDir, options, outputFamilies) {
+  const exceptRules = options.exceptRules;
+  const canonical = options.canonical;
   const files = [];
 
   function walk(currentDir) {
@@ -320,7 +338,7 @@ function collectTextFiles(rootDir, exceptRules, outputFamilies) {
       if (entry.isDirectory()) {
         const relDir = relativePath(rootDir, currentPath);
 
-        if (shouldIgnoreDirectory(entry.name, relDir, exceptRules)) {
+        if (shouldIgnoreDirectory(entry.name, relDir, exceptRules, canonical)) {
           continue;
         }
 
@@ -501,28 +519,36 @@ function splitTextIntoPieces(text, totalPieces) {
   return pieces;
 }
 
-function writeOutputFiles(outputFile, text, pieces) {
+function writeOutputFiles(outputFile, text, options) {
   let gitSha = 'unknown';
   try {
     gitSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   } catch (e) {}
 
+  let type = 'WORKSPACE AGGREGATE (NON-CANONICAL)';
+  let warning = '⚠️  WARNING: This is a debug/aggregate dump and may include legacy or archived projects.\n';
+  
+  if (options.canonical) {
+    type = 'AGENT HARNESS CANONICAL TRUTH DUMP';
+    warning = '✅ CERTIFIED: This is the canonical harness truth source.\n';
+  }
+
   const header = `============================================================
-AGENT HARNESS TRUTH DUMP
+${type}
 Commit: ${gitSha}
 Timestamp: ${new Date().toISOString()}
-============================================================\n\n`;
+${warning}============================================================\n\n`;
 
   const final_text = header + text;
 
-  if (pieces === 1) {
+  if (options.pieces === 1) {
     fs.writeFileSync(outputFile, final_text, 'utf8');
 
     return [outputFile];
   }
 
-  return splitTextIntoPieces(final_text, pieces).map((pieceText, index) => {
-    const piecePath = outputPiecePath(outputFile, index + 1, pieces);
+  return splitTextIntoPieces(final_text, options.pieces).map((pieceText, index) => {
+    const piecePath = outputPiecePath(outputFile, index + 1, options.pieces);
 
     fs.writeFileSync(piecePath, pieceText, 'utf8');
 
@@ -587,11 +613,11 @@ const outputFamilies = [
 
 printStartupReport(rootDir, outputFile, options);
 
-const files = collectTextFiles(rootDir, options.exceptRules, outputFamilies);
+const files = collectTextFiles(rootDir, options, outputFamilies);
 const result = mergeFiles(rootDir, files, options);
 const writtenFiles = options.dryRun
   ? []
-  : writeOutputFiles(outputFile, result.text, options.pieces);
+  : writeOutputFiles(outputFile, result.text, options);
 
 printFinalReport(result.stats, writtenFiles, options);
 NODE

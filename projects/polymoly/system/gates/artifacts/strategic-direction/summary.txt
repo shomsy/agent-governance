@@ -1,7 +1,0 @@
-Current Release Direction Gate
-checks_total: 5
-checks_failed: 0
-gate: PASS
-
-artifacts:
-- system/gates/artifacts/strategic-direction/checks.tsv

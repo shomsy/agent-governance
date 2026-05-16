@@ -1,0 +1,7 @@
+ARCHITECTURE IMPORT BOUNDARY: PASS
+checks_total: 1
+checks_failed: 0
+gate: PASS
+
+forbidden_imports=0
+checks_file=system/gates/artifacts/architecture-import-boundaries/checks.tsv

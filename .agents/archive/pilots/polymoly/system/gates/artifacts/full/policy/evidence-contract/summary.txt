@@ -1,0 +1,6 @@
+Evidence Contract Gate
+gate: PASS
+changed_files: 1
+needs_evidence: false
+evidence_present: true
+artifacts: checks.tsv

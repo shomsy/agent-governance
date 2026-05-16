@@ -1,0 +1,4 @@
+ROOT SURFACE CONTRACT: PASS
+unexpected_entries=0
+forbidden_root_env=0
+checks_file=system/gates/artifacts/architecture-root-surface/checks.tsv

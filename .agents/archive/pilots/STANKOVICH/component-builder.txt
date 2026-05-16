@@ -1,0 +1,2896 @@
+=== ARCHITECTURE.md ===
+# Architecture Manifesto: Minimalist Signal-Driven Web Components Engine
+
+Dobrodošli u tehnički dokument arhitekture našeg `zero-dependency` engine-a. Cilj ovog dokumenta je da pojasni inženjerske i filozofske odluke koje stoje iza sistema, omogućavajući svakom programeru ili arhitekti da tačno razume kako **reaktivnost** i **DOM manipulacija** funkcionišu ispod haube.
+
+---
+
+## 1. Filozofija (Zašto "Architecture 🅱"?)
+
+Većina modernih framework-a (React, Vue) se oslanja na koncept VDOM-a (Virtual DOM) gde se reaktivno stanje prevodi u celokupno novo DOM stablo, a zatim se vrši takozvani *diffing* i *patching* promena.
+
+Ovaj framework obacuje taj teški pristup u korist **Čiste Signal Arhitekture**.
+
+Princip se sastoji iz sledećeg:
+
+1. **Nema Renderovanih Ciklusa:** Komponenta se *crta* u DOM-u **samo jednom** (kroz `mount()`). Ne postoji VDOM pomirenje (reconciliation).
+2. **Reaktivnost Kao Prva Klasa Građanin:** Svi podaci žive u *Signalima*, izgrađenim na modelu "pub-sub" (Observer obrazac).
+3. **Direktni Binders:** Ovi signali se privezuju direktno na HTML Node elemente posredstvom mikroskopskih efekata (effects). Kada signal promeni vrednost, obnavlja se samo onaj najmanji mogući atribut i element umesto rerenderisanja komponenti.
+
+---
+
+## 2. Prikaz Strukture Fajlova
+
+Za stabilno upravljanje i lako snalaženje, arhitektura je podeljena u funkcionalne blokove nezavisne namene:
+
+```text
+/core
+  ├── signals.js     # Čist reaktivni observer. Nije svestan postojanja DOM-a.
+  ├── dom.js         # Manipulacija nad nativnim elementima (O(1) DOM bind-ovanje).
+  ├── component.js   # Encapsulacija Shadow DOM-a i Web Komponente. Upravlja životnim vekom.
+  └── builder.js     # Razvojno-prijemčiv, Fluent DSL API lančani konstrukt.
+index.js             # Centralni interfejs ka razvoju same aplikacije (Facade layer).
+```
+
+---
+
+## 3. Tehnički Stubovi Sistema
+
+### I. Signal Engine (`core/signals.js`)
+
+*SolidJS stil reaktivnosti.* Ne postoji globalno prop-drilovanje.
+Sve reaguje oko tri tačke:
+
+- **`signal(value)`**: Wrappovana reaktivna vrednost.
+- **`effect(fn)`**: Radnik. Svaki put kada se signal na koji ukazuje ova funkcija (njen dependency graph) promeni, ova funkcija će se reizvršiti.
+- **`computed(fn)`**: Derivirani signal koji emituje nove rezultate tek po promeni pratećih signala.
+
+> **Leak-Safe Pravilo (uz ownership disciplinu)**: Sve efekte koji se pokrenu za vreme *mount*-a jedne komponente, centralna matica registruje unutar komponente. Kada browser ukloni komponentu (`disconnectedCallback()`), registrovani efekti se momentalno uništavaju (`stop(runner)`).
+
+### II. Nativni DOM Alati (`core/dom.js`)
+
+Nismo pravili prevođenje (kompajler), već smo ostali pri brutalno čistom API-ju.
+Funkcija `h()` kreira direktan **nativan DOM element** `document.createElement()`, dok se ostali `bindXxx` alati oslanjaju na efekte nad tim DOM-om.
+
+```javascript
+const clicks = signal(0);
+const spanEl = h("span", { class: "value" });
+
+// DOM element je odmah vezan na Signal
+bindText(spanEl, clicks);
+```
+
+Ova akcija generiše skriveni Effect u pozadini i svaka izmena unutar `clicks.value++` direktno ažurira tekstualni node. Ne postoji nikakvo brisanje ili preklapanje celog roditeljskog drveta!
+
+### III. Web Komponenta i Sigurnost (`core/component.js`)
+
+Klasa `BaseComponent` nadograđuje standardni standard browsera obezbeđujući nativnu izolaciju CSS modula - `ShadowRoot`.
+
+- Pored stila i inkapsulacije, pretvara primitivna polja za unos HTML atributa (npr. `<m-counter step="5">`) direktno u interne signale unutar samog frameworka. Lookupi su asimptotske složenosti O(1) zahvaljujući asocijativnim hash poljima instanciranim pre renderovanja.
+- Takođe, implementiran je domorodački nativni mehanizam Dependency Injection-a tj. **Context API** (preko standardnih *Event Bubble* tehnologija) gde unutrašnje strukture lako dohvaćaju spoljašnje Provider elemente ne dirajući signale.
+
+### IV. Fluent DSL Builder (`core/builder.js`)
+
+Kreiranje Web Komponenti kroz čist JavaScript može izgledati nezgrapno zbog količine protokola koju je neophodno ispratiti.
+DSL lanac je tu da taj teret oduzme sa inzenjera i dopusti brz prelaz sa prototipa na "Production" nivo kvaliteta.
+
+```javascript
+Component.define("my-button")
+   .props({
+       theme: { type: "string", default: "light", reflect: true }
+   })
+   .setup(function() {
+      // Inicijalizacije logike pre kreiranja DOM-a
+   })
+   .mount(function(root, ctx) {
+      // Izgradnja interfejsa 1 na 1 i umetanje u root (Shadow/HTML) element
+   })
+   .register();
+```
+
+---
+
+## 4. Zaključak
+
+Primenjujući ovu paradigmu, ovaj framwork uspeva da pretekne standardne reaktivne VDOM mehanizme u performansama. Kriterijumi koji važe su:
+
+- *Očuvani mentalni fokus* developera. Nema "čarolija" ni globalnog praćenja.
+- Apsolutna O(1) asimptotika u renderu na UI nivo.
+- Jednostavnost implementacije bez paketa veličine 14MB. Svega `<450` probranih linija inženjeringa!
+
+=== README.md ===
+# 🅂 Signal-Driven Framework: STANKOVICH
+
+This document defines the core architecture and development patterns for the **Minimalist Signal-Driven Web Components Engine**.
+
+## 1. Core Philosophy
+
+* **Signals Only**: Reactivity is explicit and granular. No Virtual DOM, no Proxies, no global diffing.
+* **One-Time Mount**: Components are mounted exactly once. Prop/State updates trigger fine-grained effects that manipulate the DOM directly.
+* **Total Ownership**: Every side effect is tied to a component's lifecycle. Memory leaks are avoided by design when following ownership rules.
+
+## Source Of Truth
+
+* Canonical implementation lives in `core/*.js`, `index.js`, `index.d.ts`, `tests/*`, and `examples/*`.
+* `component-builder.txt` is a generated merge artifact for packaging/review, not an editable source file.
+
+## 2. Reactive Primitives
+
+* **`signal(val)`**: Returns a reactive container. Access via `.value`.
+* **`effect(fn)`**: Executes side effects. Automatically tracks signal dependencies.
+* **`computed(fn)`**: Returns a derived signal that only updates when its dependencies change.
+* **`stop(runner)`**: Permanently deactivates an effect (and also supports computed signals).
+* **`stopComputed(sig)`**: Explicitly detaches a computed from dependencies.
+
+## 3. Component Lifecycle & Ownership
+
+### The `BaseComponent` Rules
+
+1. **Mount Isolation**: DOM is rendered into a `#mountPoint` (inside Shadow DOM) with `display: contents`. Styles are isolated from teardowns.
+2. **Auto-Tracking**: Any `effect()` created during the `mount` or `setup` phase is automatically registered for cleanup.
+3. **Manual Ownership**: Use `this.own(runner)` to register external effects or binders created outside the initial mount.
+4. **Automatic Teardown**: `disconnectedCallback` stops all registered effects and clears the mount point.
+
+## 4. Development Patterns (DX)
+
+### Defining a Component
+
+```javascript
+Component.define("my-counter")
+  .props({ step: { type: "number", default: 1 } })
+  .setup(function() {
+    const count = signal(0);
+    return { count };
+  })
+  .mount(function(root, ctx) {
+    const btn = h("button", { on: { click: () => ctx.count.value += this.step } });
+    bindText(btn, ctx.count);
+    root.appendChild(btn);
+  })
+  .register();
+```
+
+### Binders
+
+Binders (`bindText`, `bindAttr`, `bindProp`, `bindClass`) return an effect runner. In `mount()`, they are auto-owned. Outside `mount()`, use `this.own()`:
+
+```javascript
+this.own(bindText(el, signal));
+```
+
+For composable text children, use `text(sig)`:
+
+```javascript
+const line = h("p", {}, "Value: ", text(countSig));
+```
+
+### Property vs Attribute
+
+* Use `h("input", { value: "..." })` for initial state.
+* Use `bindProp(el, "value", signal)` for live reactive state on inputs.
+
+## 5. Context API
+
+* `provide(ctx, valOrSignal)`: Shares state down the tree. Non-signals are automatically wrapped.
+* `consume(ctx)`: Returns a **Signal**. Always reactive.
+
+## 6. v2 Plan
+
+* Roadmap and ToDo list for version 2: [ROADMAP_V2.md](./ROADMAP_V2.md)
+
+---
+**Version 1.0.0 (STANKOVICH)** - *Pure Performance. Zero Magic.*
+
+=== ROADMAP_V2.md ===
+# STANKOVICH v2 Roadmap
+
+Ovo je praktični ToDo za verziju 2. Fokus: zadržati minimalistički core, dodati samo ono što diže realnu upotrebljivost.
+
+## Must-Have (v2.0.0)
+
+- [ ] `@stankovich/router` kao opcioni modul (van core-a).
+Acceptance: podržava `history` i `hash` mode, `navigate(path)`, route params (`/users/:id`), i `notFound`.
+
+- [ ] CI release gate (unit + browser integration).
+Acceptance: PR ne može da se merge-uje ako padne `tests/signals.test.js` ili `tests/browser.html` suite.
+
+- [ ] Security docs + safe defaults stranica.
+Acceptance: dokumentovano da `h()` ignoriše non-function `on*`, plus primeri za bezbedan rad sa user inputom.
+
+- [ ] Release packaging discipline.
+Acceptance: NPM package uključuje samo canonical source (`core/*`, `index.js`, `index.d.ts`, docs), bez internog “noise”.
+
+- [ ] Stabilan semver + changelog.
+Acceptance: `CHANGELOG.md` postoji i svaka verzija ima migration notes.
+
+## Should-Have (v2.x)
+
+- [ ] `createStore()` helper za strukturirano stanje preko signala.
+Acceptance: immutable update helper + granular signal update bez re-render thrash-a.
+
+- [ ] Route-level lazy loading helper.
+Acceptance: router može da učita route module na demand bez menjanja core API-ja.
+
+- [ ] Devtools events timeline.
+Acceptance: overlay prikazuje poslednje flush cikluse i route promene sa vremenom.
+
+- [ ] Stronger TypeScript ergonomics za `Component.define()`.
+Acceptance: bolji infer za `props/setup/mount` i manje `any` u javnom API-ju.
+
+## Nice-To-Have (post v2)
+
+- [ ] SSR-friendly rendering helper (core ostaje DOM-agnostic).
+Acceptance: osnovni string render helper + hydration hook za web components.
+
+- [ ] Community examples repo.
+Acceptance: 3 reference app-a (dashboard, forms-heavy app, docs site) na istom API-u.
+
+## Non-Goals Za v2
+
+- Ne uvoditi Virtual DOM.
+- Ne uvoditi globalni magic state.
+- Ne razbijati “one-time mount + fine-grained binders” filozofiju.
+
+=== core/builder.js ===
+/**
+ * core/builder.js
+ * 
+ * This file gives developers a nice, easy way to describe their components.
+ * It's like a menu where you pick what your component has.
+ */
+
+import { BaseComponent } from "./component.js";
+
+/**
+ * ComponentBuilder lets us chain functions together.
+ */
+class ComponentBuilder {
+    #tag;                // The name of our component (must have a dash like "my-app").
+    #props = {};         // The data it can receive.
+    #styles = "";        // How it looks.
+    #setup = function () { return {}; }; // How it starts up.
+    #mount = function () { };           // How it builds its UI.
+    #methods = {};       // Things it can DO.
+    #onConnected = null; // When it joins the screen.
+    #onDisconnected = null; // When it leaves the screen.
+
+    constructor(tag) {
+        if (!tag.includes("-")) throw new Error(`Custom element name must include a dash. Got: "${tag}"`);
+        this.#tag = tag;
+    }
+
+    /** 1. Define what data it takes. */
+    props(defs) {
+        this.#props = { ...this.#props, ...defs };
+        return this;
+    }
+
+    /** 2. Define how it looks. */
+    styles(styleText) {
+        this.#styles = String(styleText ?? "");
+        return this;
+    }
+
+    /** 3. Define the data and logic (runs once). */
+    setup(fn) {
+        this.#setup = fn;
+        return this;
+    }
+
+    /** 4. Define the UI (runs once). */
+    mount(fn) {
+        this.#mount = fn;
+        return this;
+    }
+
+    /** 5. Define actions it can perform. */
+    methods(methodMap) {
+        this.#methods = { ...this.#methods, ...methodMap };
+        return this;
+    }
+
+    /** 6. Define what happens when it's born. */
+    onConnected(fn) {
+        this.#onConnected = fn;
+        return this;
+    }
+
+    /** 7. Define what happens when it dies. */
+    onDisconnected(fn) {
+        this.#onDisconnected = fn;
+        return this;
+    }
+
+    /**
+     * This final function tells the browser about our new component!
+     */
+    register() {
+        const tag = this.#tag;
+        const props = this.#props;
+        const styles = this.#styles;
+        const setupFn = this.#setup;
+        const mountFn = this.#mount;
+        const methods = this.#methods;
+        const onConnected = this.#onConnected;
+        const onDisconnected = this.#onDisconnected;
+
+        // We "bake" all our picked options into a real Class!
+        class BuiltComponent extends BaseComponent {
+            static props = props;
+            static styles = styles;
+            static setupFn = setupFn;
+            static mountFn = mountFn;
+        }
+
+        if (onConnected) BuiltComponent.prototype.onConnected = onConnected;
+        if (onDisconnected) BuiltComponent.prototype.onDisconnected = onDisconnected;
+
+        // This makes 'this.someData' act like a shortcut for our Signal's value.
+        for (const prop of Object.keys(props)) {
+            Object.defineProperty(BuiltComponent.prototype, prop, {
+                get() { return this.props[prop].value; },
+                set(val) { this.props[prop].value = val; }
+            });
+        }
+
+        // Put our actions on the component!
+        for (const [name, fn] of Object.entries(methods)) {
+            if (name in BuiltComponent.prototype) {
+                throw new Error(`Method conflicts with existing BaseComponent member: ${name}`);
+            }
+            BuiltComponent.prototype[name] = fn;
+        }
+
+        // Tell the browser!
+        if (!customElements.get(tag)) {
+            customElements.define(tag, BuiltComponent);
+        }
+
+        return BuiltComponent;
+    }
+}
+
+/** 
+ * This is the factory we use to start building!
+ */
+export const Component = {
+    define(tag) { return new ComponentBuilder(tag); }
+};
+
+=== core/component.js ===
+/**
+ * core/component.js
+ * 
+ * 10/10 STANKOVICH BaseComponent v2. 
+ * Heavy-duty lifecycle management with automated event tracking and performance guards.
+ */
+
+import { signal, effect, stop, setEffectTracker, isSignal, CONFIG } from "./signals.js";
+import { bindValue } from "./dom.js";
+
+function coerceFromAttr(type, raw) {
+    if (type === "boolean") return raw !== null;
+    if (raw === null) return undefined;
+    if (type === "number") {
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : undefined;
+    }
+    if (type === "json") {
+        try { return JSON.parse(raw); } catch { return undefined; }
+    }
+    return String(raw);
+}
+
+function coerceToAttr(type, val) {
+    if (type === "boolean") return val ? "" : null;
+    if (val === null || val === undefined) return null;
+    if (type === "json") return JSON.stringify(val);
+    return String(val);
+}
+
+function propToAttr(propName) {
+    return propName.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+}
+
+const liveComponents = new Map();
+
+function registerLiveComponent(instance) {
+    const tag = instance.localName || instance.constructor?.name || "component";
+    let set = liveComponents.get(tag);
+    if (!set) {
+        set = new Set();
+        liveComponents.set(tag, set);
+    }
+    set.add(instance);
+}
+
+function unregisterLiveComponent(instance) {
+    const tag = instance.localName || instance.constructor?.name || "component";
+    const set = liveComponents.get(tag);
+    if (!set) return;
+    set.delete(instance);
+    if (set.size === 0) liveComponents.delete(tag);
+}
+
+export function getComponentStats() {
+    const byComponent = {};
+    let totalComponents = 0;
+    let totalEffects = 0;
+    let totalListeners = 0;
+
+    for (const [tag, set] of liveComponents.entries()) {
+        let effects = 0;
+        let listeners = 0;
+        for (const instance of set) {
+            const stats = instance.getOwnershipStats();
+            effects += stats.effects;
+            listeners += stats.listeners;
+        }
+
+        byComponent[tag] = { instances: set.size, effects, listeners };
+        totalComponents += set.size;
+        totalEffects += effects;
+        totalListeners += listeners;
+    }
+
+    return { totalComponents, totalEffects, totalListeners, byComponent };
+}
+
+export class BaseComponent extends HTMLElement {
+    #root;
+    #mountPoint;
+    #effects = new Set();
+    #listeners = new Set();
+    #mounted = false;
+    #setupCtx = null;
+
+    props = Object.create(null);
+
+    static props = {};
+    static styles = "";
+    static setupFn = null;
+    static mountFn = null;
+
+    static get observedAttributes() {
+        const defs = this.props || {};
+        this._attrToPropMap = {};
+        const attrs = [];
+        for (const [prop, def] of Object.entries(defs)) {
+            const attr = def.attr ?? propToAttr(prop);
+            this._attrToPropMap[attr] = prop;
+            attrs.push(attr);
+        }
+        return attrs;
+    }
+
+    constructor() {
+        super();
+        this.#root = this.attachShadow({ mode: "open" });
+        this.#mountPoint = document.createElement("div");
+        this.#mountPoint.style.display = "contents";
+        this.#applyStyles();
+        this.#root.appendChild(this.#mountPoint);
+        this.#initProps();
+    }
+
+    $(selector) { return this.#root.querySelector(selector); }
+    $all(selector) { return Array.from(this.#root.querySelectorAll(selector)); }
+
+    emit(name, detail, options = {}) {
+        const evt = new CustomEvent(name, {
+            detail, bubbles: true, composed: true, cancelable: false, ...options,
+        });
+        this.dispatchEvent(evt);
+        return evt;
+    }
+
+    /** Managed Event Listener. Guaranteed cleanup on disconnect. */
+    listen(target, type, fn, opts) {
+        target.addEventListener(type, fn, opts);
+        const unlisten = () => target.removeEventListener(type, fn, opts);
+        this.#listeners.add(unlisten);
+        return unlisten;
+    }
+
+    /** Two-way value binding for components with managed cleanup. */
+    bind(el, sig, options) {
+        return this.own(bindValue(el, sig, options));
+    }
+
+    /**
+     * Run code in a tracked scope. Any effects created here belong to this component.
+     */
+    scope(fn) {
+        const prev = setEffectTracker(e => this.#effects.add(e));
+        try {
+            return fn.call(this, this);
+        } finally {
+            setEffectTracker(prev);
+        }
+    }
+
+    provide(context, value) {
+        this._providers = this._providers || new Map();
+        const sig = isSignal(value) ? value : signal(value);
+        this._providers.set(context.name, sig);
+
+        if (!this._contextListenerAttached) {
+            this.addEventListener("context-request", (e) => {
+                if (this._providers.has(e.detail.name)) {
+                    e.stopPropagation();
+                    e.detail.callback(this._providers.get(e.detail.name));
+                }
+            });
+            this._contextListenerAttached = true;
+        }
+    }
+
+    consume(context) {
+        let sig = signal(context.initialValue);
+        this.dispatchEvent(new CustomEvent("context-request", {
+            detail: { name: context.name, callback: (v) => sig = v },
+            bubbles: true, composed: true
+        }));
+        return sig;
+    }
+
+    own(runner) {
+        this.#effects.add(runner);
+        return runner;
+    }
+
+    getOwnershipStats() {
+        return {
+            effects: this.#effects.size,
+            listeners: this.#listeners.size
+        };
+    }
+
+    runEffect(fn) {
+        return this.own(effect(fn));
+    }
+
+    connectedCallback() {
+        if (!this.#mounted) {
+            this.#mounted = true;
+            this.scope(() => {
+                this.#setupReflectionEffects();
+                const Ctor = this.constructor;
+                this.#setupCtx = Ctor.setupFn ? Ctor.setupFn.call(this, this) : this.props;
+                if (Ctor.mountFn) Ctor.mountFn.call(this, this.#mountPoint, this.#setupCtx);
+            });
+        }
+        registerLiveComponent(this);
+        if (this.onConnected) this.onConnected();
+    }
+
+    disconnectedCallback() {
+        const cleanedEffects = this.#effects.size;
+        const cleanedListeners = this.#listeners.size;
+
+        // Discipline Check: clear all 
+        this.#effects.forEach(e => stop(e));
+        this.#effects.clear();
+
+        this.#listeners.forEach(un => un());
+        this.#listeners.clear();
+
+        this.#mountPoint.replaceChildren();
+        this.#mounted = false;
+        unregisterLiveComponent(this);
+
+        if (CONFIG.debug) {
+            console.log(`[LIFECYCLE] Component <${this.localName}> destroyed. Cleaned ${cleanedEffects} effects and ${cleanedListeners} listeners.`);
+        }
+
+        if (this.onDisconnected) this.onDisconnected();
+    }
+
+    attributeChangedCallback(attrName, oldValue, newValue) {
+        if (oldValue === newValue) return;
+        const Ctor = this.constructor;
+        const prop = Ctor._attrToPropMap?.[attrName];
+        if (!prop) return;
+
+        const def = (Ctor.props || {})[prop];
+        let next = coerceFromAttr(def?.type, newValue);
+        if (def?.coerce) next = def.coerce(next, this);
+
+        if (this.props[prop]) {
+            this.props[prop].value = next;
+        }
+    }
+
+    #applyStyles() {
+        const Ctor = this.constructor;
+        const styles = String(Ctor.styles || "");
+        if (!styles) return;
+
+        if (
+            typeof ShadowRoot !== "undefined" &&
+            typeof CSSStyleSheet !== "undefined" &&
+            "adoptedStyleSheets" in ShadowRoot.prototype &&
+            "replaceSync" in CSSStyleSheet.prototype
+        ) {
+            if (!Ctor._sharedSheet) {
+                Ctor._sharedSheet = new CSSStyleSheet();
+                Ctor._sharedSheet.replaceSync(styles);
+            }
+            this.#root.adoptedStyleSheets = [Ctor._sharedSheet];
+            return;
+        }
+
+        const styleEl = document.createElement("style");
+        styleEl.textContent = styles;
+        this.#root.appendChild(styleEl);
+    }
+
+    #initProps() {
+        const Ctor = this.constructor;
+        const defs = Ctor.props || {};
+
+        for (const [prop, def] of Object.entries(defs)) {
+            let val = def.default !== undefined ?
+                (typeof def.default === "function" ? def.default(this) : def.default) : undefined;
+            this.props[prop] = signal(val, { label: `prop_${prop}` });
+        }
+
+        for (const [prop, def] of Object.entries(defs)) {
+            const attr = def.attr ?? propToAttr(prop);
+            if (this.hasAttribute(attr)) {
+                const raw = this.getAttribute(attr);
+                const coerced = coerceFromAttr(def.type, raw);
+                if (coerced !== undefined) {
+                    this.props[prop].value = def.coerce ? def.coerce(coerced, this) : coerced;
+                }
+            }
+        }
+    }
+
+    #setupReflectionEffects() {
+        const defs = this.constructor.props || {};
+        for (const [prop, def] of Object.entries(defs)) {
+            if (def.reflect) {
+                this.runEffect(() => {
+                    const val = this.props[prop].value;
+                    const attr = def.attr ?? propToAttr(prop);
+                    const encoded = coerceToAttr(def.type, val);
+                    const current = this.getAttribute(attr);
+                    if (current !== encoded) {
+                        if (encoded === null) this.removeAttribute(attr);
+                        else this.setAttribute(attr, encoded);
+                    }
+                });
+            }
+            if (def.watch) {
+                let prev = this.props[prop].value;
+                this.runEffect(() => {
+                    const next = this.props[prop].value;
+                    if (next !== prev) {
+                        def.watch(next, prev, this);
+                        prev = next;
+                    }
+                });
+            }
+        }
+    }
+}
+
+=== core/debug.js ===
+/**
+ * core/debug.js
+ * 
+ * Mini DevTools Overlay for the 10/10 STANKOVICH Framework.
+ */
+
+import { getComponentStats } from "./component.js";
+import { CONFIG, getReactiveStats } from "./signals.js";
+
+export function initDevTools(root) {
+    if (!CONFIG.debug || typeof document === "undefined") return () => { };
+    const host = root || document.body;
+    if (!host) return () => { };
+
+    const panel = document.createElement("div");
+    panel.id = "stankovich-devtools";
+    panel.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.85);
+        color: #00ff00;
+        font-family: monospace;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 10000;
+        font-size: 11px;
+        pointer-events: none;
+        border: 1px solid #333;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    `;
+
+    host.appendChild(panel);
+
+    const render = () => {
+        const reactive = getReactiveStats();
+        const component = getComponentStats();
+        const componentLines = Object.entries(component.byComponent)
+            .map(([tag, stats]) => `${tag}: ${stats.instances} inst, ${stats.effects} fx`)
+            .join("<br/>") || "none";
+        const lastFlushAt = reactive.lastFlushAt
+            ? new Date(reactive.lastFlushAt).toLocaleTimeString()
+            : "never";
+
+        panel.innerHTML = `
+            <div style="color: #fff; border-bottom: 1px solid #444; margin-bottom: 5px;">STANKOVICH Devtools</div>
+            <div>signals: ${reactive.signalsCreated}</div>
+            <div>active effects: ${reactive.activeEffects}</div>
+            <div>queued effects: ${reactive.queuedEffects}</div>
+            <div>flushes: ${reactive.totalFlushes}</div>
+            <div>last flush: ${reactive.lastFlushMs.toFixed(2)} ms @ ${lastFlushAt}</div>
+            <div style="margin-top: 6px; border-top: 1px solid #333; padding-top: 6px;">components: ${component.totalComponents}</div>
+            <div>owned effects: ${component.totalEffects}</div>
+            <div>listeners: ${component.totalListeners}</div>
+            <div style="margin-top: 4px; color: #9ca3af;">${componentLines}</div>
+        `;
+    };
+
+    render();
+    const timer = setInterval(render, 500);
+
+    return () => {
+        clearInterval(timer);
+        panel.remove();
+    };
+}
+
+=== core/dom.js ===
+/**
+ * core/dom.js
+ * 
+ * 10/10 STANKOVICH DOM Engine.
+ * Direct High-Performance Signal Binding.
+ */
+
+import { CONFIG, effect, isSignal } from "./signals.js";
+
+const isBrowser = typeof document !== "undefined";
+
+export function css(strings, ...values) {
+    let out = "";
+    for (let i = 0; i < strings.length; i++) out += strings[i] + (values[i] ?? "");
+    return String(out);
+}
+
+/** 
+ * 'h' helper. Standard DSL for creating elements.
+ */
+export function h(tag, attrs, ...children) {
+    if (!isBrowser) return { tag, attrs, children }; // Stub for SSR
+    const el = document.createElement(tag);
+
+    if (attrs) {
+        for (const [key, val] of Object.entries(attrs)) {
+            const isInlineEventAttr = /^on[a-z]/i.test(key);
+            // Event simplified entry
+            if (key === "on" && val && typeof val === "object") {
+                for (const [evt, listener] of Object.entries(val)) {
+                    if (typeof listener !== "function") {
+                        if (CONFIG.debug) {
+                            console.warn(`[DOM WARNING] Ignored non-function listener for "${evt}".`);
+                        }
+                        continue;
+                    }
+                    el.addEventListener(evt, listener);
+                }
+                continue;
+            }
+            if (isInlineEventAttr && typeof val === "function") {
+                const evt = key[2].toLowerCase() + key.slice(3);
+                el.addEventListener(evt, val);
+                continue;
+            }
+            if (key === "on" || isInlineEventAttr) {
+                if (CONFIG.debug && val !== null && val !== undefined) {
+                    console.warn(`[DOM WARNING] Ignored non-function event binding "${key}". Use a function handler.`);
+                }
+                continue;
+            }
+            // Style object support
+            if (key === "style" && typeof val === "object") {
+                for (const k in val) el.style[k] = val[k];
+                continue;
+            }
+            // Class array support
+            if ((key === "class" || key === "className") && Array.isArray(val)) {
+                el.setAttribute("class", val.filter(Boolean).join(" "));
+                continue;
+            }
+            if (key === "ref" && typeof val === "function") {
+                val(el);
+                continue;
+            }
+
+            // Sync critical properties
+            if (key === "value" || key === "checked" || key === "selected") {
+                el[key] = val;
+                continue;
+            }
+
+            if (val === false || val === null || val === undefined) el.removeAttribute(key);
+            else if (val === true) el.setAttribute(key, "");
+            else el.setAttribute(key, String(val));
+        }
+    }
+
+    for (const child of children.flat()) {
+        if (child === null || child === undefined || child === false) continue;
+        if (child instanceof Node) el.appendChild(child);
+        else el.appendChild(document.createTextNode(String(child)));
+    }
+
+    return el;
+}
+
+export function fragment(...children) {
+    if (!isBrowser) return { children }; // Stub
+    const f = document.createDocumentFragment();
+    for (const child of children.flat()) {
+        if (!child) continue;
+        if (child instanceof Node) f.appendChild(child);
+        else f.appendChild(document.createTextNode(String(child)));
+    }
+    return f;
+}
+
+/* ============================================================================
+ * Pro Binders
+ * ============================================================================ */
+
+function readBindingSource(source) {
+    if (typeof source === "function") return source();
+    if (isSignal(source)) return source.value;
+    return source;
+}
+
+function toTextValue(value) {
+    return (value === undefined || value === null) ? "" : String(value);
+}
+
+export function bindTextNode(node, source) {
+    return effect(() => {
+        node.data = toTextValue(readBindingSource(source));
+    });
+}
+
+/** Create a reactive Text node (composable child helper). */
+export function text(source) {
+    if (!isBrowser) return toTextValue(readBindingSource(source));
+    const node = document.createTextNode("");
+    bindTextNode(node, source);
+    return node;
+}
+
+/** Optimized Text Binder using internal Text Node (avoids textContent overhead) */
+export function bindText(el, source, options = {}) {
+    if (!isBrowser) return effect(() => readBindingSource(source));
+    const { replace = true } = options;
+    const node = document.createTextNode("");
+    if (replace) el.replaceChildren(node);
+    else el.appendChild(node);
+    return bindTextNode(node, source);
+}
+
+export function bindAttr(el, attr, sig) {
+    return effect(() => {
+        const v = sig.value;
+        if (v === null || v === false || v === undefined) el.removeAttribute(attr);
+        else if (v === true) el.setAttribute(attr, "");
+        else el.setAttribute(attr, String(v));
+    });
+}
+
+export function bindProp(el, prop, sig) {
+    return effect(() => { el[prop] = sig.value; });
+}
+
+/** Comprehensive Input Value Binder */
+export function bindValue(el, sig, options = {}) {
+    const {
+        event = "input",
+        parse = (v) => v,
+        format = (v) => (v ?? ""),
+        listenerOptions = undefined
+    } = options;
+
+    // Direct binding for property
+    const runner = effect(() => {
+        const val = format(sig.value);
+        if (el.type === "checkbox") el.checked = !!val;
+        else if (el.type === "radio") el.checked = (el.value === String(val));
+        else if (el.multiple && el.tagName === "SELECT") {
+            const vals = Array.isArray(val) ? val : [val];
+            for (const opt of el.options) opt.selected = vals.includes(opt.value);
+        } else el.value = val;
+    });
+
+    // Event listener for user input
+    const listener = (e) => {
+        let val;
+        if (el.type === "checkbox") val = el.checked;
+        else if (el.type === "radio") val = el.value;
+        else if (el.multiple && el.tagName === "SELECT") {
+            val = Array.from(el.selectedOptions).map(o => o.value);
+        } else val = el.value;
+
+        sig.value = parse(val, e);
+    };
+
+    el.addEventListener(event, listener, listenerOptions);
+    const prevDispose = runner.dispose;
+    runner.dispose = () => {
+        if (typeof prevDispose === "function") prevDispose();
+        el.removeEventListener(event, listener, listenerOptions);
+    };
+
+    return runner;
+}
+
+/** Reactive Style Mapping */
+/** Reactive Style Mapping (Object or Map) */
+export function bindStyle(el, styleSigOrFn) {
+    let prev = {};
+    return effect(() => {
+        const next = readBindingSource(styleSigOrFn);
+        const styles = (next && typeof next === "object") ? next : {};
+
+        for (const key of Object.keys(prev)) {
+            if (!(key in styles)) el.style[key] = "";
+        }
+
+        for (const [k, v] of Object.entries(styles)) {
+            if (v === null || v === undefined || v === false) el.style[k] = "";
+            else el.style[k] = String(v);
+        }
+
+        prev = { ...styles };
+    });
+}
+
+export function bindClass(el, sigMap) {
+    let prev = new Set();
+    return effect(() => {
+        const map = readBindingSource(sigMap);
+        const next = new Set();
+
+        if (typeof map === "string") {
+            map.split(/\s+/).filter(Boolean).forEach(cls => next.add(cls));
+        } else if (Array.isArray(map)) {
+            map.filter(Boolean).forEach(cls => next.add(String(cls)));
+        } else if (map && typeof map === "object") {
+            for (const [cls, active] of Object.entries(map)) {
+                if (active) next.add(cls);
+            }
+        }
+
+        for (const cls of prev) {
+            if (!next.has(cls)) el.classList.remove(cls);
+        }
+        for (const cls of next) {
+            if (!prev.has(cls)) el.classList.add(cls);
+        }
+
+        prev = next;
+    });
+}
+
+/** 
+ * Advanced Keyed List Binder.
+ * Minimizes DOM moves and preserves state (focus, etc).
+ */
+export function bindList(parent, itemsSignal, renderItem, options = {}) {
+    const keySelector = options.key;
+    const wrapFragment = options.wrapFragment ?? "span";
+    const cache = new Map(); // Store nodes by key
+    const keyOf = (item, index) => {
+        if (typeof keySelector === "function") return keySelector(item, index);
+        if (typeof keySelector === "string") return item?.[keySelector];
+        return index;
+    };
+    const toNode = (value) => {
+        if (!isBrowser) return value;
+        if (value instanceof DocumentFragment) {
+            if (wrapFragment === false) {
+                if (value.childNodes.length === 1) return value.firstChild;
+                const msg = "[DOM ERROR] bindList renderItem returned DocumentFragment with multiple roots and wrapFragment=false. Return one stable node or enable wrapping.";
+                if (CONFIG.debug) console.warn(msg);
+                throw new Error(msg);
+            }
+
+            if (CONFIG.debug) {
+                console.warn("[DOM WARNING] bindList renderItem returned DocumentFragment. Wrapping into stable container node.");
+            }
+            const tag = (typeof wrapFragment === "string" && wrapFragment) ? wrapFragment : "span";
+            const wrapper = document.createElement(tag);
+            if (tag === "span") wrapper.style.display = "contents";
+            wrapper.appendChild(value);
+            return wrapper;
+        }
+        if (value instanceof Node) return value;
+        if (value === null || value === undefined || value === false) return document.createTextNode("");
+        return document.createTextNode(String(value));
+    };
+
+    return effect(() => {
+        const items = Array.isArray(itemsSignal.value) ? itemsSignal.value : [];
+        const newKeys = new Set();
+        const nodes = [];
+
+        // 1. Map items to nodes (reuse or create)
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const key = keyOf(item, i);
+            if (newKeys.has(key)) {
+                if (CONFIG.debug) {
+                    console.warn(`[DOM WARNING] Duplicate key "${String(key)}" in bindList; keeping first instance.`);
+                }
+                continue;
+            }
+            newKeys.add(key);
+
+            let node;
+            if (cache.has(key)) {
+                node = cache.get(key);
+            } else {
+                node = toNode(renderItem(item, i));
+                cache.set(key, node);
+            }
+            nodes.push(node);
+        }
+
+        // 2. Remove orphaned nodes
+        for (const [key, node] of cache.entries()) {
+            if (!newKeys.has(key)) {
+                if (node.remove) node.remove();
+                cache.delete(key);
+            }
+        }
+
+        // 3. Fast reconcile
+        // We use a simplified keyed algorithm that is O(n) for moves.
+        let lastNode = null;
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            if (node.parentNode !== parent || node.previousSibling !== lastNode) {
+                if (lastNode === null) parent.prepend(node);
+                else lastNode.after(node);
+            }
+            lastNode = node;
+        }
+    });
+}
+
+=== core/signals.js ===
+/**
+ * core/signals.js
+ * 
+ * 10/10 STANKOVICH Reactor v2. 
+ * High-performance reactivity with batching, lazy computed, cycle detection,
+ * and built-in diagnostics.
+ */
+
+// Global configuration
+export const CONFIG = {
+    debug: false,
+    warningFlushThreshold: 100 // Warnings if flushing too often in one tick
+};
+
+let activeEffect = null;
+let effectQueue = new Set();
+let flushScheduled = false;
+let processingFlush = false;
+let batchingDepth = 0;
+let flushCountInTick = 0;
+let flushCountResetScheduled = false;
+
+const SIGNAL_TAG = Symbol.for("stankovich.signal");
+const COMPUTED_STOP = Symbol.for("stankovich.computed.stop");
+
+const STATS = {
+    signalsCreated: 0,
+    effectsCreated: 0,
+    activeEffects: 0,
+    totalFlushes: 0,
+    lastFlushMs: 0,
+    lastFlushAt: 0
+};
+
+const now = () => (
+    typeof performance !== "undefined" && typeof performance.now === "function"
+        ? performance.now()
+        : Date.now()
+);
+
+export function getReactiveStats() {
+    return {
+        ...STATS,
+        queuedEffects: effectQueue.size
+    };
+}
+
+// Tracker stack for nested component mounting
+let effectTracker = null;
+export function setEffectTracker(fn) {
+    const prev = effectTracker;
+    effectTracker = fn;
+    return prev;
+}
+
+/** Group multiple signal changes into one single update. */
+export function batch(fn) {
+    batchingDepth++;
+    try {
+        fn();
+    } finally {
+        batchingDepth--;
+        if (batchingDepth === 0) flushEffects();
+    }
+}
+
+/** Run code without creating signal dependencies. */
+export function untracked(fn) {
+    const prev = activeEffect;
+    activeEffect = null;
+    try {
+        return fn();
+    } finally {
+        activeEffect = prev;
+    }
+}
+
+function scheduleFlushCountReset() {
+    if (flushCountResetScheduled) return;
+    flushCountResetScheduled = true;
+    setTimeout(() => {
+        flushCountInTick = 0;
+        flushCountResetScheduled = false;
+    }, 0);
+}
+
+function registerFlushRequest() {
+    flushCountInTick++;
+    scheduleFlushCountReset();
+    if (CONFIG.debug && flushCountInTick > CONFIG.warningFlushThreshold) {
+        console.warn(`[REACTIVE WARNING] High flush frequency detected (${flushCountInTick} flush requests in one tick). Possible update loop?`);
+    }
+}
+
+function runEffectQueue() {
+    if (processingFlush) return;
+
+    flushScheduled = false;
+    processingFlush = true;
+    const start = now();
+
+    try {
+        while (effectQueue.size) {
+            const queue = [...effectQueue];
+            effectQueue.clear();
+
+            for (const runner of queue) {
+                if (!runner.active) continue;
+                if (runner.running) {
+                    console.error(`[REACTIVE ERROR] Circular dependency detected in effect: ${runner.label || "anonymous"}`);
+                    continue;
+                }
+                runner();
+            }
+        }
+    } finally {
+        processingFlush = false;
+        STATS.totalFlushes++;
+        STATS.lastFlushMs = now() - start;
+        STATS.lastFlushAt = Date.now();
+    }
+}
+
+/** The Scheduler: deduplicates and batches effect execution */
+function flushEffects() {
+    if (batchingDepth > 0) return;
+
+    registerFlushRequest();
+
+    if (flushScheduled || processingFlush) return;
+
+    flushScheduled = true;
+    queueMicrotask(runEffectQueue);
+}
+
+export function isSignal(x) {
+    return !!(x && typeof x === "object" && x[SIGNAL_TAG] === true);
+}
+
+/** 
+ * A Signal is a data box. 
+ */
+export function signal(initialValue, options = {}) {
+    let value = initialValue;
+    const subs = new Set();
+    const equals = options.equals || Object.is;
+    const label = options.label || 'sig';
+
+    STATS.signalsCreated++;
+
+    const out = {
+        label,
+        [SIGNAL_TAG]: true,
+        get value() {
+            if (activeEffect) {
+                subs.add(activeEffect);
+                activeEffect.deps.push(subs);
+            }
+            return value;
+        },
+        set value(newVal) {
+            if (equals(value, newVal)) return;
+            value = newVal;
+            if (subs.size === 0) return;
+            for (const sub of [...subs]) {
+                if (sub.active) effectQueue.add(sub);
+            }
+            flushEffects();
+        },
+        peek() { return value; },
+        toString() { return String(value); },
+        toJSON() { return value; }
+    };
+
+    return out;
+}
+
+/**
+ * An Effect is a reactive job.
+ */
+export function effect(fn, options = {}) {
+    const label = options.label || 'effect';
+    let runner;
+
+    // Check if we are outside a component mount/scope and warn if debug is on
+    if (CONFIG.debug && !effectTracker && !options.manual) {
+        console.warn(`[REACTIVE WARNING] Effect "${label}" created outside ownership. Call this.own() to prevent leaks.`);
+    }
+
+    const onCleanup = (cb) => {
+        if (typeof cb !== "function") {
+            throw new TypeError(`Effect cleanup must be a function [${label}]`);
+        }
+        runner._cleanup = cb;
+    };
+
+    const runRegisteredCleanup = () => {
+        if (!runner._cleanup) return;
+        try {
+            runner._cleanup();
+        } catch (e) {
+            console.error(`Effect cleanup error [${label}]:`, e);
+        } finally {
+            runner._cleanup = null;
+        }
+    };
+
+    runner = () => {
+        if (!runner.active) return;
+
+        runRegisteredCleanup();
+
+        cleanup(runner);
+
+        const prev = activeEffect;
+        activeEffect = runner;
+        runner.running = true; // Loop protection
+        try {
+            fn(onCleanup);
+        } catch (e) {
+            console.error(`[REACTIVE ERROR] in effect "${label}":`, e);
+            if (runner.stack) console.error("Effect created at:", runner.stack);
+            throw e;
+        } finally {
+            runner.running = false;
+            activeEffect = prev;
+        }
+    };
+
+    runner.active = true;
+    runner.running = false;
+    runner.label = label;
+    runner.deps = [];
+    runner._cleanup = null;
+    runner.dispose = null;
+    if (CONFIG.debug) {
+        runner.stack = new Error().stack.split("\n").slice(2).join("\n");
+    }
+
+    STATS.effectsCreated++;
+    STATS.activeEffects++;
+
+    // Initial run through same runner path
+    try {
+        runner();
+    } catch (e) {
+        runner.active = false;
+        cleanup(runner);
+        STATS.activeEffects = Math.max(0, STATS.activeEffects - 1);
+        throw e;
+    }
+
+    if (effectTracker) {
+        effectTracker(runner);
+    }
+
+    return runner;
+}
+
+export function cleanup(runner) {
+    if (!runner.deps) return;
+    for (const subs of runner.deps) subs.delete(runner);
+    runner.deps.length = 0;
+}
+
+export function stop(runner) {
+    if (runner && typeof runner === "object" && typeof runner[COMPUTED_STOP] === "function") {
+        runner[COMPUTED_STOP]();
+        return;
+    }
+
+    if (!runner || !runner.active) return;
+    runner.active = false;
+    effectQueue.delete(runner);
+
+    if (runner._cleanup) {
+        try {
+            runner._cleanup();
+        } catch (e) {
+            console.error(`Effect cleanup error [${runner.label || "effect"}]:`, e);
+        } finally {
+            runner._cleanup = null;
+        }
+    }
+
+    if (typeof runner.dispose === "function") {
+        try {
+            runner.dispose();
+        } catch (e) {
+            console.error(`Effect dispose error [${runner.label || "effect"}]:`, e);
+        } finally {
+            runner.dispose = null;
+        }
+    }
+
+    cleanup(runner);
+    STATS.activeEffects = Math.max(0, STATS.activeEffects - 1);
+}
+
+export function stopComputed(sig) {
+    if (!sig || typeof sig !== "object") return;
+    const stopFn = sig[COMPUTED_STOP] || sig.stop;
+    if (typeof stopFn === "function") stopFn.call(sig);
+}
+
+/**
+ * Lazy Computed Signal.
+ */
+export function computed(fn, options = {}) {
+    const equals = options.equals || Object.is;
+    const label = options.label || 'computed';
+    let value;
+    let hasValue = false;
+    let dirty = true;
+    let computing = false;
+    const subs = new Set();
+
+    const stopSelf = () => {
+        if (!runner.active) return;
+        runner.active = false;
+        cleanup(runner);
+        for (const sub of [...subs]) {
+            if (!sub || !Array.isArray(sub.deps)) continue;
+            let idx = sub.deps.indexOf(subs);
+            while (idx !== -1) {
+                sub.deps.splice(idx, 1);
+                idx = sub.deps.indexOf(subs);
+            }
+        }
+        subs.clear();
+    };
+
+    const runner = () => {
+        if (!runner.active) return;
+        if (!dirty) {
+            dirty = true;
+            if (subs.size === 0) return;
+            for (const sub of [...subs]) {
+                if (sub.active) effectQueue.add(sub);
+            }
+            flushEffects();
+        }
+    };
+    runner.active = true;
+    runner.running = false;
+    runner.label = `${label}_tracker`;
+    runner.deps = [];
+    runner._cleanup = null;
+    runner.dispose = null;
+    if (CONFIG.debug) {
+        runner.stack = new Error().stack.split("\n").slice(2).join("\n");
+    }
+
+    const evaluate = () => {
+        if (!runner.active) return value;
+
+        if (computing) {
+            const err = new Error(`[REACTIVE ERROR] Circular dependency in computed: ${label}`);
+            if (CONFIG.debug && runner.stack) {
+                console.error("Computed created at:", runner.stack);
+            }
+            throw err;
+        }
+
+        computing = true;
+        cleanup(runner);
+
+        const prev = activeEffect;
+        activeEffect = runner;
+        runner.running = true;
+        try {
+            const next = fn();
+            if (!hasValue || !equals(value, next)) value = next;
+            hasValue = true;
+            dirty = false;
+        } finally {
+            runner.running = false;
+            activeEffect = prev;
+            computing = false;
+        }
+    };
+
+    const out = {
+        label,
+        [SIGNAL_TAG]: true,
+        [COMPUTED_STOP]: stopSelf,
+        stop: stopSelf,
+        peek() {
+            if (!runner.active) return value;
+            if (dirty) evaluate();
+            return value;
+        },
+        get value() {
+            if (!runner.active) return value;
+            if (dirty) evaluate();
+            if (activeEffect) {
+                subs.add(activeEffect);
+                activeEffect.deps.push(subs);
+            }
+            return value;
+        }
+    };
+
+    return out;
+}
+
+export const createContext = (name, initialValue) => ({ name, initialValue });
+
+=== examples/app.js ===
+import { Component, h, fragment, signal, bindText, bindClass, css } from "../index.js";
+
+// Global state za aplikaciju (Signals mogu da žive van celog ciklusa komponente!)
+const isSidebarOpen = signal(true);
+const toggleSidebar = () => isSidebarOpen.value = !isSidebarOpen.value;
+
+/* ============================================================================
+ * HEADER (Top Navigation)
+ * ============================================================================ */
+Component.define("m-header")
+    .styles(css`
+        :host {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            grid-area: header;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+        button:hover { background: #f1f5f9; color: #0f172a; }
+        .user { 
+            font-weight: 600; 
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar {
+            width: 32px; height: 32px;
+            background: #3b82f6;
+            border-radius: 50%;
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
+    `)
+    .mount(function (root) {
+        root.appendChild(
+            h("button", { on: { click: toggleSidebar } }, "☰", "Toggle Menu")
+        );
+
+        root.appendChild(
+            h("div", { class: "user" },
+                h("span", null, "Admin User"),
+                h("div", { class: "avatar" }, "A")
+            )
+        );
+    })
+    .register();
+
+/* ============================================================================
+ * SIDEBAR (Left Navigation)
+ * ============================================================================ */
+Component.define("m-sidebar")
+    .styles(css`
+        :host {
+            grid-area: sidebar;
+            background: #0f172a;
+            color: white;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 260px;
+            border-right: 1px solid #1e293b;
+        }
+        :host(.closed) {
+            width: 0px;
+        }
+        .logo {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 1px solid #1e293b;
+            white-space: nowrap;
+            letter-spacing: -0.5px;
+            color: #f8fafc;
+        }
+        nav { padding: 16px 0; display: flex; flex-direction: column; gap: 4px; }
+        a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        a:hover, a.active { 
+            background: #1e293b; 
+            color: #f8fafc; 
+            border-left: 3px solid #3b82f6; 
+            padding-left: 21px; 
+        }
+    `)
+    .setup(function () {
+        return { isSidebarOpen };
+    })
+    .mount(function (root, ctx) {
+        // Dinamički binding `.closed` klase na host element
+        bindClass(this, () => ({ closed: !ctx.isSidebarOpen.value }));
+
+        root.appendChild(h("div", { class: "logo" }, "⚡ Minimal Admin"));
+
+        const nav = h("nav", null,
+            h("a", { href: "#", class: "active" }, "📊", "Dashboard"),
+            h("a", { href: "#" }, "👥", "Users"),
+            h("a", { href: "#" }, "🛒", "Orders"),
+            h("a", { href: "#" }, "⚙️", "Settings")
+        );
+        root.appendChild(nav);
+    })
+    .register();
+
+/* ============================================================================
+ * FOOTER
+ * ============================================================================ */
+Component.define("m-footer")
+    .styles(css`
+        :host {
+            grid-area: footer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        .links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin-left: 16px;
+        }
+    `)
+    .mount(function (root) {
+        root.appendChild(h("span", null, "© 2026 Signal-Driven Framework. All rights reserved."));
+        root.appendChild(h("div", { class: "links" },
+            h("a", { href: "#" }, "Privacy"),
+            h("a", { href: "#" }, "Terms")
+        ));
+    })
+    .register();
+
+/* ============================================================================
+ * CONTENT (Main View)
+ * ============================================================================ */
+Component.define("m-content")
+    .styles(css`
+        :host {
+            grid-area: content;
+            padding: 32px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        h1 { margin: 0 0 8px 0; color: #0f172a; font-size: 1.5rem; letter-spacing: -0.5px; }
+        h2 { margin: 0 0 16px 0; color: #1e293b; font-size: 1.1rem; }
+        p { color: #475569; line-height: 1.6; margin-top: 0; }
+        
+        .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 16px 0;
+            display: block;
+        }
+        
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover { background: #1d4ed8; }
+        button:active { transform: translateY(1px); }
+    `)
+    .setup(function () {
+        const clicks = signal(0);
+        const doubleClicks = signal(0);
+        return { clicks, doubleClicks };
+    })
+    .mount(function (root, ctx) {
+        const valSpan = h("span", { class: "value" });
+        const doublevalSpan = h("span", { class: "value" });
+
+        // Fine-grained direct DOM bindings!
+        bindText(valSpan, ctx.clicks);
+        bindText(doublevalSpan, ctx.doubleClicks);
+
+        root.appendChild(fragment(
+            h("div", null,
+                h("h1", null, "Nadzorna Tabla (Dashboard)"),
+                h("p", null, "Sve komponente ove stranice se rendaju samo jednom bazirano na čistoj B arhitekturi.")
+            ),
+
+            h("div", { class: "grid" },
+                h("div", { class: "card" },
+                    h("h2", null, "Brzi signal test"),
+                    h("p", null, "Ovo pokazuje precizan signal-to-DOM uticaj bez VDOM patchera."),
+                    valSpan,
+                    h("button", {
+                        on: {
+                            click: () => {
+                                ctx.clicks.value++;
+                                ctx.doubleClicks.value = ctx.clicks.value * 2;
+                            }
+                        }
+                    }, "Povećaj metrike")
+                ),
+
+                h("div", { class: "card" },
+                    h("h2", null, "Kalkulacije"),
+                    h("p", null, "Sekundarni signal pod uticajem glavnog signala."),
+                    doublevalSpan,
+                    h("p", { style: { fontSize: "0.85rem", color: "#64748b" } }, "Automatski sinhronizovan x2")
+                ),
+
+                h("div", { class: "card" },
+                    h("h2", null, "Arhitektura"),
+                    h("p", null, "✓ 0 zavisnosti (Zero Deps)"),
+                    h("p", null, "✓ Signal-driven engine"),
+                    h("p", null, "✓ Native Web Components izolacija"),
+                    h("p", null, "✓ O(1) DOM ažuriranja")
+                )
+            )
+        ));
+    })
+    .register();
+
+=== examples/index.html ===
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Admin Panel - Signal Driven</title>
+    <style>
+        /* Base styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+        }
+
+        /* App Layout Grid */
+        body {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: 64px 1fr 50px;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar content"
+                "sidebar footer";
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Ensure fonts are loaded effectively */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Responsive handling for mobile fallback */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 0px 1fr !important;
+            }
+
+            m-sidebar {
+                position: absolute;
+                z-index: 20;
+                height: 100vh;
+                box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Signal Driven Web Components Instances -->
+    <m-sidebar></m-sidebar>
+    <m-header></m-header>
+    <m-content></m-content>
+    <m-footer></m-footer>
+
+    <!-- Mount Runtime -->
+    <script type="module" src="./app.js"></script>
+
+</body>
+
+</html>
+=== examples/stress.html ===
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STANKOVICH Stress Test - 10/10</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: #0f172a;
+            color: white;
+            padding: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 5px;
+        }
+
+        .cell {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .cell.hot {
+            background: #ef4444;
+        }
+
+        .controls {
+            margin-bottom: 2rem;
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>STANKOVICH Stress Test: 1,000 Reactive Nodes</h1>
+
+    <div id="app"></div>
+
+    <script type="module">
+        import { Component, signal, h, text, bindList, batch, CONFIG } from "../index.js";
+
+        CONFIG.debug = true;
+
+        Component.define("stress-app")
+            .setup(() => {
+                const items = signal([]);
+                const lastUpdate = signal(0);
+
+                // Init 1000 items
+                const data = [];
+                for (let i = 0; i < 1000; i++) {
+                    data.push({ id: i, val: signal(0) });
+                }
+                items.value = data;
+
+                const randomize = () => {
+                    const start = performance.now();
+                    // BATCH IS KEY HERE!
+                    batch(() => {
+                        items.value.forEach(item => {
+                            if (Math.random() > 0.8) {
+                                item.val.value = Math.floor(Math.random() * 100);
+                            }
+                        });
+                    });
+                    lastUpdate.value = Math.round(performance.now() - start);
+                };
+
+                const reorder = () => {
+                    const start = performance.now();
+                    const shuffled = [...items.value].sort(() => Math.random() - 0.5);
+                    items.value = shuffled;
+                    lastUpdate.value = Math.round(performance.now() - start);
+                };
+
+                return { items, randomize, reorder, lastUpdate };
+            })
+            .mount(function (root, ctx) {
+                const head = h("div", { class: "controls" },
+                    h("button", { on: { click: ctx.randomize } }, "Randomize Values"),
+                    " ",
+                    h("button", { on: { click: ctx.reorder } }, "Shuffle List"),
+                    h("p", {}, "Last operation took: ", text(ctx.lastUpdate), " ms")
+                );
+
+                const grid = h("div", { class: "grid" });
+
+                // bindList with KEYED diffing
+                bindList(grid, ctx.items, (item) => {
+                    const valueEl = h("b", {}, text(item.val));
+                    const el = h("div", { class: "cell" }, "ID: ", item.id, " | ", valueEl);
+                    return el;
+                }, { key: "id" });
+
+                root.appendChild(h("div", {}, head, grid));
+            })
+            .register();
+
+        document.getElementById("app").appendChild(h("stress-app"));
+    </script>
+</body>
+
+</html>
+
+=== index.js ===
+/**
+ * index.js
+ * 
+ * 10/10 STANKOVICH Framework API.
+ * The Industrial Signal-Driven Web Component Framework.
+ */
+
+// Global Config
+export { CONFIG } from "./core/signals.js";
+
+// 1. Reactive Primitives (Reactor Core)
+export {
+    signal,
+    effect,
+    computed,
+    stopComputed,
+    batch,
+    untracked,
+    isSignal,
+    createContext,
+    getReactiveStats,
+    cleanup,
+    stop
+} from "./core/signals.js";
+
+// 2. DOM Utilities & Pro Binders
+export {
+    h,
+    fragment,
+    text,
+    bindText,
+    bindTextNode,
+    bindAttr,
+    bindProp,
+    bindClass,
+    bindList,
+    bindValue,
+    bindStyle,
+    css
+} from "./core/dom.js";
+
+// 3. Components Definition
+export { Component } from "./core/builder.js";
+export { BaseComponent, getComponentStats } from "./core/component.js";
+
+// 4. Debugging Utilities
+export { initDevTools } from "./core/debug.js";
+
+=== tests/benchmark.html ===
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STANKOVICH Benchmark: 10/10 vs Naive</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: #0f172a;
+            color: white;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .column {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+
+        .cell {
+            height: 10px;
+            background: #334155;
+        }
+
+        .cell.hot {
+            background: #3b82f6;
+        }
+
+        .metrics {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            margin-top: 0;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .naive {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>STANKOVICH Benchmark: 10,000 Reactive Updates</h1>
+
+    <div class="column">
+        <h2>🅱 STANKOVICH Engine (Granular)</h2>
+        <button id="run-lock">Run STANKOVICH Benchmark</button>
+        <div id="lock-metrics" class="metrics">-</div>
+        <div id="lock-grid" class="grid"></div>
+    </div>
+
+    <div class="column">
+        <h2 class="naive">Naive (Full Re-render)</h2>
+        <button id="run-naive">Run Naive Benchmark</button>
+        <div id="naive-metrics" class="metrics">-</div>
+        <div id="naive-grid" class="grid"></div>
+    </div>
+
+    <script type="module">
+        import { h, signal, bindClass, batch } from "../index.js";
+
+        const COUNT = 1000;
+        const ITERATIONS = 10;
+        const readHeapMB = () => {
+            if (!performance.memory) return null;
+            return performance.memory.usedJSHeapSize / (1024 * 1024);
+        };
+        const formatMetric = (timeMs, detail, memStart, memEnd) => {
+            if (memStart === null || memEnd === null) {
+                return `${timeMs.toFixed(2)} ms (${detail})`;
+            }
+            const delta = memEnd - memStart;
+            return `${timeMs.toFixed(2)} ms (${detail}) | heap delta ${delta.toFixed(2)} MB`;
+        };
+
+        // --- STANKOVICH SETUP ---
+        const lockGrid = document.getElementById("lock-grid");
+        const lockMetrics = document.getElementById("lock-metrics");
+        const lockData = [];
+
+        for (let i = 0; i < COUNT; i++) {
+            const sig = signal(false);
+            const el = h("div", { class: "cell" });
+            bindClass(el, () => ({ hot: sig.value }));
+            lockData.push({ sig, el });
+            lockGrid.appendChild(el);
+        }
+
+        document.getElementById("run-lock").onclick = () => {
+            const memStart = readHeapMB();
+            const start = performance.now();
+            for (let j = 0; j < ITERATIONS; j++) {
+                batch(() => {
+                    lockData.forEach(d => d.sig.value = !d.sig.value);
+                });
+            }
+            const end = performance.now();
+            const memEnd = readHeapMB();
+            lockMetrics.textContent = formatMetric(end - start, `Total for ${COUNT * ITERATIONS} changes`, memStart, memEnd);
+        };
+
+        // --- NAIVE SETUP ---
+        const naiveGrid = document.getElementById("naive-grid");
+        const naiveMetrics = document.getElementById("naive-metrics");
+        let naiveState = false;
+
+        function renderNaive() {
+            naiveGrid.innerHTML = "";
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < COUNT; i++) {
+                const el = document.createElement("div");
+                el.className = `cell ${naiveState ? 'hot' : ''}`;
+                frag.appendChild(el);
+            }
+            naiveGrid.appendChild(frag);
+        }
+        renderNaive();
+
+        document.getElementById("run-naive").onclick = () => {
+            const memStart = readHeapMB();
+            const start = performance.now();
+            for (let j = 0; j < ITERATIONS; j++) {
+                naiveState = !naiveState;
+                renderNaive(); // Force full DOM clear and rebuild
+            }
+            const end = performance.now();
+            const memEnd = readHeapMB();
+            naiveMetrics.textContent = formatMetric(end - start, `Total for ${ITERATIONS} re-renders`, memStart, memEnd);
+        };
+    </script>
+</body>
+
+</html>
+
+=== tests/browser.html ===
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Framework Browser Tests</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: #0f172a;
+            color: white;
+            padding: 2rem;
+        }
+
+        .test-case {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: #1e293b;
+            border-left: 4px solid #64748b;
+        }
+
+        .pass {
+            border-left-color: #10b981;
+        }
+
+        .fail {
+            border-left-color: #ef4444;
+        }
+
+        .status {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .pass .status {
+            color: #10b981;
+        }
+
+        .fail .status {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Framework Browser Tests</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        import { Component, signal, effect, h, text, bindText, bindProp, bindList } from "../index.js";
+
+        const resultsEl = document.getElementById("results");
+
+        function report(name, success, message = "") {
+            const el = document.createElement("div");
+            el.className = `test-case ${success ? 'pass' : 'fail'}`;
+            el.innerHTML = `
+                <div class="status">${success ? 'PASS' : 'FAIL'}: ${name}</div>
+                <div>${message}</div>
+            `;
+            resultsEl.appendChild(el);
+            console.log(`${success ? '✅' : '❌'} ${name} ${message ? '- ' + message : ''}`);
+        }
+
+        async function runTests() {
+            // Test 1: Component Definition & Props
+            // Fix: Access title via this.props.title inside mount
+            try {
+                Component.define("test-comp")
+                    .props({ title: { type: "string", default: "Default" } })
+                    .mount(function (root) {
+                        const h1 = h("h1");
+                        bindText(h1, this.props.title);
+                        root.appendChild(h1);
+                    })
+                    .register();
+
+                const el = document.createElement("test-comp");
+                document.body.appendChild(el);
+
+                // Wait for microtask for binding to settle if needed
+                await new Promise(r => setTimeout(r, 50));
+
+                const h1Inside = el.shadowRoot.querySelector("h1");
+                if (h1Inside && h1Inside.textContent === "Default") {
+                    report("Component Custom Element", true);
+                } else {
+                    report("Component Custom Element", false, `H1 text was "${h1Inside?.textContent}", expected "Default"`);
+                }
+
+                el.title = "Updated";
+                await new Promise(r => setTimeout(r, 50));
+
+                if (h1Inside.textContent === "Updated") {
+                    report("Prop Reflection to DOM", true);
+                } else {
+                    report("Prop Reflection to DOM", false, `H1 text was "${h1Inside.textContent}", expected "Updated"`);
+                }
+            } catch (e) {
+                report("Component Definition", false, e.message);
+            }
+
+            // Test 2: Input Binding (Property binding)
+            try {
+                const textSig = signal("init");
+                const input = h("input", { type: "text" });
+                bindProp(input, "value", textSig);
+
+                if (input.value === "init") {
+                    report("Input Value Binder", true);
+                } else {
+                    report("Input Value Binder", false, "Input value was not 'init'");
+                }
+
+                textSig.value = "new val";
+                await new Promise(r => setTimeout(r, 50));
+                if (input.value === "new val") {
+                    report("Input Reactive Update", true);
+                } else {
+                    report("Input Reactive Update", false, "Input value did not refresh");
+                }
+            } catch (e) {
+                report("Input Binding", false, e.message);
+            }
+
+            // Test 3: Event attribute injection guard
+            try {
+                window.__lock_xss = 0;
+                const btn = h("button", { onclick: "window.__lock_xss = 1" }, "safe");
+                document.body.appendChild(btn);
+                await new Promise(r => setTimeout(r, 20));
+                btn.click();
+                await new Promise(r => setTimeout(r, 20));
+
+                const hasInline = btn.getAttribute("onclick") !== null;
+                const executed = window.__lock_xss === 1;
+                if (!hasInline && !executed) {
+                    report("Event Attribute Guard", true);
+                } else {
+                    report("Event Attribute Guard", false, `inline=${hasInline} executed=${executed}`);
+                }
+
+                btn.remove();
+                delete window.__lock_xss;
+            } catch (e) {
+                report("Event Attribute Guard", false, e.message);
+            }
+
+            // Test 4: Reactive text() helper
+            try {
+                const textSig = signal("A");
+                const line = h("p", {}, "Val: ", text(textSig));
+                document.body.appendChild(line);
+                await new Promise(r => setTimeout(r, 20));
+
+                const before = line.textContent;
+                textSig.value = "B";
+                await new Promise(r => setTimeout(r, 20));
+                const after = line.textContent;
+
+                if (before === "Val: A" && after === "Val: B") {
+                    report("text() helper", true);
+                } else {
+                    report("text() helper", false, `before=${before} after=${after}`);
+                }
+
+                line.remove();
+            } catch (e) {
+                report("text() helper", false, e.message);
+            }
+
+            // Test 5: Disconnect Teardown
+            try {
+                let effectCount = 0;
+                const sig = signal(0);
+
+                Component.define("death-comp")
+                    .mount(function (root) {
+                        this.runEffect(() => {
+                            sig.value; // Track sig
+                            effectCount++;
+                        });
+                    })
+                    .register();
+
+                const el = document.createElement("death-comp");
+                document.body.appendChild(el);
+                await new Promise(r => setTimeout(r, 20));
+                const countAfterMount = effectCount; // Should be 1
+
+                document.body.removeChild(el);
+                await new Promise(r => setTimeout(r, 20));
+
+                sig.value++; // Should NOT trigger effect in death-comp
+                await new Promise(r => setTimeout(r, 50));
+
+                if (effectCount === countAfterMount) {
+                    report("Lifecycle Teardown", true, "Effect stopped correctly after disconnect");
+                } else {
+                    report("Lifecycle Teardown", false, `Effect count increased to ${effectCount} after disconnect!`);
+                }
+            } catch (e) {
+                report("Lifecycle Teardown", false, e.message);
+            }
+
+            // Test 4: Nested Mount Ownership
+            try {
+                let parentEffectRunCount = 0;
+                let childEffectRunCount = 0;
+                const sig = signal(0);
+
+                Component.define("child-comp")
+                    .mount((root) => {
+                        // Create effect inside child mount
+                        effect(() => { childEffectRunCount++; sig.value; });
+                        root.appendChild(h("p", {}, "Child"));
+                    })
+                    .register();
+
+                Component.define("parent-comp")
+                    .mount(function (root) {
+                        // 1. Start child mount (triggers its connectedCallback)
+                        root.appendChild(h("child-comp"));
+
+                        // 2. Create effect AFTER child mount
+                        // If tracker is stack-safe, this will belong to parent-comp
+                        this.runEffect(() => { parentEffectRunCount++; sig.value; });
+                    })
+                    .register();
+
+                const parent = h("parent-comp");
+                document.body.appendChild(parent);
+                await new Promise(r => setTimeout(r, 50));
+
+                const initialParentCount = parentEffectRunCount;
+
+                // Update signal - both should run
+                sig.value++;
+                await new Promise(r => setTimeout(r, 50));
+
+                if (parentEffectRunCount === (initialParentCount + 1)) {
+                    report("Nested Mount Ownership (Tracking)", true);
+                } else {
+                    report("Nested Mount Ownership (Tracking)", false, `Parent effect ran ${parentEffectRunCount} times, expected ${initialParentCount + 1}`);
+                }
+
+                // Disconnect parent - parent effect should stop
+                document.body.removeChild(parent);
+                await new Promise(r => setTimeout(r, 50));
+
+                sig.value++;
+                await new Promise(r => setTimeout(r, 50));
+
+                if (parentEffectRunCount === (initialParentCount + 1)) {
+                    report("Nested Mount Ownership (Teardown)", true);
+                } else {
+                    report("Nested Mount Ownership (Teardown)", false, `Parent effect still running after disconnect! Count: ${parentEffectRunCount}`);
+                }
+            } catch (e) {
+                report("Nested Mount Ownership", false, e.message);
+            }
+
+            // Test 5: bindList keyed reorder / node reuse
+            try {
+                const items = signal([
+                    { id: 1, label: "one" },
+                    { id: 2, label: "two" },
+                    { id: 3, label: "three" }
+                ]);
+                const host = h("div");
+                const nodesById = new Map();
+                let createCount = 0;
+
+                bindList(host, items, (item) => {
+                    createCount++;
+                    const row = h("div", { "data-id": String(item.id) }, item.label);
+                    nodesById.set(item.id, row);
+                    return row;
+                }, { key: (item) => item.id });
+
+                document.body.appendChild(host);
+                await new Promise(r => setTimeout(r, 20));
+
+                items.value = [items.value[2], items.value[0], items.value[1]];
+                await new Promise(r => setTimeout(r, 20));
+
+                const order = Array.from(host.children).map(n => Number(n.getAttribute("data-id")));
+                const identityPreserved = order.every((id, i) => nodesById.get(id) === host.children[i]);
+
+                if (order.join(",") === "3,1,2" && identityPreserved && createCount === 3) {
+                    report("bindList keyed reorder", true);
+                } else {
+                    report("bindList keyed reorder", false, `order=${order.join(",")} createCount=${createCount}`);
+                }
+
+                host.remove();
+            } catch (e) {
+                report("bindList keyed reorder", false, e.message);
+            }
+
+            try {
+                const probe = signal(0);
+                let effectRuns = 0;
+                let ticks = 0;
+
+                Component.define("discipline-comp")
+                    .mount(function (root) {
+                        const btn = h("button", {}, "tap");
+                        this.listen(btn, "click", () => { });
+                        this.runEffect((onCleanup) => {
+                            probe.value;
+                            effectRuns++;
+                            const timer = setInterval(() => { ticks++; }, 5);
+                            onCleanup(() => clearInterval(timer));
+                        });
+                        root.appendChild(btn);
+                    })
+                    .register();
+
+                const el = h("discipline-comp");
+                document.body.appendChild(el);
+                await new Promise(r => setTimeout(r, 30));
+                const runsAfterMount = effectRuns;
+
+                document.body.removeChild(el);
+                await new Promise(r => setTimeout(r, 30));
+                const ticksAfterRemove = ticks;
+                await new Promise(r => setTimeout(r, 30));
+                const ticksAfterWait = ticks;
+
+                probe.value++;
+                await new Promise(r => setTimeout(r, 30));
+
+                if (effectRuns === runsAfterMount && ticksAfterWait === ticksAfterRemove) {
+                    report("Teardown Discipline (effects/listeners/timers)", true);
+                } else {
+                    report("Teardown Discipline (effects/listeners/timers)", false, `runs=${effectRuns} ticks delta=${ticksAfterWait - ticksAfterRemove}`);
+                }
+            } catch (e) {
+                report("Teardown Discipline (effects/listeners/timers)", false, e.message);
+            }
+
+            // Test 7: Shadow DOM Isolation
+            try {
+                Component.define("style-comp")
+                    .styles(`h2 { color: rgb(255, 0, 0); }`)
+                    .mount((root) => {
+                        root.appendChild(h("h2", {}, "I am red"));
+                    })
+                    .register();
+
+                const el = document.createElement("style-comp");
+                document.body.appendChild(el);
+                await new Promise(r => setTimeout(r, 50));
+
+                const h2 = el.shadowRoot.querySelector("h2");
+                const color = getComputedStyle(h2).color;
+
+                if (color === "rgb(255, 0, 0)") {
+                    report("CSS Shadow Isolation", true);
+                } else {
+                    report("CSS Shadow Isolation", false, `Color was ${color}, expected red`);
+                }
+            } catch (e) {
+                report("Shadow DOM Isolation", false, e.message);
+            }
+        }
+
+        runTests();
+    </script>
+</body>
+
+</html>
+
+=== tests/dom-binders.test.js ===
+import test from "node:test";
+import assert from "node:assert";
+import { bindClass, bindStyle, bindValue } from "../core/dom.js";
+import { signal, stop } from "../core/signals.js";
+
+function makeClassList() {
+    const set = new Set();
+    return {
+        add(cls) { set.add(cls); },
+        remove(cls) { set.delete(cls); },
+        has(cls) { return set.has(cls); },
+        values() { return [...set]; }
+    };
+}
+
+test("DOM binders: bindClass supports plain object maps", () => {
+    const classList = makeClassList();
+    const el = { classList };
+
+    const runner = bindClass(el, { active: true, hidden: false });
+
+    assert.strictEqual(classList.has("active"), true);
+    assert.strictEqual(classList.has("hidden"), false);
+    stop(runner);
+});
+
+test("DOM binders: bindStyle removes stale keys", async () => {
+    const style = {};
+    const el = { style };
+    const styleSig = signal({ color: "red", display: "block" });
+
+    const runner = bindStyle(el, styleSig);
+    assert.strictEqual(el.style.color, "red");
+    assert.strictEqual(el.style.display, "block");
+
+    styleSig.value = { display: "none" };
+    await new Promise((r) => setTimeout(r, 10));
+
+    assert.strictEqual(el.style.color, "", "Removed style key should be reset");
+    assert.strictEqual(el.style.display, "none");
+    stop(runner);
+});
+
+test("DOM binders: bindValue unregisters listener on stop", async () => {
+    const listeners = new Map();
+    const input = {
+        type: "text",
+        tagName: "INPUT",
+        value: "",
+        addEventListener(type, fn) { listeners.set(type, fn); },
+        removeEventListener(type, fn) {
+            if (listeners.get(type) === fn) listeners.delete(type);
+        }
+    };
+
+    const valueSig = signal("init");
+    const runner = bindValue(input, valueSig);
+    assert.strictEqual(input.value, "init");
+    assert.strictEqual(listeners.has("input"), true);
+
+    valueSig.value = "from-signal";
+    await new Promise((r) => setTimeout(r, 10));
+    assert.strictEqual(input.value, "from-signal");
+
+    input.value = "from-user";
+    listeners.get("input")({ type: "input" });
+    assert.strictEqual(valueSig.value, "from-user");
+
+    stop(runner);
+    assert.strictEqual(listeners.has("input"), false, "Listener should be removed during stop()");
+});
+
+=== tests/lock_10_10.test.js ===
+import test from 'node:test';
+import assert from 'node:assert';
+import { signal, effect, batch, untracked, computed } from '../core/signals.js';
+
+test('10/10 Core: Batching updates', async (t) => {
+    const s = signal(0);
+    let runs = 0;
+
+    effect(() => {
+        s.value;
+        runs++;
+    });
+
+    assert.strictEqual(runs, 1);
+
+    // Batch 1000 updates
+    batch(() => {
+        for (let i = 0; i < 1000; i++) {
+            s.value = i;
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(runs, 2, '1000 updates should only trigger 1 rerun inside a batch');
+});
+
+test('10/10 Core: Effect cleanup hook', async (t) => {
+    const s = signal(0);
+    let cleanedUp = 0;
+
+    effect((onCleanup) => {
+        s.value;
+        onCleanup(() => {
+            cleanedUp++;
+        });
+    });
+
+    assert.strictEqual(cleanedUp, 0);
+
+    s.value = 1;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(cleanedUp, 1, 'Cleanup hook should run before re-execution');
+
+    s.value = 2;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(cleanedUp, 2);
+});
+
+test('10/10 Core: Untracked / Peek', async (t) => {
+    const s = signal(0);
+    let runs = 0;
+
+    effect(() => {
+        untracked(() => s.value);
+        runs++;
+    });
+
+    assert.strictEqual(runs, 1);
+
+    s.value = 10;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(runs, 1, 'Untracked read should NOT trigger dependencies');
+
+    const val = s.peek();
+    assert.strictEqual(val, 10, 'Peek should read without tracking');
+});
+
+test('10/10 Core: Lazy Computed', async (t) => {
+    const s = signal(1);
+    let computeCount = 0;
+
+    const double = computed(() => {
+        computeCount++;
+        return s.value * 2;
+    });
+
+    assert.strictEqual(computeCount, 0, 'Computed should not run until first read');
+
+    s.value = 2;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(computeCount, 0, 'Dirty updates should not recompute until read');
+
+    assert.strictEqual(double.value, 4);
+    assert.strictEqual(computeCount, 1);
+
+    s.value = 3;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(computeCount, 1, 'Second source change should still be lazy');
+    assert.strictEqual(double.value, 6);
+    assert.strictEqual(computeCount, 2);
+});
+
+=== tests/signals.test.js ===
+import test from 'node:test';
+import assert from 'node:assert';
+import { signal, effect, cleanup, stop, computed, stopComputed, isSignal, createContext } from '../core/signals.js';
+
+test('Signals: isSignal identification', (t) => {
+    const s = signal(0);
+    const c = computed(() => s.value * 2);
+
+    // PASS cases
+    assert.strictEqual(isSignal(s), true, 'Signal should be identified');
+    assert.strictEqual(isSignal(c), true, 'Computed should be identified');
+
+    // FAIL cases
+    assert.strictEqual(isSignal(null), false, 'null is not a signal');
+    assert.strictEqual(isSignal({}), false, 'Empty object is not a signal');
+    assert.strictEqual(isSignal({ value: 123 }), false, 'Plain object with "value" key is not a signal (strict check)');
+    assert.strictEqual(isSignal(123), false, 'Number is not a signal');
+});
+
+test('Signals: dependency chain', async (t) => {
+    const a = signal(1);
+    const b = computed(() => a.value + 1);
+    const c = computed(() => b.value + 1);
+
+    assert.strictEqual(c.value, 3);
+
+    a.value = 10;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(c.value, 12, 'Chain should update correctly');
+});
+
+test('Signals: effect stop prevents further runs', async (t) => {
+    const s = signal(1);
+    let called = 0;
+    const runner = effect(() => {
+        called++;
+        s.value;
+    });
+
+    assert.strictEqual(called, 1);
+
+    stop(runner);
+    s.value = 2;
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(called, 1, 'Should NOT run after stop');
+
+    // Even manual call of a stopped runner should be guarded if we wanted, 
+    // but the current implementation allows it if manually called but it won't re-track.
+});
+
+test('Signals: batching multiple signals', async (t) => {
+    const a = signal(0);
+    const b = signal(0);
+    let called = 0;
+
+    effect(() => {
+        a.value;
+        b.value;
+        called++;
+    });
+
+    assert.strictEqual(called, 1);
+
+    a.value = 1;
+    b.value = 1;
+    a.value = 2;
+
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(called, 2, 'Multiple signals should still result in 1 flush');
+});
+
+test('Signals: nested effects (ownership)', async (t) => {
+    const parentSignal = signal(0);
+    const childSignal = signal(0);
+    let parentRuns = 0;
+    let childRuns = 0;
+
+    effect(() => {
+        parentRuns++;
+        parentSignal.value;
+
+        // This is generally a bad pattern but happens in components
+        effect(() => {
+            childRuns++;
+            childSignal.value;
+        });
+    });
+
+    assert.strictEqual(parentRuns, 1);
+    assert.strictEqual(childRuns, 1);
+
+    parentSignal.value++;
+    await new Promise(r => setTimeout(r, 10));
+
+    assert.strictEqual(parentRuns, 2);
+    // the previous child effect should have been cleaned up if it was "tracked" 
+    // but here we are testing the raw signal engine.
+    // In our component engine, we use trackers to manage this.
+});
+
+test('Signals: computed invalidation notifies subscribers', async () => {
+    const base = signal(1);
+    const doubled = computed(() => base.value * 2);
+    let seen = 0;
+    let runs = 0;
+
+    effect(() => {
+        runs++;
+        seen = doubled.value;
+    });
+
+    assert.strictEqual(seen, 2);
+    assert.strictEqual(runs, 1);
+
+    base.value = 2;
+    await new Promise(r => setTimeout(r, 10));
+
+    assert.strictEqual(seen, 4, 'Subscriber effect should receive recomputed value');
+    assert.strictEqual(runs, 2, 'Effect should rerun exactly once for one source update');
+});
+
+test('Signals: stop executes cleanup hook and dispose callback', () => {
+    const s = signal(0);
+    let cleanupRuns = 0;
+    let disposeRuns = 0;
+
+    const runner = effect((onCleanup) => {
+        s.value;
+        onCleanup(() => { cleanupRuns++; });
+    });
+
+    runner.dispose = () => { disposeRuns++; };
+    stop(runner);
+
+    assert.strictEqual(cleanupRuns, 1, 'stop() must run latest registered cleanup');
+    assert.strictEqual(disposeRuns, 1, 'stop() must run disposer exactly once');
+});
+
+test('Signals: computed stop detaches from dependencies', async () => {
+    const src = signal(1);
+    let computeRuns = 0;
+    const c = computed(() => {
+        computeRuns++;
+        return src.value * 10;
+    });
+
+    assert.strictEqual(c.value, 10);
+    assert.strictEqual(computeRuns, 1);
+
+    stopComputed(c);
+    src.value = 2;
+    await new Promise(r => setTimeout(r, 10));
+
+    assert.strictEqual(computeRuns, 1, 'Stopped computed should not recompute');
+    assert.strictEqual(c.value, 10, 'Stopped computed keeps last cached value');
+});
+
+=== tests/teardown.test.js ===
+import test from 'node:test';
+import assert from 'node:assert';
+import { signal, effect, setEffectTracker, stop } from '../core/signals.js';
+
+test('10/10 Teardown Discipline Logic', async (t) => {
+    let ownedEffects = new Set();
+    let cleanupRuns = 0;
+
+    // We mock the component ownership logic
+    const tracker = (runner) => {
+        ownedEffects.add(runner);
+    };
+
+    const prev = setEffectTracker(tracker);
+
+    // Create 100 effects
+    for (let i = 0; i < 100; i++) {
+        effect((onCleanup) => {
+            onCleanup(() => { cleanupRuns++; });
+        });
+    }
+
+    setEffectTracker(prev);
+
+    assert.strictEqual(ownedEffects.size, 100, "100 effects should be registered");
+
+    // Cleanup
+    ownedEffects.forEach(e => stop(e));
+
+    // Verify all are inactive
+    ownedEffects.forEach(e => {
+        assert.strictEqual(e.active, false);
+    });
+    assert.strictEqual(cleanupRuns, 100, "All cleanup hooks should run on teardown");
+});
+

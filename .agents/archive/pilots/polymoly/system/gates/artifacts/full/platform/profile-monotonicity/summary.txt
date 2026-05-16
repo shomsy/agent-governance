@@ -1,0 +1,7 @@
+Profile Monotonicity Gate
+checks_total: 5
+checks_failed: 0
+gate: PASS
+
+artifacts:
+- system/gates/artifacts/full/platform/profile-monotonicity/checks.tsv

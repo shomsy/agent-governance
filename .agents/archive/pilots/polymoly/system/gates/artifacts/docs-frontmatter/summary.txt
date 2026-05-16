@@ -1,0 +1,5 @@
+Docs Frontmatter Gate
+files_checked: 26
+failures: 0
+gate: PASS
+artifacts: system/gates/artifacts/docs-frontmatter/checks.tsv

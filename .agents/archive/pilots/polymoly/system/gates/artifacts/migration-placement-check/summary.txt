@@ -1,0 +1,5 @@
+MIGRATION PLACEMENT: PASS
+coverage_uncovered=0
+missing_required=0
+target_exists=0
+checks_file=system/gates/artifacts/migration-placement-check/checks.tsv

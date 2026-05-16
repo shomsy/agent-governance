@@ -1,0 +1,3 @@
+CI RUNNER ENTRYPOINT: PASS
+failures=0
+checks_file=system/gates/artifacts/ci-runner-entrypoint/checks.tsv

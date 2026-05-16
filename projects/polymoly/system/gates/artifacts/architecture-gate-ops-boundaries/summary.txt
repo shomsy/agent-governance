@@ -1,3 +1,0 @@
-GATE OPS BOUNDARIES: PASS
-findings=0
-checks_file=system/gates/artifacts/architecture-gate-ops-boundaries/checks.tsv

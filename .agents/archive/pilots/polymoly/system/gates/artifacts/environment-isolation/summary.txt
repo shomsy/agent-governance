@@ -1,0 +1,12 @@
+Environment Isolation Gate
+checks_total: 25
+checks_failed: 0
+gate: PASS
+
+env_values:
+- local_project=poly-moly-local
+- stage_project=poly-moly-stage
+- prod_project=poly-moly-prod
+
+artifacts:
+- system/gates/artifacts/environment-isolation/checks.tsv
