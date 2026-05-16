@@ -145,6 +145,9 @@ if [ ! -f "$TARGET_DIR/.agents/config/project.json" ]; then
 fi
 
 # 6. Copy the project-local AGENTS scaffold to root
+if [ -f "$TARGET_DIR/AGENTS.md" ]; then
+    cp "$TARGET_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md.bak"
+fi
 cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 
 # 5. Keep merge-files.sh in sync with the latest OS version

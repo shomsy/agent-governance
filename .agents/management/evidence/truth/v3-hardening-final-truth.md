@@ -2,7 +2,7 @@
 
 **Date**: 2026-05-16
 **Branch**: main
-**Commit at pass start**: `4563b3aab20e00cd5880ec40720c1e820c12b9b9`
+**Commit at pass start**: `8d4e3d274a4eca00e4e95f81ba068e31a417e26b`
 
 ## Truth Table
 
@@ -21,7 +21,7 @@
 | All 16 smoke checks pass | Phase-09 evidence | ✅ TRUE | |
 | Management state agrees with dashboard | CURRENT.md updated on both sides | ✅ TRUE | |
 | No AvaX/PHP leakage in parent core | grep check PASS | ✅ TRUE | |
-| No placeholder SHA in reports | grep check PASS | ✅ TRUE | Real SHA: 4563b3aab20e00cd5880ec40720c1e820c12b9b9 |
+| No placeholder SHA in reports | grep check PASS | ✅ TRUE | Real SHA: 8d4e3d274a4eca00e4e95f81ba068e31a417e26b |
 | Recursive review clean | Phase-11 review | ✅ APPROVED_WITH_DEBT | 1 YELLOW accepted |
 
 ## Honest Assessment

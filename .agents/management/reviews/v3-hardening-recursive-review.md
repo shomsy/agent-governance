@@ -2,7 +2,7 @@
 
 **Date**: 2026-05-16
 **Reviewer**: Antigravity (automated pass + human-level reasoning)
-**Commit reviewed**: 4563b3aab20e00cd5880ec40720c1e820c12b9b9 + hardening changes
+**Commit reviewed**: 8d4e3d274a4eca00e4e95f81ba068e31a417e26b + hardening changes
 
 ## Scope
 

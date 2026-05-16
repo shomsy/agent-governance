@@ -7,7 +7,7 @@ Last updated: 2026-05-16
 | Phase | Status | Date |
 |:---|:---|:---|
 | V1 initial governance kernel | Done | 2026-03-27 |
-| V2 evolution — evidence, management, profiles, review | Done | 2026-05-16 |
+| V3 evolution — evidence, management, profiles, review | Done | 2026-05-16 |
 
 ## Current Flow
 
