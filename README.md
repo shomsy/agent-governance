@@ -77,7 +77,7 @@ that any project can adopt, regardless of language, framework, or architecture.
 
 ---
 
-## Evidence Model (V2)
+## Evidence Model
 
 Evidence is split into two layers:
 
@@ -92,7 +92,7 @@ evidence. Duplication is forbidden.
 
 ---
 
-## Management Model (V2)
+## Management Model
 
 ```
 .agents/management/
@@ -119,7 +119,8 @@ or project-type-specific rules. The parent harness works without them.
 |:---|:---|
 | **Languages** | `php`, `javascript`, `typescript`, `css`, `nodejs`, `go` |
 | **Frameworks** | `laravel`, `express`, `react`, `nextjs`, `v-web-components` |
-| **Project Types** | `web-app`, `library`, `cli`, `api-service`, `monorepo` |
+| **Project Types** | `framework`, `web-app`, `library`, `cli`, `api-service`, `monorepo`, `infrastructure` |
+| **Overlays** | `strict-security`, `high-performance`, `experimental`, `enterprise-regulated` |
 | **Repository Kinds** | `governance-source` |
 
 ### Profile Selection

@@ -1,6 +1,6 @@
 # AGENTS.md — Agent Harness Repository Contract
 
-Version: 2.0.0
+Version: 3.0.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -36,8 +36,11 @@ Agents MUST follow this order in this repository:
 22. `.agents/governance/standards/governance/governance-authoring-standard.md`
 23. `.agents/governance/standards/governance/governance-evolution-policy.md`
 24. `.agents/governance/delivery/release/release-and-rollback-policy.md`
-25. `.agents/governance/delivery/operations/management-model.md`
-26. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+25. `.agents/governance/delivery/release/advanced-deployment-policy.md`
+26. `.agents/governance/delivery/operations/management-model.md`
+27. `.agents/governance/delivery/operations/enterprise-operational-lifecycle.md`
+28. `.agents/governance/intelligence/memory/memory-lifecycle.md`
+29. `.agents/governance/intelligence/memory/v3-intelligence-lifecycle.md`
 27. `.agents/governance/skills/contract/skill-contract.md`
 28. `.agents/governance/agents/roles/agent-roles.md`
 29. `.agents/governance/delivery/workflows/workflow-pipelines.md`

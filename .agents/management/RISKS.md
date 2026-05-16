@@ -1,29 +1,25 @@
-# Risks — Accepted Debt and Risk
+# Risks Register
 
-## Entry Format
+Last updated: 2026-05-16
 
-- `id`:
-- `recorded_at`:
-- `updated_at`:
-- `status`: open | accepted | mitigated | closed
-- `severity`: low | medium | high | critical
-- `owner`:
-- `description`:
-- `target_resolution`:
-- `expiry`:
-- `evidence`:
-- `blocking_decision`:
+## Active Risks
 
-## Current Risks
+### RISK-INSTALLER-01 — Partial Installer Smoke Coverage
 
-- `id`: RISK-V3-TRANSITION
-- `recorded_at`: 2026-05-16
-- `updated_at`: 2026-05-16
-- `status`: open
-- `severity`: medium
-- `owner`: harness-architect
-- `description`: Massive overhaul across 17 phases could introduce regressions in existing installations.
-- `target_resolution`: Maintain continuous backward compatibility through scaffolding and migration systems.
-- `expiry`: 2026-06-01
-- `evidence`: V3 Productization Pass
-- `blocking_decision`: Accept risk, proceed with V3 evolution.
+| Field | Value |
+|---|---|
+| **ID** | RISK-INSTALLER-01 |
+| **Severity** | MEDIUM |
+| **Owner** | maintainer |
+| **Description** | `--upgrade` and `--migrate` flags are implemented in `install-os.sh` but not verified against a clean external target in this pass |
+| **Impact** | Docs may describe behavior not yet smoke-proven |
+| **Likelihood** | LOW — flags are implemented, pattern is consistent with --dry-run |
+| **Mitigation** | `--dry-run` works. Profile selection works. Core install works. |
+| **Expiry** | 2026-06-16 |
+| **Evidence** | `.agents/management/evidence/phases/v3-hardening-05-installer-proof.md` |
+| **Blocking Decision** | Accepted as YELLOW debt. Does not block commit. Blocks final productization sign-off. |
+| **Status** | ACTIVE |
+
+## Resolved Risks
+
+*(None this pass)*

@@ -2,3 +2,18 @@ __pycache__/
 *.pyc
 .agent/
 .agents/management/learning/observations.jsonl
+
+# Generated test install output
+test-install-dry/
+
+# Temporary scripts created during productization passes
+create_schemas.py
+update_profiles.py
+polish_profiles.py
+
+# Generated merge snapshots (reproduced on demand via merge-files.sh)
+agent-harness.txt
+agent-harness.part-*.txt
+
+# Installer-copied rules engine (reproduced via install-os.sh --upgrade)
+.agents/.rules/
