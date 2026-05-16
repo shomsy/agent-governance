@@ -4,11 +4,12 @@ Last updated: 2026-05-16
 
 ## Current Phase
 
-V3 Productization & Enterprise Alignment (Phase 01)
+V3 Hardening & Enterprise Rollout (V4 Roadmap)
 
 ## Objective
 
-Evolve the Agent Harness into a true AI-Native Enterprise SDLC Operating System.
+Transform the Agent Harness into a mission-critical, enterprise-grade AI-native foundation.
+Detailed roadmap: [.agents/management/ROADMAP_V4.md](../.agents/management/ROADMAP_V4.md)
 
 ## Active Tasks
 

@@ -9,6 +9,7 @@ TARGET_DIR="${1:-}"
 SELECTED_LANGUAGES=()
 SELECTED_FRAMEWORKS=()
 SELECTED_REPOSITORY_PROFILES=()
+PROJECT_TYPES=()
 CODING_PROFILES=()
 ARCH_PROFILES=()
 PLATFORM_TARGETS=()
@@ -24,43 +25,40 @@ if [ -z "$TARGET_DIR" ]; then
     exit 1
 fi
 
+# Convert TARGET_DIR to absolute path if it exists
+if [ -d "$TARGET_DIR" ]; then
+    TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+fi
+
 shift
 
-echo "🚀 Installing Agent Harness into $TARGET_DIR..."
-
+# Helper functions
 format_code_list() {
     if [ "$#" -eq 0 ]; then
         printf '[declare explicitly]'
         return
     fi
-
     local joined=""
     local item
     for item in "$@"; do
-        if [ -n "$joined" ]; then
-            joined+=", "
-        fi
+        [ -n "$joined" ] && joined+=", "
         joined+="$item"
     done
-
     printf '%s' "$joined"
 }
 
 copy_rules_tree() {
     local target_rules_dir="$1"
-
-    cp -R "$SCRIPT_DIR/.agents/." "$target_rules_dir/"
+    mkdir -p "$target_rules_dir"
+    # Use find to avoid recursive copy of .rules into itself
+    find "$SCRIPT_DIR/.agents" -maxdepth 1 -not -name ".rules" -not -name ".agents" -not -name "." -exec cp -R {} "$target_rules_dir/" \;
 }
 
 copy_visible_support_tree() {
     local relative_path="$1"
     local source_path="$SCRIPT_DIR/.agents/$relative_path"
     local target_path="$TARGET_DIR/.agents/$relative_path"
-
-    if [ ! -d "$source_path" ]; then
-        return
-    fi
-
+    [ ! -d "$source_path" ] && return
     mkdir -p "$target_path"
     cp -R "$source_path/." "$target_path/"
 }
@@ -68,20 +66,15 @@ copy_visible_support_tree() {
 append_unique() {
     local item="$1"
     local existing
-
     for existing in "${PLATFORM_TARGETS[@]}"; do
-        if [ "$existing" = "$item" ]; then
-            return
-        fi
+        [ "$existing" = "$item" ] && return
     done
-
     PLATFORM_TARGETS+=("$item")
 }
 
 write_file() {
     local relative_path="$1"
     local target_file="$TARGET_DIR/$relative_path"
-
     mkdir -p "$(dirname "$target_file")"
     cat > "$target_file"
 }
@@ -90,121 +83,37 @@ escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
 }
 
-# 1. Create target and .agents
-mkdir -p "$TARGET_DIR/.agents"
-
-# 2. Copy the full reusable `.agents` project into hidden `.rules`
-mkdir -p "$TARGET_DIR/.agents/.rules"
-copy_rules_tree "$TARGET_DIR/.agents/.rules"
-
-# 3. Copy the visible project skeleton into `.agents`
-if [ -d "$SCRIPT_DIR/scaffolds/agents-skeleton" ]; then
-    cp -r "$SCRIPT_DIR/scaffolds/agents-skeleton/." "$TARGET_DIR/.agents/"
-fi
-
-# 3b. Copy reusable runtime support into the visible `.agents` workspace
-copy_visible_support_tree "hooks"
-copy_visible_support_tree "management/learning"
-copy_visible_support_tree "management/memories"
-
-# 4. Initialize the runtime .agents directory for memory, sessions, and strategic context
-mkdir -p "$TARGET_DIR/.agents/memory"
-mkdir -p "$TARGET_DIR/.agents/sessions"
-mkdir -p "$TARGET_DIR/.agents/context/product"
-mkdir -p "$TARGET_DIR/.agents/context/users"
-mkdir -p "$TARGET_DIR/.agents/context/strategy"
-mkdir -p "$TARGET_DIR/.agents/context/stakeholders"
-touch "$TARGET_DIR/.agents/memory/.gitkeep"
-touch "$TARGET_DIR/.agents/sessions/.gitkeep"
-touch "$TARGET_DIR/.agents/context/product/.gitkeep"
-touch "$TARGET_DIR/.agents/context/users/.gitkeep"
-touch "$TARGET_DIR/.agents/context/strategy/.gitkeep"
-touch "$TARGET_DIR/.agents/context/stakeholders/.gitkeep"
-
-# 5. Initialize the local .agents/skills directory
-mkdir -p "$TARGET_DIR/.agents/skills"
-touch "$TARGET_DIR/.agents/skills/.gitkeep"
-
-# 5b. Create V2 evidence dashboard at project root
-if [ -d "$SCRIPT_DIR/scaffolds/evidence-dashboard" ]; then
-    mkdir -p "$TARGET_DIR/EVIDENCE"
-    cp -r "$SCRIPT_DIR/scaffolds/evidence-dashboard/." "$TARGET_DIR/EVIDENCE/"
-    echo "📊 Created EVIDENCE/ human dashboard"
-fi
-
-# 5c. Create V2 machine evidence directories
-for evidence_subdir in phases reviews raw validation security performance releases truth; do
-    mkdir -p "$TARGET_DIR/.agents/management/evidence/$evidence_subdir"
-    touch "$TARGET_DIR/.agents/management/evidence/$evidence_subdir/.gitkeep"
-done
-
-# 5d. Create V2 project config skeleton
-mkdir -p "$TARGET_DIR/.agents/config"
-if [ ! -f "$TARGET_DIR/.agents/config/project.json" ]; then
-    cp "$SCRIPT_DIR/scaffolds/agents-skeleton/.agents/config/project.json" "$TARGET_DIR/.agents/config/project.json" 2>/dev/null || true
-fi
-
-# 6. Copy the project-local AGENTS scaffold to root
-if [ -f "$TARGET_DIR/AGENTS.md" ]; then
-    cp "$TARGET_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md.bak"
-fi
-cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
-
-# 5. Keep merge-files.sh in sync with the latest OS version
-if [ ! -f "$TARGET_DIR/merge-files.sh" ] || ! cmp -s "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"; then
-    cp "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"
-    chmod +x "$TARGET_DIR/merge-files.sh"
-    echo "🧩 Synced merge-files.sh"
-else
-    chmod +x "$TARGET_DIR/merge-files.sh"
-    echo "🧩 merge-files.sh already up to date"
-fi
-
-if [ -d "$TARGET_DIR/.agents/hooks" ]; then
-    chmod +x "$TARGET_DIR/.agents/hooks/"*.sh 2>/dev/null || true
-    chmod +x "$TARGET_DIR/.agents/hooks/"*.py 2>/dev/null || true
-fi
-
-if [ -f "$TARGET_DIR/.agents/management/learning/analyze-instincts.py" ]; then
-    chmod +x "$TARGET_DIR/.agents/management/learning/analyze-instincts.py"
-fi
-
-# 6. Resolve selected reusable profiles for the local AGENTS scaffold
+# --- Phase 1: Argument Parsing ---
 for arg in "$@"; do
     case $arg in
         --language=*)
         LANGUAGE_NAME="${arg#*=}"
         if [ -f "$SCRIPT_DIR/.agents/governance/profiles/languages/$LANGUAGE_NAME.md" ]; then
-            echo "📦 Selecting language profile: $LANGUAGE_NAME"
             SELECTED_LANGUAGES+=("$LANGUAGE_NAME")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/languages/$LANGUAGE_NAME.md")
+            if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
+                ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/languages/$LANGUAGE_NAME.md")
+            fi
         else
             echo "⚠️  Unknown reusable language profile: $LANGUAGE_NAME"
-        fi
-
-        if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
-            ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/languages/$LANGUAGE_NAME.md")
         fi
         ;;
         --framework=*)
         FRAME="${arg#*=}"
         if [ -f "$SCRIPT_DIR/.agents/governance/profiles/frameworks/$FRAME.md" ]; then
-            echo "📦 Selecting framework profile: $FRAME"
             SELECTED_FRAMEWORKS+=("$FRAME")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/frameworks/$FRAME.md")
+            if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/frameworks/$FRAME.md" ]; then
+                ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md")
+            fi
         else
             echo "⚠️  Unknown reusable framework profile: $FRAME"
-        fi
-
-        if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/frameworks/$FRAME.md" ]; then
-            ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md")
         fi
         ;;
         --repository-profile=*)
         REPOSITORY_PROFILE_NAME="${arg#*=}"
         if [ -f "$SCRIPT_DIR/.agents/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md" ]; then
-            echo "📦 Selecting repository profile: $REPOSITORY_PROFILE_NAME"
-            SELECTED_REPOSITORY_PROFILES+=(".agents/.rules/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md")
+            SELECTED_REPOSITORY_PROFILES+=("$REPOSITORY_PROFILE_NAME")
         else
             echo "⚠️  Unknown reusable repository profile: $REPOSITORY_PROFILE_NAME"
         fi
@@ -212,7 +121,6 @@ for arg in "$@"; do
         --project-type=*)
         TYPE="${arg#*=}"
         if [ -f "$SCRIPT_DIR/.agents/governance/profiles/project-types/$TYPE.md" ]; then
-            echo "📦 Selecting project type: $TYPE"
             PROJECT_TYPES+=("$TYPE")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/project-types/$TYPE.md")
         else
@@ -222,7 +130,6 @@ for arg in "$@"; do
         --repo-kind=*)
         KIND="${arg#*=}"
         if [ -f "$SCRIPT_DIR/.agents/governance/profiles/repository-kinds/$KIND.md" ]; then
-            echo "📦 Selecting repository kind: $KIND"
             SELECTED_REPOSITORY_PROFILES+=("$KIND")
         else
             echo "⚠️  Unknown reusable repository kind: $KIND"
@@ -231,20 +138,14 @@ for arg in "$@"; do
         --platform=*)
         PLATFORM_FLAGS_EXPLICITLY_SET=true
         PLATFORM_VALUE="${arg#*=}"
-        IFS=',' read -r -a PLATFORM_ITEMS <<< "$PLATFORM_VALUE"
-
-        for PLATFORM_ITEM in "${PLATFORM_ITEMS[@]}"; do
-            case "$PLATFORM_ITEM" in
-                all)
-                    GENERATE_ALL_PLATFORM_ADAPTERS=true
-                    ;;
+        IFS=',' read -ra ADAPTERS <<< "$PLATFORM_VALUE"
+        for PLATFORM_ITEM in "${ADAPTERS[@]}"; do
+            case $PLATFORM_ITEM in
                 claude|cursor|codex|gemini|opencode|cline)
                     append_unique "$PLATFORM_ITEM"
                     ;;
-                antigravity|native)
-                    echo "ℹ️  Native AGENTS.md already covers the Antigravity-style entry point."
-                    ;;
-                "")
+                all)
+                    GENERATE_ALL_PLATFORM_ADAPTERS=true
                     ;;
                 *)
                     echo "⚠️  Unknown platform adapter: $PLATFORM_ITEM"
@@ -267,6 +168,8 @@ for arg in "$@"; do
     esac
 done
 
+# --- Phase 2: Action Branching ---
+
 if [ "$VALIDATE_ONLY" = true ]; then
     echo "🔍 Validating V3 OS Installation at $TARGET_DIR..."
     if [ ! -d "$TARGET_DIR/.agents/.rules" ]; then
@@ -282,31 +185,76 @@ if [ "$DRY_RUN" = true ]; then
     exit 0
 fi
 
+echo "🚀 Installing Agent Harness into $TARGET_DIR..."
+
+# --- Phase 3: Execution ---
+
+# 1. Archive legacy if migration
 if [ "$IS_MIGRATION" = true ]; then
     echo "🔄 MIGRATION MODE: Archiving legacy structures..."
     mkdir -p "$TARGET_DIR/.agents/archive/legacy"
-    mv "$TARGET_DIR/.agents/management/BUGS.md" "$TARGET_DIR/.agents/archive/legacy/" 2>/dev/null || true
-    mv "$TARGET_DIR/.agents/management/TODO.md" "$TARGET_DIR/.agents/archive/legacy/" 2>/dev/null || true
+    for f in BUGS.md TODO.md; do
+        [ -f "$TARGET_DIR/.agents/management/$f" ] && mv "$TARGET_DIR/.agents/management/$f" "$TARGET_DIR/.agents/archive/legacy/"
+    done
     echo "✅ Legacy structures archived."
 fi
 
+# 2. Upgrade if requested
 if [ "$IS_UPGRADE" = true ]; then
     echo "🔼 UPGRADE MODE: Updating .rules engine only."
     rm -rf "$TARGET_DIR/.agents/.rules"
-    mkdir -p "$TARGET_DIR/.agents/.rules"
-    copy_rules_tree "$TARGET_DIR/.agents/.rules"
-    echo "✅ OS Engine upgraded."
-    exit 0
 fi
 
-if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ] || [ "$PLATFORM_FLAGS_EXPLICITLY_SET" = false ]; then
-    if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ]; then
-        PLATFORM_TARGETS=(claude cursor codex gemini opencode cline)
-    else
-        PLATFORM_TARGETS=(claude cursor codex gemini)
-    fi
+# 3. Create structure
+mkdir -p "$TARGET_DIR/.agents/.rules"
+copy_rules_tree "$TARGET_DIR/.agents/.rules"
+
+if [ -d "$SCRIPT_DIR/scaffolds/agents-skeleton" ]; then
+    cp -r "$SCRIPT_DIR/scaffolds/agents-skeleton/." "$TARGET_DIR/.agents/"
 fi
 
+copy_visible_support_tree "hooks"
+copy_visible_support_tree "management/learning"
+copy_visible_support_tree "management/memories"
+
+for d in memory sessions context/product context/users context/strategy context/stakeholders skills; do
+    mkdir -p "$TARGET_DIR/.agents/$d"
+    touch "$TARGET_DIR/.agents/$d/.gitkeep"
+done
+
+if [ -d "$SCRIPT_DIR/scaffolds/evidence-dashboard" ]; then
+    mkdir -p "$TARGET_DIR/EVIDENCE"
+    cp -r "$SCRIPT_DIR/scaffolds/evidence-dashboard/." "$TARGET_DIR/EVIDENCE/"
+    echo "📊 Created EVIDENCE/ human dashboard"
+fi
+
+for evidence_subdir in phases reviews raw validation security performance releases truth; do
+    mkdir -p "$TARGET_DIR/.agents/management/evidence/$evidence_subdir"
+    touch "$TARGET_DIR/.agents/management/evidence/$evidence_subdir/.gitkeep"
+done
+
+mkdir -p "$TARGET_DIR/.agents/config"
+[ ! -f "$TARGET_DIR/.agents/config/project.json" ] && cp "$SCRIPT_DIR/scaffolds/agents-skeleton/.agents/config/project.json" "$TARGET_DIR/.agents/config/project.json" 2>/dev/null || true
+
+# 4. Root contracts
+if [ -f "$TARGET_DIR/AGENTS.md" ]; then
+    cp "$TARGET_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md.bak"
+fi
+cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
+
+if [ ! -f "$TARGET_DIR/merge-files.sh" ] || ! cmp -s "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"; then
+    cp "$SCRIPT_DIR/merge-files.sh" "$TARGET_DIR/merge-files.sh"
+    chmod +x "$TARGET_DIR/merge-files.sh"
+    echo "🧩 Synced merge-files.sh"
+else
+    chmod +x "$TARGET_DIR/merge-files.sh"
+    echo "🧩 merge-files.sh already up to date"
+fi
+
+chmod +x "$TARGET_DIR/.agents/hooks/"* 2>/dev/null || true
+[ -f "$TARGET_DIR/.agents/management/learning/analyze-instincts.py" ] && chmod +x "$TARGET_DIR/.agents/management/learning/analyze-instincts.py"
+
+# 5. Profile replacement
 LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
 FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
 REPOSITORY_PROFILE_VALUE="$(format_code_list "${SELECTED_REPOSITORY_PROFILES[@]}")"
@@ -315,7 +263,7 @@ ARCH_PROFILE_VALUE="$(format_code_list "${ARCH_PROFILES[@]}")"
 PROJECT_TYPE_VALUE="$(format_code_list "${PROJECT_TYPES[@]}")"
 
 target_agents_tmp="$TARGET_DIR/AGENTS.md.tmp.$$"
-if sed \
+sed \
     -e "s|__AGENTS_REPOSITORY_PROFILES__|$(escape_sed_replacement "$REPOSITORY_PROFILE_VALUE")|" \
     -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
     -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
@@ -324,166 +272,57 @@ if sed \
     -e "s|__AGENTS_ARCH_PROFILES__|$(escape_sed_replacement "$ARCH_PROFILE_VALUE")|" \
     -e "s|__AGENTS_SECURITY_LANES__|security/**|" \
     -e "s|__AGENTS_OPERATIONS_LANES__|delivery/operations/**|" \
-    "$TARGET_DIR/AGENTS.md" > "$target_agents_tmp"; then
-    mv "$target_agents_tmp" "$TARGET_DIR/AGENTS.md"
-else
-    rm -f "$target_agents_tmp"
-    exit 1
+    "$TARGET_DIR/AGENTS.md" > "$target_agents_tmp"
+mv "$target_agents_tmp" "$TARGET_DIR/AGENTS.md"
+
+# 6. Platform Adapters
+if [ "$PLATFORM_FLAGS_EXPLICITLY_SET" = false ] || [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ]; then
+    PLATFORM_TARGETS=(claude cursor codex gemini)
 fi
 
-generate_platform_adapters() {
-    local platform
+for PLATFORM_ITEM in "${PLATFORM_TARGETS[@]}"; do
+    case $PLATFORM_ITEM in
+        claude)
+            write_file "CLAUDE.md" <<'ADAPTER'
+# Agent Harness — Claude Desktop Profile
 
-    for platform in "${PLATFORM_TARGETS[@]}"; do
-        case "$platform" in
-            claude)
-                write_file "CLAUDE.md" <<'EOF'
-# Claude Code Setup
+## Operational Truth
+- Use `AGENTS.md` as primary context.
+- Use `EVIDENCE/` for human dashboards.
+- Use `.agents/management/evidence/` for machine-verifiable proof.
 
-Read and follow all rules in `.agents/AGENTS.md`.
-EOF
-                echo "🧩 Wrote CLAUDE.md"
-                ;;
-            cursor)
-                write_file ".cursorrules" <<'EOF'
-Read and follow all rules in `.agents/AGENTS.md`.
-EOF
-                echo "🧩 Wrote .cursorrules"
-                ;;
-            codex)
-                write_file ".codex/INSTALL.md" <<'EOF'
-# Codex Project Setup
-
-Read and follow all rules in `.agents/AGENTS.md`.
-
-Keep the Codex approval mode aligned with the harness trust tier and the
-current task lane.
-EOF
-                echo "🧩 Wrote .codex/INSTALL.md"
-                ;;
-            gemini)
-                write_file "GEMINI.md" <<'EOF'
-Read and follow all rules in `.agents/AGENTS.md`.
-EOF
-                echo "🧩 Wrote GEMINI.md"
-                ;;
-            opencode)
-                write_file "opencode.json" <<'EOF'
-{
-  "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "*": "ask",
-    "read": "allow",
-    "bash": {
-      "*": "ask",
-      "git status*": "allow",
-      "git diff*": "allow",
-      "git log*": "allow",
-      "grep *": "allow",
-      "rg *": "allow",
-      "find *": "allow",
-      "ls *": "allow",
-      "cat *": "allow"
-    },
-    "task": {
-      "*": "deny",
-      "harness-*": "allow"
-    }
-  }
-}
-EOF
-                mkdir -p "$TARGET_DIR/.opencode/agents"
-                write_file ".opencode/agents/harness-explore.md" <<'EOF'
----
-description: Harness exploration subagent for read-only discovery
-mode: subagent
-hidden: true
-permission:
-  edit: deny
-  webfetch: deny
-  bash:
-    "*": ask
-    "git *": allow
-    "grep *": allow
-    "rg *": allow
-    "find *": allow
-    "ls *": allow
-    "cat *": allow
----
-
-Use this subagent to map files, paths, dependencies, and entry points without
-editing anything. Return the smallest useful file shortlist for the main agent.
-EOF
-                write_file ".opencode/agents/harness-review.md" <<'EOF'
----
-description: Harness review subagent for read-only risk analysis
-mode: subagent
-hidden: true
-permission:
-  edit: deny
-  webfetch: deny
-  bash:
-    "*": ask
-    "git *": allow
-    "grep *": allow
-    "rg *": allow
-    "find *": allow
-    "ls *": allow
-    "cat *": allow
----
-
-Use this subagent to inspect diffs, identify bugs, and summarize risks without
-editing files. Return findings, missing tests, and a recommendation.
-EOF
-                echo "🧩 Wrote opencode agents and opencode.json"
-                ;;
-            cline)
-                mkdir -p "$TARGET_DIR/.clinerules"
-                write_file ".clinerules/00-agent-harness.md" <<'EOF'
-# Agent Harness for Cline
-
-Read and follow all rules in `.agents/AGENTS.md`.
-
-When the task is broad or spans multiple areas, use Cline subagents for
-read-only discovery before editing. Prefer one focused subagent per topic
-cluster and keep the main context narrow.
-EOF
-                write_file ".clinerules/10-subagents.md" <<'EOF'
-# Subagent Workflow
-
-- Use subagents for codebase mapping, inventory, and trace gathering.
-- Keep subagent prompts focused on a single question.
-- Prefer pruned context bundles generated from `.agents/sessions/<SESSION>/`.
-- Use `./tests/smoke-routing-hooks.sh` and the task routing manifest as the
-  canonical references for execution flow.
-EOF
-                write_file ".clinerules/20-context-budgeting.md" <<'EOF'
-# Context Budgeting
-
-- Avoid loading runtime artifacts from `.agents/` unless the task needs them.
-- Ignore generated or noisy directories when possible.
-- Use `subagent-dispatch.sh` for token-heavy discovery tasks that benefit from
-  a pruned prompt.
-EOF
-                write_file ".clineignore" <<'EOF'
-.agents/
-node_modules/
-dist/
-build/
-coverage/
-vendor/
-tmp/
-EOF
-                echo "🧩 Wrote .clinerules/ and .clineignore"
-                ;;
-        esac
-    done
-}
-
-if [ "${#PLATFORM_TARGETS[@]}" -gt 0 ]; then
-    echo "📦 Generating platform adapters: $(format_code_list "${PLATFORM_TARGETS[@]}")"
-    generate_platform_adapters
-fi
+## Tooling
+- Verify: `./verify-governance.sh`
+- Merge: `./merge-files.sh . --pieces=4`
+ADAPTER
+            echo "🧩 Wrote CLAUDE.md"
+            ;;
+        cursor)
+            write_file ".cursorrules" <<'ADAPTER'
+# Cursor Rules — Agent Harness Profile
+- Read AGENTS.md on every session start.
+- Follow .agents/governance/ standards strictly.
+- Evidence all changes in .agents/management/evidence/.
+ADAPTER
+            echo "🧩 Wrote .cursorrules"
+            ;;
+        codex)
+            mkdir -p "$TARGET_DIR/.codex"
+            write_file ".codex/INSTALL.md" <<'ADAPTER'
+# Codex Installation
+Harness V3 active. Follow .agents/ governance.
+ADAPTER
+            echo "🧩 Wrote .codex/INSTALL.md"
+            ;;
+        gemini)
+            write_file "GEMINI.md" <<'ADAPTER'
+# Gemini Profile
+Harness V3 active. Follow .agents/ governance.
+ADAPTER
+            echo "🧩 Wrote GEMINI.md"
+            ;;
+    esac
+done
 
 echo "✅ Agent Harness installed successfully!"
 echo "Next steps: cd $TARGET_DIR and finalize the Applied Governance Stack in AGENTS.md"
