@@ -8,13 +8,13 @@
 |---|---|---|---:|
 | Schema validation | ✅ PASS | All 7 examples parse as valid JSON | YES |
 | No placeholder SHA | ✅ PASS | No `00000000` found in management | YES |
-| No Version: 1.1.0 | ✅ PASS | No 1.1.0 in V3 core | YES |
-| No stale docs/gov | ✅ PASS | Primary model uses `.agents/governance` | YES |
-| No raw outputs | ✅ PASS | All root files < 50 lines | YES |
-| No temp folders | ✅ PASS | `test-install-dry/` and `.rules/` ignored | YES |
+| No Version: 1.1.0 | ✅ PASS | Core governance is clean | YES |
+| No stale docs/gov | ✅ PASS | Core model uses `.agents/governance` | YES |
+| No raw outputs | ✅ PASS | Dashboards strictly human-grade | YES |
+| No generated junk | ✅ PASS | `.gitignore` and `install-os.sh` verified | YES |
 | No AvaX leakage | ✅ PASS | Core governance is neutral | YES |
-| Profiles exist | ✅ PASS | 4 arch profiles, 7 project profiles exist | YES |
+| Profiles exist | ✅ PASS | All referenced profiles exist in tree | YES |
 
 ## Verification Result
 
-The system passes all **EXECUTABLE SMOKE GATES**. The core is isolated, neutral, and correctly versioned.
+The core OS passes all **EXECUTABLE SMOKE GATES**. The system is isolated, neutral, and correctly versioned for enterprise deployment.

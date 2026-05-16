@@ -209,6 +209,25 @@ for arg in "$@"; do
             echo "⚠️  Unknown reusable repository profile: $REPOSITORY_PROFILE_NAME"
         fi
         ;;
+        --project-type=*)
+        TYPE="${arg#*=}"
+        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/project-types/$TYPE.md" ]; then
+            echo "📦 Selecting project type: $TYPE"
+            PROJECT_TYPES+=("$TYPE")
+            CODING_PROFILES+=(".agents/.rules/governance/profiles/project-types/$TYPE.md")
+        else
+            echo "⚠️  Unknown reusable project type: $TYPE"
+        fi
+        ;;
+        --repo-kind=*)
+        KIND="${arg#*=}"
+        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/repository-kinds/$KIND.md" ]; then
+            echo "📦 Selecting repository kind: $KIND"
+            SELECTED_REPOSITORY_PROFILES+=("$KIND")
+        else
+            echo "⚠️  Unknown reusable repository kind: $KIND"
+        fi
+        ;;
         --platform=*)
         PLATFORM_FLAGS_EXPLICITLY_SET=true
         PLATFORM_VALUE="${arg#*=}"
@@ -293,6 +312,7 @@ FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
 REPOSITORY_PROFILE_VALUE="$(format_code_list "${SELECTED_REPOSITORY_PROFILES[@]}")"
 CODING_PROFILE_VALUE="$(format_code_list "${CODING_PROFILES[@]}")"
 ARCH_PROFILE_VALUE="$(format_code_list "${ARCH_PROFILES[@]}")"
+PROJECT_TYPE_VALUE="$(format_code_list "${PROJECT_TYPES[@]}")"
 
 target_agents_tmp="$TARGET_DIR/AGENTS.md.tmp.$$"
 if sed \
@@ -300,6 +320,7 @@ if sed \
     -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
     -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
     -e "s|__AGENTS_CODING_PROFILES__|$(escape_sed_replacement "$CODING_PROFILE_VALUE")|" \
+    -e "s|__AGENTS_PROJECT_TYPES__|$(escape_sed_replacement "$PROJECT_TYPE_VALUE")|" \
     -e "s|__AGENTS_ARCH_PROFILES__|$(escape_sed_replacement "$ARCH_PROFILE_VALUE")|" \
     -e "s|__AGENTS_SECURITY_LANES__|security/**|" \
     -e "s|__AGENTS_OPERATIONS_LANES__|delivery/operations/**|" \

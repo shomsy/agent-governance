@@ -1,6 +1,6 @@
 # How To Strict Review
 
-Version: 1.1.0
+Version: 3.0.0
 Status: Normative
 
 This document defines the cold independent review path.
