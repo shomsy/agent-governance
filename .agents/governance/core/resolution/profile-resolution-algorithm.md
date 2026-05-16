@@ -1,6 +1,6 @@
 # Profile Resolution Algorithm
 
-Version: 1.0.0
+Version: 2.0.0
 Status: Normative
 
 ## Purpose
@@ -10,6 +10,7 @@ repository tree, and the current user task, the agent must be able to resolve:
 
 - the active SDLC lane
 - the applicable repository-kind profiles
+- the applicable project-type profiles
 - the applicable language profiles
 - the applicable framework or runtime profiles
 - the applicable architecture overlays
@@ -25,7 +26,7 @@ It must resolve the rule pack in a predictable order.
 
 The target is:
 
-`task lane -> repository kind -> stack -> architecture -> coding rules -> security -> release or evidence`
+`task lane -> repository kind -> project type -> stack -> architecture -> coding rules -> security -> release or evidence`
 
 ## Required Child-Repo Declaration
 
@@ -34,6 +35,7 @@ Every adopting repository should declare this explicitly in its root
 
 - delivery kind or system kind
 - applied repository profiles
+- project types (web-app, library, cli, api-service, monorepo)
 - languages
 - frameworks or runtimes
 - applied coding profiles
@@ -41,6 +43,10 @@ Every adopting repository should declare this explicitly in its root
 - whether `security/**` is mandatory
 - whether `delivery/operations/**` is mandatory
 - canonical validation, development, and release entrypoints
+
+Optionally, the project may also provide `.agents/config/project.json` as a
+machine-readable configuration to accelerate profile resolution. The JSON
+config is advisory — `AGENTS.md` remains the human source of truth.
 
 Explicit declaration is preferred over inference.
 Inference exists only as a safe fallback.
@@ -105,10 +111,14 @@ Read the local root `AGENTS.md` and extract:
 - declared languages
 - declared frameworks or runtimes
 - declared repository-kind profiles
+- declared project-type profiles
 - declared architecture profiles
 - declared system kind such as `web app`, `API`, `worker`, `CLI`, `library`,
   `design system`, or `monolith`
 - declared required security and operations lanes
+
+If `.agents/config/project.json` exists, read it to supplement or accelerate
+resolution. If the JSON config and `AGENTS.md` disagree, `AGENTS.md` wins.
 
 If the root file declares a profile, that declaration is authoritative unless it
 is obviously stale relative to the repo tree.

@@ -1,148 +1,219 @@
 # Agent Harness
 
 > [!IMPORTANT]
-> This repository is a **Portable Agent Harness**. The core "brain" lives entirely inside the [`.agents/`](.agents/) folder. Copying this folder into any project instantly installs the governance, memory, skills, and strategic context required for high-performance AI collaboration.
+> This repository is a **Portable AI SDLC Operating System**. The core governance lives entirely inside the [`.agents/`](.agents/) folder. Copying this folder into any project instantly installs the governance, evidence model, management lifecycle, and profile system required for high-performance AI collaboration.
 
-## Vision: The Complete Harness
+## What This Is
 
-Instead of managing floating markdown files, this project provides a structured harness that organizes the entire agent-human collaboration:
+The Agent Harness is a project-agnostic, language-agnostic operating system for
+AI-assisted software development. It defines universal process and governance
+that any project can adopt, regardless of language, framework, or architecture.
 
-1.  **Shared Master Contract**: [`.agents/AGENTS.md`](.agents/AGENTS.md) is the global source of truth.
-2.  **Specialized Profiles**: Modular rules grouped by **Repository Kind**, **Language**, **Framework**, and **Architecture**.
-3.  **Memory Architecture**: Standardized memory lifecycle for cross-session learning and compaction.
-4.  **Skills Harness**: Reusable agent-facing workflows and slash-commands (`/prd-draft`, `/meeting-cleanup`, etc.).
-5.  **Strategic Context**: Living library for Personas, ROADMAP, and Stakeholders.
-6.  **Resolution Algorithm**: A deterministic stack and SDLC resolver.
-7.  **Operations & Flow-Doc Law**: Shared standards for observability, trace/replay evidence, triggers, and results.
-8.  **Child Layout**: In adopting projects, the reusable `.agents` project is mounted into hidden `.agents/.rules/`, and the project workspace skeleton lives in visible `.agents/`.
-9.  **Prompt Routing Engine**: `PreTask` turns `AGENTS.md` plus the current prompt into a concrete rule pack, pipeline, role chain, trust posture, and evidence route.
+**The parent harness defines:**
 
----
+- Rule precedence and resolution
+- Execution lifecycle (explore vs execute modes)
+- Validation lifecycle and quality gates
+- Recursive governance review
+- Evidence model (human dashboard + machine evidence)
+- Management model (operational truth, backlog, decisions, risks)
+- Risk and debt handling
+- Commit and release discipline
+- Profile selection and resolution
+- Bootstrap contract for AI agents
 
-## 🏗️ OS Architecture
+**The parent harness does NOT define:**
 
-- **`/.agents/AGENTS.md`**: The Master Contract. Defines the Order of Precedence and non-negotiable rules.
-- **`/.agents/.rules/`**: Hidden mounted copy of the reusable `.agents` project in adopting repos.
-- **`/.agents/skills/`**: Reusable agent workflow and command definitions.
-- **`/.agent/`**: Runtime context, memory, and strategic library for the active agent.
-- **`/.agents/governance/README.md`**: Feature-first index for the governance tree.
-- **`/.agents/governance/standards/governance/`**: Rules for authoring and evolving governance itself.
-- **`/.agents/governance/core/resolution/profile-resolution-algorithm.md`**: Resolves the active SDLC lane plus the correct language, framework, architecture, security, and operations overlays.
-- **`/.agents/governance/profiles/`**: Tech-specific rules (PHP, JavaScript, TypeScript, Node.js, CSS, React, Laravel, etc.) that can be plugged into the project.
-- **`/.agents/governance/profiles/repository-kinds/`**: Profiles for non-standard repository classes such as governance or scaffold sources.
-- **`/.agents/governance/architecture/profiles/`**: Architecture overlays that translate the universal vertical-slice law into PHP, Laravel, React, Next.js, Express, and Web Components repo shapes.
-- **`/.agents/governance/security/`**: Secure SDLC, OWASP-aligned web and API baseline, auth/session, secrets, supply-chain, CI/CD, and incident-response governance.
-- **`/.agents/governance/execution/policy/execution-policy.md`**: The standard for how tasks are started, validated, and finished.
-- **`/.agents/hooks/`**: Reusable hook scripts for session bootstrap, trust checks, and observation capture.
-- **`/.agents/governance/standards/review/how-to-strict-review.md`**: Independent first-principles review lane for high-stakes claims.
-- **`/.agents/governance/standards/documentation/how-to-document-flow.md`**: The trigger-to-result law for flow documentation.
-- **`/.agents/governance/delivery/operations/`**: Runtime, release, and recovery governance for deployable systems.
-- **`/.agents/governance/standards/coding/naming-standard.md`**: The "Flow -> Responsibility -> Action" naming law.
+- Language-specific tooling (lives in optional language profiles)
+- Framework-specific patterns (lives in optional framework profiles)
+- Project-specific business rules (lives in local AGENTS.md overlays)
+- Runtime-specific assumptions (lives in project-type profiles)
 
 ---
 
-## 📂 The `projects/` Directory (Temporary Knowledge Base)
+## Architecture
 
-The [**`projects/`**](projects/) folder is a temporary, local repository of documentation and governance files vacuumed from real-world projects (`avax-bootcamp`, `baraba`, `polymoly`, etc.).
+### Three Layers
 
-- **Purpose**: It serves as the raw material and inspiration for generalizing rules into the core `.agents` OS.
-- **Usage**: Use it to extract patterns, architecture boundaries, and "Naming Laws" that have proven effective in specific project contexts. 
-- **Destiny**: Once a rule is successfully generalized into the `.agents/` folder, the corresponding project-specific reference in this folder becomes legacy data.
-
----
-
-## 🚀 How to Adopt (The "OS Installation")
-
-To "install" this Agent OS into a project:
-
-```bash
-# Preferred: use the bootstrap script
-/path/to/agent-harness/install-os.sh /path/to/your/project
-
-# Optional: apply a repository-kind profile when the child repo is itself a
-# governance/scaffold source
-/path/to/agent-harness/install-os.sh /path/to/your/project --repository-profile=governance-source
-
-# Optional: generate subagent-native adapters for OpenCode and Cline
-/path/to/agent-harness/install-os.sh /path/to/your/project --platform=opencode,cline
-
-# The result is:
-# - .agents/.rules/ for the mounted reusable rules project
-# - .agents/ for the project workspace skeleton
-# - .agents/hooks/ plus learning and memory runtime support under .agents/management/
-# - common front-door adapters such as CLAUDE.md, .cursorrules, .codex/INSTALL.md, and GEMINI.md
-# - merge-files.sh at the project root, kept in sync
+```
+┌─────────────────────────────────┐
+│  LOCAL PROJECT LAYER            │  ← AGENTS.md + .agents/ overrides
+│  Project-specific rules         │
+├─────────────────────────────────┤
+│  PROFILE LAYER                  │  ← Optional overlays
+│  Languages · Frameworks ·      │
+│  Project types · Repo kinds    │
+├─────────────────────────────────┤
+│  PARENT / CORE GOVERNANCE      │  ← Universal rules
+│  Quality gates · Bootstrap ·   │
+│  Execution · Review · Evidence │
+└─────────────────────────────────┘
 ```
 
-The root `AGENTS.md` in your project should be minimal, only containing:
-- Path definitions (where is your source code?)
-- Entrypoints (how do we run/test the code?)
-- Applied governance stack (which repository profiles, languages, frameworks, and architecture overlays are active?)
-- Any specific overrides that differ from the global OS rules.
+### Rule Precedence (in adopting projects)
 
-The installer keeps `merge-files.sh` in the child repo on the latest version so
-the portable merged snapshot stays consistent across projects. By default it
-also writes lightweight adapter files for the common AI clients; pass
-`--platform=...` if you want to limit the generated adapters. The reusable
-governance tree is now organized feature-first, so child repos inherit the same
-navigation model under `.agents/.rules/governance/`.
+1. Local `AGENTS.md` (project-specific overrides)
+2. `.agents/.rules/AGENTS.md` (global shared rules)
+3. Core governance (quality gates, bootstrap, resolution)
+4. Selected profiles (languages, frameworks, project-types)
+5. Architecture, security, execution, standards
+6. Management state and evidence
 
-For token-heavy work, this harness can also generate subagent-native adapters
-for OpenCode and Cline. OpenCode gets explicit `primary`/`subagent` roles and
-task permissions; Cline gets narrow rules, ignore filters, and subagent
-guidance for read-only discovery.
+### Key Surfaces
 
-This repository also dogfoods a repository-kind profile for governance-source
-repos, plus explicit standards for how governance itself should be written and
-evolved.
+| Surface | Location | Purpose |
+|:---|:---|:---|
+| **Master Contract** | `.agents/AGENTS.md` | Universal rules |
+| **Bootstrap** | `.agents/governance/core/bootstrap/` | Agent startup sequence |
+| **Resolution** | `.agents/governance/core/resolution/` | Profile and stack resolution |
+| **Quality Gates** | `.agents/governance/core/quality/` | Universal quality filter |
+| **Profiles** | `.agents/governance/profiles/` | Language, framework, project-type overlays |
+| **Architecture** | `.agents/governance/architecture/` | Universal + overlay arch rules |
+| **Review** | `.agents/governance/standards/review/` | Code review + recursive review |
+| **Evidence Model** | `.agents/governance/standards/documentation/evidence-model.md` | Human vs machine evidence |
+| **Management Model** | `.agents/governance/delivery/operations/management-model.md` | Operational management |
+| **Security** | `.agents/governance/security/` | OWASP-aligned security baseline |
+| **Config** | `.agents/config/` | Machine-readable project config |
 
-Canonical backlog and evidence files already live under `.agents/management/**`.
+---
 
-## ✅ Validation
+## Evidence Model (V2)
 
-The baseline regression check for the routing runtime is:
+Evidence is split into two layers:
+
+- **`EVIDENCE/`** — human-readable dashboard at project root. Small summaries
+  that link to machine evidence.
+- **`.agents/management/evidence/`** — machine evidence. Verbose, detailed,
+  agent-generated data organized into `phases/`, `reviews/`, `validation/`,
+  `security/`, `performance/`, `releases/`, `truth/`, and `raw/`.
+
+Rule: the human dashboard summarizes and links. Raw data stays in machine
+evidence. Duplication is forbidden.
+
+---
+
+## Management Model (V2)
+
+```
+.agents/management/
+├── CURRENT.md     # Operational truth now
+├── ACTIVE.md      # Active work board
+├── TODO.md        # Planned work queue
+├── BUGS.md        # Defect/regression queue
+├── DECISIONS.md   # Architecture/process decisions
+├── RISKS.md       # Accepted debt and risk register
+├── STATUS.md      # GREEN/YELLOW/RED snapshot
+└── evidence/      # Machine evidence tree
+```
+
+---
+
+## Profile System
+
+Profiles are **optional overlays** that add language-specific, framework-specific,
+or project-type-specific rules. The parent harness works without them.
+
+### Available Profiles
+
+| Category | Profiles |
+|:---|:---|
+| **Languages** | `php`, `javascript`, `typescript`, `css`, `nodejs`, `go` |
+| **Frameworks** | `laravel`, `express`, `react`, `nextjs`, `v-web-components` |
+| **Project Types** | `web-app`, `library`, `cli`, `api-service`, `monorepo` |
+| **Repository Kinds** | `governance-source` |
+
+### Profile Selection
+
+Projects declare their profiles in `AGENTS.md` under "Applied Governance Stack"
+or in `.agents/config/project.json`. If neither exists, the resolution algorithm
+infers profiles from repository signals (e.g., `go.mod` → Go, `package.json` → Node.js).
+
+---
+
+## Recursive Governance Review
+
+Every change must pass the recursive review loop before commit:
+
+```
+implement → validate → run gates → recursive review →
+fix findings → revalidate → re-review → commit
+```
+
+Passing tests alone is not commit permission. Passing static analysis alone is
+not commit permission. The full loop must be clean.
+
+---
+
+## How to Adopt ("OS Installation")
+
+```bash
+# Install the harness into a project
+/path/to/agent-harness/install-os.sh /path/to/your/project
+
+# With language and framework profiles
+/path/to/agent-harness/install-os.sh /path/to/your/project \
+  --language=typescript --language=nodejs --framework=react
+
+# With platform adapters
+/path/to/agent-harness/install-os.sh /path/to/your/project --platform=opencode,cline
+
+# The result:
+# - .agents/.rules/         ← mounted reusable rules
+# - .agents/                ← project workspace skeleton
+# - .agents/config/         ← machine-readable project config
+# - .agents/management/     ← management model with evidence tree
+# - EVIDENCE/               ← human-readable dashboard
+# - AGENTS.md               ← project-local contract
+# - merge-files.sh          ← snapshot generator
+# - Platform adapters       ← CLAUDE.md, .cursorrules, etc.
+```
+
+### After Installation
+
+1. Edit `AGENTS.md` to declare your applied governance stack
+2. Edit `.agents/config/project.json` to set language/framework/project-type
+3. Fill in your canonical validation, development, and release entrypoints
+4. Keep `AGENTS.md` short — long procedures belong in governance docs
+
+---
+
+## How to Choose Profiles
+
+- **Language profiles**: one per language your project actively uses
+- **Framework profiles**: only if the framework is genuinely in use
+- **Project-type profiles**: match your project's primary delivery shape
+- **Repository-kind profiles**: only for non-standard repos (governance sources, etc.)
+
+Combine profiles freely: `typescript` + `nodejs` + `react` + `web-app` is valid.
+The resolution algorithm composes all active profiles.
+
+---
+
+## `projects/` Directory (Legacy Reference)
+
+The [`projects/`](projects/) folder is a temporary knowledge base of
+documentation vacuumed from real-world projects. It serves as raw material for
+generalizing rules into the core `.agents` OS. Once a rule is generalized, the
+project-specific reference becomes legacy data.
+
+---
+
+## Validation
 
 ```bash
 ./tests/smoke-routing-hooks.sh
 ./tests/smoke-subagent-delegation.sh
 ```
 
-This smoke test verifies:
-- installer output in a fresh child repo
-- `session-start.sh` runtime artifact boundaries
-- `pre-task.sh` routing and task ID uniqueness
-- bugfix prompt classification
-- governance route selection
-- `pre-tool-use.sh` trust and network blocking
-- `post-tool-use.sh` observation logging
-- `post-task.sh` trace and result closure
-- subagent adapter generation for OpenCode and Cline
-- broad-task delegation planning and subagent brief materialization
-
 ---
 
-## 🧪 Generalizing from Projects
+## Completion Criteria for Changes
 
-We continuously "vacuum" the best rules from active projects to improve the global OS.
-
-| Project Source | Generalized Rule | Destination in OS |
-|:---|:---|:---|
-| `avax-bootcamp` | Naming Laws (Flow -> Resp -> Action) | `.agents/governance/standards/coding/naming-standard.md` |
-| `avax-bootcamp` | `state/render/actions` Pattern | `.agents/governance/architecture/architecture-standard.md` |
-| `avax-bootcamp` | Canonical source vs generated book/output discipline | `.agents/governance/standards/documentation/how-to-document.md` |
-| `baraba` | Web Component Facades | `.agents/governance/profiles/frameworks/v-web-components.md` |
-| `components` | Public facade/kernel/pipeline law translated into screaming feature-first clean architecture | `.agents/governance/architecture/architecture-standard.md`, `.agents/governance/architecture/profiles/languages/php.md`, `.agents/governance/architecture/profiles/frameworks/laravel.md` |
-| `OWASP` anchors | Web, API, ASVS, DevSecOps, and supply-chain security baseline | `.agents/governance/security/**` |
-| `polymoly` | Flow-document contract | `.agents/governance/standards/documentation/how-to-document-flow.md` |
-| `polymoly` + `hotelsync-bridgeone` | Runtime hardening and proof posture | `.agents/governance/architecture/runtime-hardening.md` |
-
----
-
-## 📋 Completion Criteria for Changes
-
-1.  Does the rule belong in the **Master Contract** or a **Specialized Profile**?
-2.  Does it maintain the **Order of Precedence**?
-3.  Is it documented in simple, direct English or Serbian?
+1. Does the rule belong in the **Master Contract** or a **Specialized Profile**?
+2. Does it maintain the **Order of Precedence**?
+3. Is the parent harness still generic and language-agnostic?
+4. Are scaffolds consistent with the documented model?
+5. Is the evidence model respected (human dashboard vs machine evidence)?
 
 ---
 *No offload recommended for this step.*

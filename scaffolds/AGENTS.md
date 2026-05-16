@@ -1,6 +1,6 @@
 # AGENTS.md — Local Project Contract
 
-Version: 1.10.0
+Version: 2.0.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -16,44 +16,50 @@ Agents MUST follow this order:
 1. `AGENTS.md`
 2. `.agents/.rules/AGENTS.md`
 3. `.agents/.rules/governance/core/quality/quality-gates.md`
-4. `.agents/.rules/governance/core/resolution/profile-resolution-algorithm.md`
-5. `.agents/.rules/governance/profiles/**`
-6. `.agents/.rules/governance/architecture/**`
-7. `.agents/.rules/governance/security/**`
-8. `.agents/.rules/governance/execution/policy/execution-policy.md`
-9. `.agents/.rules/governance/execution/routing/prompt-to-governance-flow.md`
-10. `.agents/.rules/governance/execution/hooks/hooks-policy.md`
-11. `.agents/.rules/governance/execution/approvals/approval-policy.md`
-12. `.agents/.rules/governance/core/flags/feature-flags.md`
-13. `.agents/.rules/governance/standards/review/how-to-code-review.md`
-14. `.agents/.rules/governance/standards/review/how-to-strict-review.md`
-15. `.agents/.rules/governance/standards/coding/how-to-coding-standards.md`
-16. `.agents/.rules/governance/standards/coding/naming-standard.md`
-17. `.agents/.rules/governance/standards/documentation/how-to-document-flow.md`
-18. `.agents/.rules/governance/standards/documentation/how-to-document.md`
-19. `.agents/.rules/governance/standards/governance/governance-authoring-standard.md`
-20. `.agents/.rules/governance/standards/governance/governance-evolution-policy.md`
-21. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
-22. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
-23. `.agents/.rules/governance/skills/contract/skill-contract.md`
-24. `.agents/.rules/governance/agents/roles/agent-roles.md`
-25. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
-26. `.agents/.rules/governance/intelligence/context/context-management.md`
-27. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
-28. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
-29. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
-30. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
-31. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
-32. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
-33. `.agents/.rules/governance/delivery/operations/**`
-34. `.agents/skills/**`
-35. `.agents/management/ACTIVE.md`
-36. `.agents/management/TIMELINE.md`
-37. `.agents/management/TODO.md`
-38. `.agents/management/BUGS.md`
-39. `.agents/review/REVIEWS.md`
-40. `README.md`
-41. `docs/**`
+4. `.agents/.rules/governance/core/bootstrap/agent-bootstrap.md`
+5. `.agents/.rules/governance/core/resolution/profile-resolution-algorithm.md`
+6. `.agents/.rules/governance/profiles/**`
+7. `.agents/.rules/governance/architecture/**`
+8. `.agents/.rules/governance/security/**`
+9. `.agents/.rules/governance/execution/policy/execution-policy.md`
+10. `.agents/.rules/governance/execution/routing/prompt-to-governance-flow.md`
+11. `.agents/.rules/governance/execution/hooks/hooks-policy.md`
+12. `.agents/.rules/governance/execution/approvals/approval-policy.md`
+13. `.agents/.rules/governance/core/flags/feature-flags.md`
+14. `.agents/.rules/governance/standards/review/how-to-code-review.md`
+15. `.agents/.rules/governance/standards/review/how-to-strict-review.md`
+16. `.agents/.rules/governance/standards/review/recursive-review-contract.md`
+17. `.agents/.rules/governance/standards/coding/how-to-coding-standards.md`
+18. `.agents/.rules/governance/standards/coding/naming-standard.md`
+19. `.agents/.rules/governance/standards/documentation/how-to-document-flow.md`
+20. `.agents/.rules/governance/standards/documentation/how-to-document.md`
+21. `.agents/.rules/governance/standards/documentation/evidence-model.md`
+22. `.agents/.rules/governance/standards/governance/governance-authoring-standard.md`
+23. `.agents/.rules/governance/standards/governance/governance-evolution-policy.md`
+24. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
+25. `.agents/.rules/governance/delivery/operations/management-model.md`
+26. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
+27. `.agents/.rules/governance/skills/contract/skill-contract.md`
+28. `.agents/.rules/governance/agents/roles/agent-roles.md`
+29. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`
+30. `.agents/.rules/governance/intelligence/context/context-management.md`
+31. `.agents/.rules/governance/intelligence/learning/continuous-learning.md`
+32. `.agents/.rules/governance/intelligence/learning/instincts-policy.md`
+33. `.agents/.rules/governance/integrations/platforms/platform-compatibility.md`
+34. `.agents/.rules/governance/integrations/mcp/mcp-integration-policy.md`
+35. `.agents/.rules/governance/execution/sandbox/sandbox-boundary-policy.md`
+36. `.agents/.rules/governance/agents/orchestration/society-of-mind-pattern.md`
+37. `.agents/.rules/governance/delivery/operations/**`
+38. `.agents/skills/**`
+39. `.agents/management/CURRENT.md`
+40. `.agents/management/ACTIVE.md`
+41. `.agents/management/TODO.md`
+42. `.agents/management/BUGS.md`
+43. `.agents/management/STATUS.md`
+44. `.agents/review/REVIEWS.md`
+45. `EVIDENCE/**`
+46. `README.md`
+47. `docs/**`
 
 ## 1. Local Definitions
 
@@ -68,6 +74,7 @@ Replace this section with project-specific truth:
    - **Applied Repository Profiles**: `__AGENTS_REPOSITORY_PROFILES__`
    - **Languages**: `__AGENTS_LANGUAGES__`
    - **Frameworks Or Runtimes**: `__AGENTS_FRAMEWORKS__`
+   - **Project Types**: `__AGENTS_PROJECT_TYPES__`
    - **Applied Coding Profiles**: `__AGENTS_CODING_PROFILES__`
    - **Applied Architecture Profiles**: `__AGENTS_ARCH_PROFILES__`
    - **Security Lanes Required**: `__AGENTS_SECURITY_LANES__`
@@ -78,6 +85,7 @@ Replace this section with project-specific truth:
    - `.agents/management/`
    - `.agents/hooks/`
    - `.agents/review/`
+   - `.agents/config/project.json`
 7. **Project-Specific Exceptions or Forbidden Shortcuts**:
 
 Keep this file short. Long procedures belong in governance docs, and active

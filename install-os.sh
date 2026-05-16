@@ -121,7 +121,26 @@ touch "$TARGET_DIR/.agents/context/stakeholders/.gitkeep"
 mkdir -p "$TARGET_DIR/.agents/skills"
 touch "$TARGET_DIR/.agents/skills/.gitkeep"
 
-# 4. Copy the project-local AGENTS scaffold to root
+# 5b. Create V2 evidence dashboard at project root
+if [ -d "$SCRIPT_DIR/scaffolds/evidence-dashboard" ]; then
+    mkdir -p "$TARGET_DIR/EVIDENCE"
+    cp -r "$SCRIPT_DIR/scaffolds/evidence-dashboard/." "$TARGET_DIR/EVIDENCE/"
+    echo "📊 Created EVIDENCE/ human dashboard"
+fi
+
+# 5c. Create V2 machine evidence directories
+for evidence_subdir in phases reviews raw validation security performance releases truth; do
+    mkdir -p "$TARGET_DIR/.agents/management/evidence/$evidence_subdir"
+    touch "$TARGET_DIR/.agents/management/evidence/$evidence_subdir/.gitkeep"
+done
+
+# 5d. Create V2 project config skeleton
+mkdir -p "$TARGET_DIR/.agents/config"
+if [ ! -f "$TARGET_DIR/.agents/config/project.json" ]; then
+    cp "$SCRIPT_DIR/scaffolds/agents-skeleton/.agents/config/project.json" "$TARGET_DIR/.agents/config/project.json" 2>/dev/null || true
+fi
+
+# 6. Copy the project-local AGENTS scaffold to root
 cp "$SCRIPT_DIR/scaffolds/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 
 # 5. Keep merge-files.sh in sync with the latest OS version
