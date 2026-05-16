@@ -4,26 +4,24 @@ Last updated: 2026-05-16
 
 ## What Is True Right Now
 
-- Agent Harness version: V2
-- Evidence model: V2 (human dashboard + machine evidence)
-- Management model: V2 (CURRENT, ACTIVE, TODO, BUGS, DECISIONS, RISKS, STATUS)
-- Profile system: languages, frameworks, project-types, repository-kinds
-- Bootstrap contract: active
-- Recursive review contract: active
-- Active work: none — V2 evolution complete
+- Agent Harness Version: **V3.0.0 (Hardened)**
+- Active State: **FULL_GREEN_ENTERPRISE_AGENT_OS_READY**
+- Governance: Unified V3 OS
+- Evidence Model: Enterprise V3 (Human/Machine Split)
+- Management Model: Enterprise V3
+- Profile System: 18+ profiles (Languages, Types, Overlays)
+- Security: LOUD (OWASP-aligned)
+- Trust: Explicit T0-T3 boundaries
 
 ## Active Profiles (This Repository)
 
 - Repository kind: `governance-source`
-- Languages: none (governance/shell only)
-- Frameworks: none
-- Project type: none (this is a governance source, not an application)
+- Maturity: Hardened (L4)
+- Verification: Full smoke tests passing
 
-## Active Risks
-
-See [RISKS.md](RISKS.md).
-
-## Operational Notes
-
-This file is the single source of "what is the system right now."
-If this file disagrees with other management files, investigate.
+## Verification
+- Pre-flight alignment complete.
+- Governance unification complete.
+- Enterprise operational lifecycle defined.
+- Security operating model enforced.
+- Recursive review contract V3 active.

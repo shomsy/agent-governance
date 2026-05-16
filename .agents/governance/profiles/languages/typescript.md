@@ -114,3 +114,51 @@ Apply it together with the relevant architecture overlay under
   unsafe narrowing behavior
 - keep CI strict enough to catch broken contracts before merge
 - review runtime-facing type changes as API changes, not harmless refactors
+
+## Validation Expectations
+
+- use standard build/compile/lint commands as validation
+
+## Testing Expectations
+
+- 100% pass rate on canonical test suites
+
+## Static Analysis Expectations
+
+- Zero errors at level 5/standard for TypeScript
+
+## Security Expectations
+
+- No high/critical vulnerabilities in dependencies
+
+## Release Expectations
+
+- Artifacts must be versioned and published to private/public registries
+
+## Evidence Expectations
+
+- Validation logs must be attached to release packs
+
+## Common Failure Patterns
+
+- dependency version mismatch, missing lockfiles
+
+## Review Expectations
+
+- strict review for breaking API changes
+
+## Dependency Rules
+
+- pin all dependencies; no wildcards
+
+## Formatting Rules
+
+- follow TypeScript community standard formatting
+
+## Runtime Assumptions
+
+- assumes stable runtime version TypeScript
+
+## Operational Expectations
+
+- process must handle SIGTERM/SIGINT gracefully

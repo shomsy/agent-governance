@@ -1,6 +1,6 @@
 # AGENTS.md — Local Project Contract
 
-Version: 2.0.0
+Version: 3.0.0
 Status: Normative / Local
 Scope: `./**`
 
@@ -18,9 +18,12 @@ Agents MUST follow this order:
 3. `.agents/.rules/governance/core/quality/quality-gates.md`
 4. `.agents/.rules/governance/core/bootstrap/agent-bootstrap.md`
 5. `.agents/.rules/governance/core/resolution/profile-resolution-algorithm.md`
-6. `.agents/.rules/governance/profiles/**`
-7. `.agents/.rules/governance/architecture/**`
-8. `.agents/.rules/governance/security/**`
+6. `.agents/.rules/governance/standards/governance/canonical-governance-map.md`
+7. `.agents/.rules/governance/standards/governance/capability-maturity-model.md`
+8. `.agents/.rules/governance/profiles/**`
+9. `.agents/.rules/governance/architecture/**`
+10. `.agents/.rules/governance/security/**`
+11. `.agents/.rules/governance/security/security-operating-model.md`
 9. `.agents/.rules/governance/execution/policy/execution-policy.md`
 10. `.agents/.rules/governance/execution/routing/prompt-to-governance-flow.md`
 11. `.agents/.rules/governance/execution/hooks/hooks-policy.md`
@@ -38,7 +41,8 @@ Agents MUST follow this order:
 23. `.agents/.rules/governance/standards/governance/governance-evolution-policy.md`
 24. `.agents/.rules/governance/delivery/release/release-and-rollback-policy.md`
 25. `.agents/.rules/governance/delivery/operations/management-model.md`
-26. `.agents/.rules/governance/intelligence/memory/memory-lifecycle.md`
+26. `.agents/.rules/governance/delivery/operations/enterprise-operational-lifecycle.md`
+27. `.agents/.rules/governance/intelligence/memory/v3-intelligence-lifecycle.md`
 27. `.agents/.rules/governance/skills/contract/skill-contract.md`
 28. `.agents/.rules/governance/agents/roles/agent-roles.md`
 29. `.agents/.rules/governance/delivery/workflows/workflow-pipelines.md`

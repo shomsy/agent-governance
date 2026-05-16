@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Agent Harness Installer
-# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME] [--repository-profile=NAME] [--platform=NAME]
+# Usage: ./install-os.sh /path/to/project [--language=NAME] [--framework=NAME] [--repository-profile=NAME] [--platform=NAME] [--dry-run] [--validate] [--upgrade] [--migrate]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${1:-}"
@@ -14,9 +14,13 @@ ARCH_PROFILES=()
 PLATFORM_TARGETS=()
 PLATFORM_FLAGS_EXPLICITLY_SET=false
 GENERATE_ALL_PLATFORM_ADAPTERS=false
+DRY_RUN=false
+VALIDATE_ONLY=false
+IS_UPGRADE=false
+IS_MIGRATION=false
 
 if [ -z "$TARGET_DIR" ]; then
-    echo "Usage: $0 /path/to/project [--language=NAME] [--framework=NAME] [--repository-profile=NAME] [--platform=NAME]"
+    echo "Usage: $0 /path/to/project [options...]"
     exit 1
 fi
 
@@ -226,8 +230,52 @@ for arg in "$@"; do
             esac
         done
         ;;
+        --dry-run)
+        DRY_RUN=true
+        ;;
+        --validate)
+        VALIDATE_ONLY=true
+        ;;
+        --upgrade)
+        IS_UPGRADE=true
+        ;;
+        --migrate)
+        IS_MIGRATION=true
+        ;;
     esac
 done
+
+if [ "$VALIDATE_ONLY" = true ]; then
+    echo "🔍 Validating V3 OS Installation at $TARGET_DIR..."
+    if [ ! -d "$TARGET_DIR/.agents/.rules" ]; then
+        echo "❌ OS not installed."
+        exit 1
+    fi
+    echo "✅ OS Validation Passed."
+    exit 0
+fi
+
+if [ "$DRY_RUN" = true ]; then
+    echo "🧪 DRY RUN MODE: No files will be modified."
+    exit 0
+fi
+
+if [ "$IS_MIGRATION" = true ]; then
+    echo "🔄 MIGRATION MODE: Archiving legacy structures..."
+    mkdir -p "$TARGET_DIR/.agents/archive/legacy"
+    mv "$TARGET_DIR/.agents/management/BUGS.md" "$TARGET_DIR/.agents/archive/legacy/" 2>/dev/null || true
+    mv "$TARGET_DIR/.agents/management/TODO.md" "$TARGET_DIR/.agents/archive/legacy/" 2>/dev/null || true
+    echo "✅ Legacy structures archived."
+fi
+
+if [ "$IS_UPGRADE" = true ]; then
+    echo "🔼 UPGRADE MODE: Updating `.rules` engine only."
+    rm -rf "$TARGET_DIR/.agents/.rules"
+    mkdir -p "$TARGET_DIR/.agents/.rules"
+    copy_rules_tree "$TARGET_DIR/.agents/.rules"
+    echo "✅ OS Engine upgraded."
+    exit 0
+fi
 
 if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ] || [ "$PLATFORM_FLAGS_EXPLICITLY_SET" = false ]; then
     if [ "$GENERATE_ALL_PLATFORM_ADAPTERS" = true ]; then

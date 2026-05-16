@@ -145,3 +145,51 @@ Apply it together with the relevant architecture overlay under
   understand the method or class
 - use imports consistently in code and docblocks; avoid unnecessary
   fully-qualified names
+
+## Validation Expectations
+
+- use standard build/compile/lint commands as validation
+
+## Testing Expectations
+
+- 100% pass rate on canonical test suites
+
+## Static Analysis Expectations
+
+- Zero errors at level 5/standard for PHP
+
+## Security Expectations
+
+- No high/critical vulnerabilities in dependencies
+
+## Release Expectations
+
+- Artifacts must be versioned and published to private/public registries
+
+## Evidence Expectations
+
+- Validation logs must be attached to release packs
+
+## Common Failure Patterns
+
+- dependency version mismatch, missing lockfiles
+
+## Review Expectations
+
+- strict review for breaking API changes
+
+## Dependency Rules
+
+- pin all dependencies; no wildcards
+
+## Formatting Rules
+
+- follow PHP community standard formatting
+
+## Runtime Assumptions
+
+- assumes stable runtime version PHP
+
+## Operational Expectations
+
+- process must handle SIGTERM/SIGINT gracefully

@@ -24,15 +24,11 @@ For repo shape and architecture overlays, also see
 
 ## Structure
 
-- `languages/` for language-level rules (php, javascript, typescript, css,
-  nodejs, go)
-- `frameworks/` for framework/runtime-level rules (laravel, express, react,
-  nextjs, v-web-components)
-- `project-types/` for project-type overlays (web-app, library, cli,
-  api-service, monorepo)
-- `roles/` for reviewer or agent persona overlays
-- `repository-kinds/` for repositories whose primary maintained surface is not
-  a normal application runtime (governance-source)
+- `languages/`: Syntax, typing, and tooling (php, go, nodejs, javascript, typescript)
+- `project-types/`: Architecture and validation (framework, library, web-app, cli, monorepo, infrastructure, api-service)
+- `overlays/`: Cross-cutting enterprise rules (strict-security, high-performance, experimental, enterprise-regulated)
+- `repository-kinds/`: Specialized repo governance (governance-source)
+- `frameworks/`: Framework-specific rules (laravel, nextjs, etc.)
 
 Language profiles should carry syntax, typing, runtime-safety, interop, and
 tooling rules for that language. One project may intentionally combine
@@ -50,11 +46,12 @@ must not become a dumping ground for local one-off exceptions.
 
 1. Core governance files
 2. Explicit stack declaration in root `AGENTS.md`
-3. Repository-kind profile
-4. Project-type profile
-5. Language profile
-6. Framework profile
-7. Project-local exceptions documented explicitly
+3. Overlay profiles (enterprise-regulated, strict-security)
+4. Repository-kind profile
+5. Project-type profile
+6. Language profile
+7. Framework profile
+8. Project-local exceptions documented explicitly
 
 If profile guidance conflicts with core safety and quality rules, core rules win.
 
