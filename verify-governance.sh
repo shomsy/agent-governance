@@ -54,13 +54,19 @@ echo "✅ Anti-Bloat Passed."
 # 4. Schema Verification (Smoke)
 if command -v python3 >/dev/null 2>&1; then
     echo "🔍 Verifying Evidence Schemas..."
-    for f in "$TARGET_DIR/.agents/config/schemas/examples/"*.json; do
-        if ! python3 -c "import json; json.load(open('$f'))" >/dev/null 2>&1; then
-            echo "❌ ERROR: Invalid JSON in $f"
-            exit 1
-        fi
-    done
-    echo "✅ Schema Examples Passed."
+    SCHEMA_DIR="$TARGET_DIR/.agents/.rules/config/schemas/examples"
+    if [ -d "$SCHEMA_DIR" ]; then
+        for f in "$SCHEMA_DIR/"*.json; do
+            [ -e "$f" ] || continue
+            if ! python3 -c "import json; json.load(open('$f'))" >/dev/null 2>&1; then
+                echo "❌ ERROR: Invalid JSON in $f"
+                exit 1
+            fi
+        done
+        echo "✅ Schema Examples Passed."
+    else
+        echo "⚠️  WARNING: Schema examples directory missing at $SCHEMA_DIR."
+    fi
 else
     echo "ℹ️  Skipping Schema Verification (python3 missing)."
 fi

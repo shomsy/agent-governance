@@ -50,8 +50,22 @@ format_code_list() {
 copy_rules_tree() {
     local target_rules_dir="$1"
     mkdir -p "$target_rules_dir"
-    # Use find to avoid recursive copy of .rules into itself
-    find "$SCRIPT_DIR/.agents" -maxdepth 1 -not -name ".rules" -not -name ".agents" -not -name "." -exec cp -R {} "$target_rules_dir/" \;
+    # Avoid recursive copy of .rules or .agents into .rules
+    for item in "$SCRIPT_DIR/.agents/"*; do
+        [ -e "$item" ] || continue
+        base=$(basename "$item")
+        if [ "$base" != ".rules" ] && [ "$base" != ".agents" ]; then
+            cp -R "$item" "$target_rules_dir/"
+        fi
+    done
+    # Also copy hidden files except .rules
+    for item in "$SCRIPT_DIR/.agents/".*; do
+        [ -e "$item" ] || continue
+        base=$(basename "$item")
+        if [ "$base" != ".rules" ] && [ "$base" != ".agents" ] && [ "$base" != "." ] && [ "$base" != ".." ]; then
+            cp -R "$item" "$target_rules_dir/"
+        fi
+    done
 }
 
 copy_visible_support_tree() {
