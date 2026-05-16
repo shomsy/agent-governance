@@ -1,0 +1,38 @@
+name: Verify Agent Governance
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Verify OS Installation
+        run: |
+          chmod +x ./install-os.sh
+          ./install-os.sh . --validate
+          
+      - name: Run Governance Gates
+        run: |
+          chmod +x ./verify-governance.sh
+          ./verify-governance.sh .
+          
+      - name: Reconcile Evidence (Anti-Hallucination)
+        run: |
+          chmod +x .agents/management/evidence/validation/reconcile-evidence.py
+          .agents/management/evidence/validation/reconcile-evidence.py .
+          
+      - name: Run Recursive Review
+        run: |
+          chmod +x .agents/management/hooks/recursive-review-engine.sh
+          .agents/management/hooks/recursive-review-engine.sh .
