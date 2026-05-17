@@ -1,5 +1,5 @@
 {
-  "sha": "91a519eedd49e364168056682b7ebd4c7dbcd2755c8838159cbc1106f9dde90c",
+  "sha": "4ba1ae7ee2460bae9c7e1bd55150a15832a0b5a887b3a818b10753bf10b2a7ae",
   "graph": {
     ".agents/governance/README.md": [],
     ".agents/governance/security/tool-and-plugin-capability-isolation.md": [],
@@ -125,6 +125,8 @@
     ".agents/governance/execution/sandbox/sandbox-boundary-policy.md": [],
     ".agents/governance/execution/routing/README.md": [],
     ".agents/governance/execution/routing/prompt-to-governance-flow.md": [],
-    ".agents/governance/execution/hooks/hooks-policy.md": []
+    ".agents/governance/execution/hooks/hooks-policy.md": [],
+    "AGENTS.md": [],
+    ".agents/AGENTS.md": []
   }
 }
