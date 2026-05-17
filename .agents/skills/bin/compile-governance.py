@@ -71,6 +71,33 @@ def compile_governance(target_dir="."):
             if frontmatter.get("status") in ["abandoned", "deprecated"]:
                 index["dead_rules"].append(rel_path)
 
+    # Parse root entrypoints for incoming links
+    entrypoints = ["AGENTS.md", os.path.join(".agents", "AGENTS.md")]
+    for ep in entrypoints:
+        ep_path = os.path.join(target_dir, ep)
+        if os.path.exists(ep_path):
+            with open(ep_path, 'r', encoding='utf-8') as f:
+                ep_content = f.read()
+                links = re.findall(r"\[.*?\]\((.*?\.md)\)", ep_content)
+                index["graph"][ep] = links
+                
+    # Calculate unreferenced files
+    all_targets = set()
+    for source, links in index["graph"].items():
+        base_dir = os.path.dirname(source)
+        for link in links:
+            if link.startswith("http"):
+                continue
+            resolved = os.path.normpath(os.path.join(base_dir, link))
+            all_targets.add(resolved)
+            
+    unreferenced_rules = []
+    for filepath in index["files"].keys():
+        if filepath not in all_targets and not filepath.endswith("README.md"):
+            unreferenced_rules.append(filepath)
+            
+    index["unreferenced_rules"] = unreferenced_rules
+
     return index
 
 if __name__ == "__main__":
@@ -90,7 +117,11 @@ if __name__ == "__main__":
         json.dump({"sha": graph_hash, "graph": index["graph"]}, f, indent=2)
         
     with open(os.path.join(target, OUTPUT_DIR, "governance-entropy.json"), "w") as f:
-        json.dump({"dead_rules": index["dead_rules"], "duplicate_rules": index["duplicate_rules"]}, f, indent=2)
+        json.dump({
+            "dead_rules": index["dead_rules"], 
+            "duplicate_rules": index["duplicate_rules"],
+            "unreferenced_rules": index["unreferenced_rules"]
+        }, f, indent=2)
 
     print(f"✅ Compilation complete. Graph SHA: {graph_hash}")
-    print(f"📊 Processed {len(index['files'])} files. Found {len(index['duplicate_rules'])} duplicates, {len(index['dead_rules'])} dead rules.")
+    print(f"📊 Processed {len(index['files'])} files. Found {len(index['duplicate_rules'])} duplicates, {len(index['dead_rules'])} dead rules, {len(index['unreferenced_rules'])} unreferenced rules.")

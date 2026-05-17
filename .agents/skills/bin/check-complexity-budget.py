@@ -19,10 +19,12 @@ def check_budget(target_dir="."):
         
     dead_rules = len(entropy.get("dead_rules", []))
     duplicate_rules = len(entropy.get("duplicate_rules", []))
+    unreferenced_rules = len(entropy.get("unreferenced_rules", []))
     
     # Thresholds
     MAX_DEAD = 5
     MAX_DUPLICATE = 0
+    MAX_UNREFERENCED = 150 # Allow baseline for dynamic profile/template resolution
     
     errors = []
     
@@ -31,6 +33,9 @@ def check_budget(target_dir="."):
         
     if duplicate_rules > MAX_DUPLICATE:
         errors.append(f"BLOCKER: Duplicate rules ({duplicate_rules}) exceed threshold ({MAX_DUPLICATE}). Resolve ID collisions.")
+        
+    if unreferenced_rules > MAX_UNREFERENCED:
+        errors.append(f"HIGH: Unreferenced rules ({unreferenced_rules}) exceed threshold ({MAX_UNREFERENCED}). Check for orphaned governance profiles.")
         
     if errors:
         print("❌ Governance Complexity Budget EXCEEDED:")
