@@ -29,6 +29,20 @@ from substrate_security import (
     IntegritySeal,
 )
 
+# Gap closures for ENTERPRISE_READY classification
+from command_sandbox import (
+    CommandParser,
+    AllowedCommandRegistry,
+    ResourceLimiter,
+    SafeSubprocessRunner,
+    SandboxPolicy,
+)
+from crypto_seals import (
+    HMACKeyManager,
+    HMACSeal,
+    HMACAuditChain,
+)
+
 OUTPUT_DIR = ".agents/management/evidence/execution"
 INDEX_PATH = ".agents/management/evidence/generated/governance-index.json"
 
@@ -113,6 +127,15 @@ class ExecutionSubstrate:
         self.audit_chain = AuditChain(self.target_dir)
         self.env_sanitizer = EnvironmentSanitizer()
         self.path_guard = PathGuard(self.target_dir)
+
+        # Gap closures (ENTERPRISE_READY)
+        self.command_parser = CommandParser()
+        self.allowed_commands = AllowedCommandRegistry()
+        self.resource_limiter = ResourceLimiter()
+        self.sandbox_policy = SandboxPolicy()
+        self.hmac_key_manager = HMACKeyManager(target_dir=self.target_dir)
+        self.hmac_seal = HMACSeal(key_manager=self.hmac_key_manager, target_dir=self.target_dir)
+        self.hmac_audit_chain = HMACAuditChain(key_manager=self.hmac_key_manager, target_dir=self.target_dir)
 
     def generate_id(self, prefix=""):
         return f"{prefix}-{uuid.uuid4()}"
@@ -283,18 +306,22 @@ class ExecutionSubstrate:
 
         if task_command:
             try:
-                result = subprocess.run(
-                    task_command,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    cwd=self.target_dir,
+                # Gap 1: Use sandboxed command execution (shell=False)
+                runner = SafeSubprocessRunner(
+                    registry=self.allowed_commands,
+                    resource_limiter=self.resource_limiter,
                     env=sanitized_env,
-                    timeout=300  # 5-minute hard timeout (Phase 6)
+                    cwd=self.target_dir,
+                    timeout=300,
+                )
+                result = runner.run_safe(
+                    task_command,
+                    max_memory_mb=child_token.max_memory_mb
                 )
                 stdout_content = result.stdout
                 stderr_content = result.stderr
                 exit_code = result.returncode
+                sandbox_mode = "shell_false"
             except subprocess.TimeoutExpired:
                 stderr_content = "Execution timed out after 300s"
                 exit_code = -124
@@ -355,7 +382,8 @@ class ExecutionSubstrate:
             "context_expansion_budget_bytes": len(json.dumps(before_state)),
             "memory_usage_mb": 12.5,  # mock memory diagnostic
             "lease_expired_during_execution": lease_expired,
-            "sanitized_env_vars_removed": len(set(raw_env.keys()) - set(sanitized_env.keys()))
+            "sanitized_env_vars_removed": len(set(raw_env.keys()) - set(sanitized_env.keys())),
+            "sandbox_mode": sandbox_mode,
         }
 
         # Replay Contract Definition
@@ -400,13 +428,15 @@ class ExecutionSubstrate:
             "telemetry": telemetry
         }
 
-        # Phase 1 Security: Seal manifest with integrity hash and append to audit chain
-        exec_manifest = IntegritySeal.seal_manifest(exec_manifest_raw)
-        self.audit_chain.append_entry({
+        # Gap 2: Seal manifest with HMAC (replaces unkeyed SHA-256)
+        hmac_key = self.hmac_key_manager.get_key()
+        exec_manifest = self.hmac_seal.create_seal_entry(exec_manifest_raw, key=hmac_key)
+        self.hmac_audit_chain.append_entry({
             "execution_id": exec_id,
-            "integrity_seal": exec_manifest["integrity_seal"],
+            "hmac_seal": exec_manifest["hmac_seal"],
+            "key_id": exec_manifest["key_id"],
             "lifecycle_state": exec_manifest["lifecycle_state"]
-        })
+        }, key=hmac_key)
 
         manifest_path = os.path.join(self.output_dir, f"execution-manifest-{exec_id}.json")
         with open(manifest_path, 'w', encoding='utf-8') as f:
@@ -432,7 +462,8 @@ class ExecutionSubstrate:
         print(f"  - Context Expansion Budget: {telemetry['context_expansion_budget_bytes']} bytes")
         print(f"  - Env Vars Sanitized: {telemetry['sanitized_env_vars_removed']} removed")
         print(f"  - Current State:    {exec_manifest['lifecycle_state']}")
-        print(f"  - Integrity Seal:   {exec_manifest['integrity_seal'][:16]}...")
+        print(f"  - HMAC Seal:        {exec_manifest.get('hmac_seal', '')[:16]}...")
+        print(f"  - Sandbox Mode:     {telemetry.get('sandbox_mode', 'unknown')}")
         print("======================================================================")
 
         if violations:

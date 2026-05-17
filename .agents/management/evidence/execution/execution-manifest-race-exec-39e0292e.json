@@ -41,12 +41,15 @@
     "lease_expired_during_execution": false,
     "sanitized_env_vars_removed": 0
   },
-  "integrity_seal": "e93c8eaff742480138c3f0e6234649e69721a22ba60c82b01007284601f087ed",
   "repair_metadata": {
     "repaired_at": "2026-05-17T16:32:49.811441+00:00",
     "repairs_applied": [
       "recomputed_integrity_seal"
     ],
     "repair_engine": "JournalRepair"
-  }
+  },
+  "hmac_seal": "a6c150b7aacfa7cd655ae074f9e281efa7632aa40949146eb145920c4b3e62ea",
+  "key_id": "a70c062d816f",
+  "sealed_at": 1779037849.2523594,
+  "seal_algorithm": "HMAC-SHA256"
 }

@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-05-17T17:11:11.841098+00:00",
+  "summary": {
+    "total_files": 0,
+    "referenced": 0,
+    "unreferenced": 0,
+    "archived": 0,
+    "pruned": 0,
+    "orphans": 0
+  },
+  "by_classification": {},
+  "by_category": {},
+  "unreferenced_files": [],
+  "orphaned_files": [],
+  "archived_files": [],
+  "roots": [],
+  "leaves": [],
+  "precedence_files": [],
+  "recommendations": [
+    {
+      "priority": "info",
+      "action": "none",
+      "detail": "No governance entropy detected. All files are properly linked."
+    }
+  ]
+}

@@ -1,15 +1,15 @@
 {
   "attack_type": "tampering",
   "attack_description": "Evidence tampering \u2014 modify a sealed execution manifest",
-  "timestamp": 1779037122.1275556,
+  "timestamp": 1779038534.0032773,
   "attack_setup": {
     "original_manifest": {
-      "execution_id": "exec-39afd454-1331-49c3-b046-c6b54f7d2f69",
+      "execution_id": "exec-eb92c69a-4b84-4b89-b857-60bccec02e38",
       "task": "test-task",
       "trust_tier": "READ_ONLY",
       "domain_scope": "security",
       "lifecycle_state": "REPLAYABLE",
-      "timestamp": 1779037122.1275063
+      "timestamp": 1779038534.0032308
     },
     "original_seal_valid": true,
     "tampered_fields": [
@@ -20,6 +20,6 @@
   "expected_result": "BLOCKED",
   "actual_result": "BLOCKED",
   "detection_mechanism": "IntegritySeal.verify_seal() returned False after manifest was tampered",
-  "proof_hash": "9eb63ff404a58d9992ec3220008acd4baa6db76ba7e0b49ebbea58899bed63d7",
+  "proof_hash": "e095b139e54a2ffc3f9cc4962e834bab3e908abbb8982fa67cf0c4a73e208ba7",
   "passed": true
 }

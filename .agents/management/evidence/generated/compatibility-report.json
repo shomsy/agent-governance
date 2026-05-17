@@ -16,13 +16,13 @@
       {
         "check": "disk_space",
         "min_required_mb": 50,
-        "available_mb": 119375.74,
+        "available_mb": 119344.18,
         "passed": true
       },
       {
         "check": "memory",
         "min_required_mb": 100,
-        "available_mb": 6318.87,
+        "available_mb": 6748.89,
         "passed": true,
         "note": ""
       }
@@ -31,6 +31,6 @@
     "total_checks": 4,
     "passed_count": 4,
     "failed_count": 0,
-    "timestamp": 1779036320.9345686
+    "timestamp": 1779038217.707146
   }
 }

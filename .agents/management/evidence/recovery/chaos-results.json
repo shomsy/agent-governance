@@ -1,52 +1,52 @@
 {
-  "suite_id": "chaos-suite-7f242d0e-aaef-4302-90ec-5a9c7fc3eaec",
-  "started_at": "2026-05-17T16:51:58.190828+00:00",
+  "suite_id": "chaos-suite-7b6647a6-03f0-46a1-a090-3eb90ad4e80d",
+  "started_at": "2026-05-17T17:22:14.033606+00:00",
   "simulations": [
     {
-      "simulation_id": "chaos-sigkill-96bc72aa-98ab-4721-b386-fe5325110b97",
+      "simulation_id": "chaos-sigkill-9c26ba19-df4b-4b3d-a625-565a4c5c2617",
       "type": "SIGKILL_SIMULATION",
-      "exec_id": "chaos-target-47cf2fba",
-      "timestamp": "2026-05-17T16:51:58.191049+00:00",
+      "exec_id": "chaos-target-66252869",
+      "timestamp": "2026-05-17T17:22:14.033801+00:00",
       "result": "INJECTED",
       "original_state": "REPLAYABLE",
       "injected_state": "FAILED",
-      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-47cf2fba.json.pre-chaos"
+      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-66252869.json.pre-chaos"
     },
     {
-      "simulation_id": "chaos-corrupted-artifact-e47fa3fd-fe69-4502-9ca4-07724a2de594",
+      "simulation_id": "chaos-corrupted-artifact-381935bc-2e61-4f49-86e7-519f550770df",
       "type": "CORRUPTED_ARTIFACT_SIMULATION",
-      "exec_id": "chaos-target-47cf2fba",
-      "timestamp": "2026-05-17T16:51:58.191359+00:00",
+      "exec_id": "chaos-target-66252869",
+      "timestamp": "2026-05-17T17:22:14.034079+00:00",
       "result": "INJECTED",
       "corrupted_fields": [
         "replay_contract.original_checksum",
         "integrity_seal"
       ],
-      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-47cf2fba.json.pre-chaos"
+      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-66252869.json.pre-chaos"
     },
     {
-      "simulation_id": "chaos-partial-write-a8e86f92-2e9f-4532-8734-559fee8ead7d",
+      "simulation_id": "chaos-partial-write-afcb274e-23c3-4c0a-a1cd-85420f8dfbfb",
       "type": "PARTIAL_WRITE_SIMULATION",
-      "exec_id": "chaos-target-47cf2fba",
-      "timestamp": "2026-05-17T16:51:58.194515+00:00",
+      "exec_id": "chaos-target-66252869",
+      "timestamp": "2026-05-17T17:22:14.035133+00:00",
       "corruption_verified": true,
       "result": "INJECTED",
       "original_size": 1675,
       "truncated_size": 1172,
-      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-47cf2fba.json.pre-chaos"
+      "backup_path": "./.agents/management/evidence/execution/execution-manifest-chaos-target-66252869.json.pre-chaos"
     },
     {
-      "simulation_id": "chaos-race-0b3f0a06-a133-4988-9c16-beb358e8625b",
+      "simulation_id": "chaos-race-df481c23-5572-4b03-8e67-644e09230215",
       "type": "TOCTOU_RACE_SIMULATION",
-      "timestamp": "2026-05-17T16:51:58.194769+00:00",
+      "timestamp": "2026-05-17T17:22:14.035334+00:00",
       "result": "INJECTED",
       "race_file": "shared_target.txt",
       "created_executions": 2
     },
     {
-      "simulation_id": "chaos-gov-mutation-0639fef7-ad49-416d-a6f1-c3e4afde6097",
+      "simulation_id": "chaos-gov-mutation-bbd797b6-1af1-41d7-9057-40a8330c490e",
       "type": "CONCURRENT_GOV_MUTATION_SIMULATION",
-      "timestamp": "2026-05-17T16:51:58.195009+00:00",
+      "timestamp": "2026-05-17T17:22:14.035523+00:00",
       "result": "INJECTED",
       "governance_paths": [
         ".agents/AGENTS.md",
@@ -55,7 +55,7 @@
       "created_executions": 2
     }
   ],
-  "completed_at": "2026-05-17T16:51:58.195204+00:00",
+  "completed_at": "2026-05-17T17:22:14.035680+00:00",
   "total_simulations": 5,
   "successful_injections": 5
 }

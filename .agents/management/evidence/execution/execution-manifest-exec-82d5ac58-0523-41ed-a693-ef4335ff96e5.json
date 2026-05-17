@@ -3583,6 +3583,8 @@
     "lease_expired_during_execution": false,
     "sanitized_env_vars_removed": 1
   },
-  "integrity_seal": "8049865889924dd58f9ebec8e821f04579f7ab3b9f4dfe22bbf59e9e4fa1462a",
-  "sealed_at": 1779037004.6428018
+  "hmac_seal": "39c1baa6f009c8cea0d2f417f1aac4cd95ac5510a4976102e661052c2bae086d",
+  "key_id": "a70c062d816f",
+  "sealed_at": 1779037849.2279222,
+  "seal_algorithm": "HMAC-SHA256"
 }

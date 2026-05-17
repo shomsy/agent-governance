@@ -1,7 +1,7 @@
 {
   "attack_type": "escalation",
   "attack_description": "Privilege escalation \u2014 child token with higher trust tier or expanded tools/scopes",
-  "timestamp": 1779037122.1270523,
+  "timestamp": 1779038534.0028255,
   "attack_setup": {
     "parent_trust_tier": "WORKSPACE_WRITE",
     "parent_tools": [
