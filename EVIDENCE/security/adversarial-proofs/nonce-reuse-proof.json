@@ -1,0 +1,16 @@
+{
+  "attack_type": "nonce-reuse",
+  "attack_description": "Nonce reuse \u2014 register a nonce and try to reuse it",
+  "timestamp": 1779037122.1282656,
+  "attack_setup": {
+    "token_id": "token-587d48a0-36f3-4541-b00d-5f83a8aaeedd",
+    "nonce": "9dd3cb5bc048a82f8d5530ccce73235dd46c776c02d4b4ff35c307f61abd76f7",
+    "first_registration": true,
+    "nonce_was_tracked": true
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "NonceRegistry.is_nonce_valid() confirmed nonce was registered; register_nonce() rejected reuse",
+  "proof_hash": "7c7c23d1886e8c1cdc9606fc3fd540fc18ba7447938265f8d9dacdcc279a9e47",
+  "passed": true
+}

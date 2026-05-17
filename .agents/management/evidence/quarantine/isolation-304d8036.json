@@ -1,0 +1,6 @@
+{
+  "original_path": ".agents/management/evidence/execution/execution-manifest-exec-b42b91e4-1031-4526-a1d4-40f7c225608f.json",
+  "quarantine_path": ".agents/management/evidence/quarantine/execution/execution-manifest-exec-b42b91e4-1031-4526-a1d4-40f7c225608f.json",
+  "isolated_at": "2026-05-17T16:32:23.209950+00:00",
+  "isolation_engine": "CorruptedEvidenceIsolator"
+}

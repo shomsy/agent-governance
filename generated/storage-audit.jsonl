@@ -1,0 +1,4 @@
+{"timestamp": 1779035408.0274184, "timestamp_iso": "2026-05-17T16:30:08Z", "action": "summarize_executions", "details": {"days": 7, "total": 0, "output": "./summaries/executions-summary.json"}}
+{"timestamp": 1779035408.0275595, "timestamp_iso": "2026-05-17T16:30:08Z", "action": "summarize_failures", "details": {"days": 7, "total_failures": 0, "output": "./summaries/failures-summary.json"}}
+{"timestamp": 1779035408.02766, "timestamp_iso": "2026-05-17T16:30:08Z", "action": "summarize_performance", "details": {"days": 7, "samples": 0, "output": "./summaries/performance-summary.json"}}
+{"timestamp": 1779035408.0277426, "timestamp_iso": "2026-05-17T16:30:08Z", "action": "summarize_trust_violations", "details": {"days": 7, "total": 0, "output": "./summaries/trust-violations-summary.json"}}

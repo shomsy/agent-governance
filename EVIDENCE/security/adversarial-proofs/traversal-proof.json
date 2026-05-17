@@ -1,0 +1,25 @@
+{
+  "attack_type": "traversal",
+  "attack_description": "Path traversal / symlink escape \u2014 write outside the sandbox",
+  "timestamp": 1779037122.1273751,
+  "attack_setup": {
+    "sandbox_root": "/tmp/adversary-traversal-9rh809ji/sandbox",
+    "escape_attempts": [
+      "../../../etc/passwd",
+      "/tmp/adversary-traversal-9rh809ji/sandbox/../../../etc/shadow",
+      "/tmp/outside-sandbox"
+    ],
+    "symlink_target": "/tmp/adversary-traversal-9rh809ji/outside",
+    "results": {
+      "../../../etc/passwd": "blocked",
+      "/tmp/adversary-traversal-9rh809ji/sandbox/../../../etc/shadow": "blocked",
+      "/tmp/outside-sandbox": "blocked",
+      "symlink-escape": "blocked"
+    }
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "PathGuard.is_path_safe() rejected paths outside sandbox",
+  "proof_hash": "689f302116f55914e461df1dcdb503ace03d0792093d5fb830fcfa7fa3e5ef22",
+  "passed": true
+}

@@ -1,0 +1,16 @@
+{
+  "attack_type": "replay",
+  "attack_description": "Token replay attack \u2014 reuse a valid capability token's nonce",
+  "timestamp": 1779037122.1268036,
+  "attack_setup": {
+    "token_id": "token-e790e97d-f2f2-4609-9f86-ee98d46ad35b",
+    "nonce": "9a40540c8f54398aa434b9ff99c36657a37cea1422404e8326b257fbf4761daa",
+    "first_use": "registered",
+    "nonce_valid_before_replay": true
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "NonceRegistry.register_nonce() returned False for duplicate nonce",
+  "proof_hash": "dcde09afe5099f6aacaa41b23706bc167ff403c2ef9edb4964d55ba768d767b2",
+  "passed": true
+}

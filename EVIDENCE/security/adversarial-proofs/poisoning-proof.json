@@ -1,0 +1,45 @@
+{
+  "attack_type": "poisoning",
+  "attack_description": "Environment poisoning \u2014 inject dangerous env vars into subprocess",
+  "timestamp": 1779037122.1279523,
+  "attack_setup": {
+    "poisoned_vars": [
+      "HOME",
+      "USER",
+      "AWS_SECRET_KEY",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_SESSION_TOKEN",
+      "GOOGLE_APPLICATION_CREDENTIALS",
+      "LD_PRELOAD",
+      "MY_SECRET_TOKEN",
+      "DATABASE_PASSWORD",
+      "API_KEY",
+      "NORMAL_VAR",
+      "PATH",
+      "LANG"
+    ],
+    "poison_vars_checked": [
+      "AWS_SECRET_KEY",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_SESSION_TOKEN",
+      "GOOGLE_APPLICATION_CREDENTIALS",
+      "MY_SECRET_TOKEN",
+      "DATABASE_PASSWORD",
+      "API_KEY"
+    ],
+    "poison_vars_present_in_output": [],
+    "allowed_vars_retained": [
+      "HOME",
+      "USER",
+      "PATH",
+      "LANG"
+    ],
+    "total_input_vars": 13,
+    "total_output_vars": 8
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "EnvironmentSanitizer.sanitize_env() removed sensitive variables; sanitized=True, locale_forced=True, allowed_retained=4",
+  "proof_hash": "0ed787e82b9fcdfd68032ca9bbbf7ae8576a775ee559258623ece951b0080b30",
+  "passed": true
+}

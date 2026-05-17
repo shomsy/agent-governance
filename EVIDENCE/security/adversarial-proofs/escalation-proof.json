@@ -1,0 +1,29 @@
+{
+  "attack_type": "escalation",
+  "attack_description": "Privilege escalation \u2014 child token with higher trust tier or expanded tools/scopes",
+  "timestamp": 1779037122.1270523,
+  "attack_setup": {
+    "parent_trust_tier": "WORKSPACE_WRITE",
+    "parent_tools": [
+      "view_file"
+    ],
+    "parent_scopes": [
+      "operations"
+    ],
+    "child_trust_tier": "GOVERNANCE_WRITE",
+    "child_tools": [
+      "view_file",
+      "write_to_file",
+      "search_web"
+    ],
+    "child_scopes": [
+      "operations",
+      "security"
+    ]
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "validate_delegation() returned False: Escalation attempt: child requested tool 'write_to_file' not held by parent",
+  "proof_hash": "c25c9cfa604667e34d7f0aaaac5147407be8fb7aaa5c8e49aed04becaa168960",
+  "passed": true
+}

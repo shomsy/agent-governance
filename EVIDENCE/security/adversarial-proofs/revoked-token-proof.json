@@ -1,0 +1,15 @@
+{
+  "attack_type": "revoked-token",
+  "attack_description": "Revoked token use \u2014 execute with a token that has been revoked",
+  "timestamp": 1779037122.1285343,
+  "attack_setup": {
+    "token_id": "token-c4f16df2-27ac-4a96-b09a-a5c6f7d33c54",
+    "revoked": true,
+    "reason": "adversarial-test-revocation"
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "RevocationRegistry.is_revoked() returned True for 'token-c4f16df2-27ac-4a96-b09a-a5c6f7d33c54'",
+  "proof_hash": "10076762e52c3fee660f6adddfde7784a51cd9309e44b749f5da94b77e52c946",
+  "passed": true
+}

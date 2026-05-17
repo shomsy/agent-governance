@@ -1,0 +1,16 @@
+{
+  "attack_type": "chain-tamper",
+  "attack_description": "Audit chain tampering \u2014 modify an entry in the audit chain",
+  "timestamp": 1779037122.1289415,
+  "attack_setup": {
+    "chain_length": 5,
+    "tampered_index": 2,
+    "original_valid": true,
+    "broken_index_detected": 2
+  },
+  "expected_result": "BLOCKED",
+  "actual_result": "BLOCKED",
+  "detection_mechanism": "AuditChain.verify_chain() detected tampering at index 2",
+  "proof_hash": "c1a7568a83bb5fb6b7688d8d1b6d5fa94629b89b16d70c3a9f9591e779a00160",
+  "passed": true
+}

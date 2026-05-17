@@ -1,0 +1,373 @@
+{
+  "threat_matrix_version": "1.0.0",
+  "generated_at": "2026-05-17T00:00:00Z",
+  "substrate_version": "5.1.0",
+  "stride_categories": {
+    "spoofing": {
+      "description": "Attacks that forge identity, credentials, or evidence to impersonate trusted agents or systems.",
+      "threats": [
+        {
+          "id": "SP-01",
+          "title": "Agent identity impersonation",
+          "surface": "Delegation manifests",
+          "severity": "HIGH",
+          "attack_vector": "Forge capability token with different token_id to impersonate another agent's identity",
+          "control": "SHA-256 signature verification on token fields with capability token lineage seals",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack replay"
+        },
+        {
+          "id": "SP-02",
+          "title": "Forged evidence files",
+          "surface": "EVIDENCE/**, evidence/generated/**",
+          "severity": "HIGH",
+          "attack_vector": "Create fake evidence files with false validation claims to mislead audit review",
+          "control": "SHA-256 hash verification in verify-governance.sh; immutable audit chain",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        },
+        {
+          "id": "SP-03",
+          "title": "Replay of expired capability tokens",
+          "surface": "execution-substrate.py",
+          "severity": "MEDIUM",
+          "attack_vector": "Reuse a previously valid but expired capability token to gain unauthorized access",
+          "control": "Lease expiration + nonce validation; revocation registry check before execution",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack replay"
+        },
+        {
+          "id": "SP-04",
+          "title": "Fake governance file injection",
+          "surface": ".agents/governance/**",
+          "severity": "HIGH",
+          "attack_vector": "Create counterfeit governance files to redefine trust tiers or approval policies",
+          "control": "Frozen baseline (.agents/.rules) verification; governance file integrity checks",
+          "status": "MITIGATED",
+          "test": "verify-governance.sh --integrity"
+        },
+        {
+          "id": "SP-05",
+          "title": "Telemetry impersonation",
+          "surface": "Telemetry fields in manifests",
+          "severity": "MEDIUM",
+          "attack_vector": "Inject fake telemetry data to mask malicious execution patterns",
+          "control": "Telemetry sealed after execution; integrity seals on manifest JSON",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        }
+      ]
+    },
+    "tampering": {
+      "description": "Attacks that modify data, governance rules, or execution state to subvert expected behavior.",
+      "threats": [
+        {
+          "id": "TM-01",
+          "title": "Evidence file modification after generation",
+          "surface": ".agents/management/evidence/**",
+          "severity": "CRITICAL",
+          "attack_vector": "Modify evidence files post-generation to hide failures or falsify results",
+          "control": "Immutable append-only index with hash chain; execution integrity seals",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        },
+        {
+          "id": "TM-02",
+          "title": "Governance rule modification during execution",
+          "surface": ".agents/governance/**",
+          "severity": "HIGH",
+          "attack_vector": "Alter governance files mid-execution to weaken controls or bypass approvals",
+          "control": "Frozen baseline (.agents/.rules) + trust boundary enforcement; pre-execution integrity assertions",
+          "status": "MITIGATED",
+          "test": "verify-governance.sh --drift"
+        },
+        {
+          "id": "TM-03",
+          "title": "Replay contract manipulation",
+          "surface": "execution-manifest-*.json",
+          "severity": "HIGH",
+          "attack_vector": "Modify replay contract fields to alter execution expectations or mask deviations",
+          "control": "Replay contract checksums + drift detection; chain_hash validation",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        },
+        {
+          "id": "TM-04",
+          "title": "Mutation journal corruption",
+          "surface": "mutation_journal in manifests",
+          "severity": "MEDIUM",
+          "attack_vector": "Corrupt mutation journal entries to hide unauthorized file changes",
+          "control": "Pre/post state hash snapshots; mutation count validation against expected mutations",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        },
+        {
+          "id": "TM-05",
+          "title": "Log injection / fake telemetry",
+          "surface": "Telemetry fields",
+          "severity": "MEDIUM",
+          "attack_vector": "Inject fabricated log entries to create false execution narrative",
+          "control": "Telemetry sealed after execution, not before; SHA-256 integrity seals",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        }
+      ]
+    },
+    "repudiation": {
+      "description": "Attacks that enable an agent to deny actions taken or destroy evidence of execution.",
+      "threats": [
+        {
+          "id": "RP-01",
+          "title": "Agent denies executing a task",
+          "surface": "Execution manifests",
+          "severity": "HIGH",
+          "attack_vector": "Agent claims it did not execute a specific task despite evidence to the contrary",
+          "control": "Authority lineage chain (initiator -> parent -> child); chain_hash audit trail",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack replay"
+        },
+        {
+          "id": "RP-02",
+          "title": "Evidence destruction to hide failures",
+          "surface": "EVIDENCE/**, evidence/**",
+          "severity": "HIGH",
+          "attack_vector": "Delete or destroy evidence files to conceal execution failures or policy violations",
+          "control": "Hash chain prevents silent deletion without detection; append-only index",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack tampering"
+        },
+        {
+          "id": "RP-03",
+          "title": "Governance bypass without audit trail",
+          "surface": "Hook system",
+          "severity": "MEDIUM",
+          "attack_vector": "Circumvent hook system to execute actions without recording in audit log",
+          "control": "pre-tool-use.sh logs all decisions; mandatory telemetry injection",
+          "status": "MITIGATED",
+          "test": "verify-governance.sh --hooks"
+        }
+      ]
+    },
+    "information_disclosure": {
+      "description": "Attacks that extract sensitive data, secrets, or unauthorized information from the system.",
+      "threats": [
+        {
+          "id": "ID-01",
+          "title": "Secret leakage through command output",
+          "surface": "Subprocess stdout/stderr",
+          "severity": "HIGH",
+          "attack_vector": "Craft commands that leak secrets via stdout/stderr output streams",
+          "control": "is_dangerous_command() filter in lib.sh; sensitive env var filtering (AWS_*, GOOGLE_*, *_SECRET, *_KEY, *_TOKEN)",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack poisoning"
+        },
+        {
+          "id": "ID-02",
+          "title": "Sensitive data in evidence files",
+          "surface": ".agents/management/evidence/raw/**",
+          "severity": "MEDIUM",
+          "attack_vector": "Store sensitive credentials or PII in evidence files that persist on disk",
+          "control": "Evidence retention policies + archive encryption support; evidence sanitization",
+          "status": "ACCEPTED",
+          "test": "verify-governance.sh --evidence"
+        },
+        {
+          "id": "ID-03",
+          "title": "Environment variable exfiltration",
+          "surface": "env injection in execute()",
+          "severity": "HIGH",
+          "attack_vector": "Access parent environment variables through subprocess env propagation",
+          "control": "Whitelist-only env propagation; sensitive var filtering before subprocess execution",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack poisoning"
+        },
+        {
+          "id": "ID-04",
+          "title": "Cross-agent data leakage via shared state",
+          "surface": "Mutation journal / shared manifests",
+          "severity": "MEDIUM",
+          "attack_vector": "Read mutation journals or manifests from other agents to infer sensitive execution context",
+          "control": "Delegation-scoped visibility; capability token tier restrictions on read access",
+          "status": "ACCEPTED",
+          "test": "security-adversary.py --attack escalation"
+        }
+      ]
+    },
+    "denial_of_service": {
+      "description": "Attacks that degrade or halt system availability through resource exhaustion or state corruption.",
+      "threats": [
+        {
+          "id": "DS-01",
+          "title": "Infinite evidence growth fills disk",
+          "surface": "evidence/**",
+          "severity": "HIGH",
+          "attack_vector": "Continuously generate evidence files to exhaust available disk space",
+          "control": "Retention policies + storage quotas (Phase 4); disk usage monitoring",
+          "status": "MITIGATED",
+          "test": "verify-governance.sh --storage"
+        },
+        {
+          "id": "DS-02",
+          "title": "Governance resolution loop",
+          "surface": "profile-resolution-algorithm.md",
+          "severity": "MEDIUM",
+          "attack_vector": "Craft governance profiles that trigger infinite or deeply recursive resolution",
+          "control": "Max resolution depth + cycle detection in resolution algorithm",
+          "status": "MITIGATED",
+          "test": "verify-governance.sh --resolution"
+        },
+        {
+          "id": "DS-03",
+          "title": "Fork bomb via subprocess",
+          "surface": "execute() shell=True",
+          "severity": "CRITICAL",
+          "attack_vector": "Execute fork bomb or recursive subprocess spawning to exhaust system resources",
+          "control": "Process limits + timeout enforcement (Phase 6); subprocess resource caps",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack poisoning"
+        },
+        {
+          "id": "DS-04",
+          "title": "Concurrent execution deadlock",
+          "surface": "Lock files",
+          "severity": "MEDIUM",
+          "attack_vector": "Create lock file contention that deadlocks concurrent agent executions",
+          "control": "Stale lock cleanup + timeout (Phase 6); lock acquisition deadlines",
+          "status": "OPEN",
+          "test": "security-adversary.py --attack poisoning"
+        },
+        {
+          "id": "DS-05",
+          "title": "Nonce registry exhaustion",
+          "surface": "Execution nonce registry",
+          "severity": "MEDIUM",
+          "attack_vector": "Flood nonce registry with unique nonces to cause memory exhaustion or lookup degradation",
+          "control": "Nonce registry size limits + periodic pruning; revocation window expiration",
+          "status": "OPEN",
+          "test": "security-adversary.py --attack replay"
+        }
+      ]
+    },
+    "elevation_of_privilege": {
+      "description": "Attacks that escalate authority, expand scope, or escape sandbox boundaries.",
+      "threats": [
+        {
+          "id": "EP-01",
+          "title": "Child token requests higher trust tier",
+          "surface": "validate_delegation()",
+          "severity": "CRITICAL",
+          "attack_vector": "Child token requests a higher trust tier than parent during delegation",
+          "control": "Tier rank comparison blocks escalation; READ_ONLY < WORKSPACE_WRITE < GOVERNANCE_WRITE < TRUSTED",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack escalation"
+        },
+        {
+          "id": "EP-02",
+          "title": "Scope expansion beyond delegation",
+          "surface": "allowed_scopes narrowing",
+          "severity": "HIGH",
+          "attack_vector": "Request broader scope access than what the parent token's delegation permits",
+          "control": "Strict subset validation on allowed_scopes; scope bounding in domain resolution",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack escalation"
+        },
+        {
+          "id": "EP-03",
+          "title": "Tool set expansion",
+          "surface": "allowed_tools narrowing",
+          "severity": "HIGH",
+          "attack_vector": "Request additional tools beyond the parent token's allowed_tools set",
+          "control": "Strict subset validation on allowed_tools; tool whitelist enforcement",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack escalation"
+        },
+        {
+          "id": "EP-04",
+          "title": "Confused deputy attack",
+          "surface": "Delegation chain",
+          "severity": "HIGH",
+          "attack_vector": "Agent acts with inherited authority it shouldn't have by exploiting delegation chain trust",
+          "control": "Authority lineage chain + capability narrowing proofs (Phase 5); strict subset enforcement",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack escalation"
+        },
+        {
+          "id": "EP-05",
+          "title": "Path traversal escapes sandbox",
+          "surface": "File operations",
+          "severity": "HIGH",
+          "attack_vector": "Use ../ sequences or symlinks in file paths to access files outside the intended workspace",
+          "control": "Path normalization with os.path.realpath() + scope validation; symlink resolution before check",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack traversal"
+        },
+        {
+          "id": "EP-06",
+          "title": "Revocation bypass via delegation chain",
+          "surface": "Revocation propagation",
+          "severity": "HIGH",
+          "attack_vector": "Continue using a child token after parent token has been revoked, exploiting delayed revocation propagation",
+          "control": "Revocation registry check before execution; authority lineage chain traversal for cascade revocation",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack replay"
+        },
+        {
+          "id": "EP-07",
+          "title": "Environment poisoning for privilege escalation",
+          "surface": "Subprocess environment",
+          "severity": "HIGH",
+          "attack_vector": "Inject PATH manipulation, LD_PRELOAD, or config file poisoning to execute with elevated privileges",
+          "control": "PATH integrity verification; known-binary checksum validation; environment sanitization (Phase 6)",
+          "status": "MITIGATED",
+          "test": "security-adversary.py --attack poisoning"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_threats": 29,
+    "mitigated": 24,
+    "accepted": 2,
+    "open": 2,
+    "by_severity": {
+      "CRITICAL": 3,
+      "HIGH": 17,
+      "MEDIUM": 9
+    },
+    "by_stride_category": {
+      "spoofing": 5,
+      "tampering": 5,
+      "repudiation": 3,
+      "information_disclosure": 4,
+      "denial_of_service": 5,
+      "elevation_of_privilege": 7
+    }
+  },
+  "controls_summary": {
+    "token_security": [
+      "SHA-256 capability token signatures",
+      "UUID v4 nonce per execution",
+      "Lease expiration enforcement",
+      "Revocation registry with cascade propagation",
+      "Authority lineage chain validation"
+    ],
+    "integrity_seals": [
+      "SHA-256 hash chain on execution manifests (chain_hash)",
+      "Integrity seal on sealed manifest JSON",
+      "Pre/post state hash snapshots for mutations",
+      "Replay contract checksums with drift detection"
+    ],
+    "sandbox_protection": [
+      "Path normalization via os.path.realpath()",
+      "Symlink resolution before scope check",
+      "Trust tier allowed path enforcement",
+      "Unsafe mutation detection (symlinks, dotfiles, permissions)"
+    ],
+    "subprocess_controls": [
+      "is_dangerous_command() pre-filter",
+      "Sensitive environment variable filtering",
+      "Process limits + timeout enforcement",
+      "Frozen time for deterministic replay (SUBSTRATE_FROZEN_TIME)"
+    ]
+  }
+}

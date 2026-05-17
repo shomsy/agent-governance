@@ -1,0 +1,6 @@
+{
+  "original_path": ".agents/management/evidence/execution/execution-manifest-chaos-target-7b53a0a0.json",
+  "quarantine_path": ".agents/management/evidence/quarantine/execution/execution-manifest-chaos-target-7b53a0a0.json",
+  "isolated_at": "2026-05-17T16:32:23.210092+00:00",
+  "isolation_engine": "CorruptedEvidenceIsolator"
+}

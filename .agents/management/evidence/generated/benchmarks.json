@@ -1,0 +1,26 @@
+{
+  "benchmarks": {
+    "startup": {
+      "benchmark": "startup",
+      "time_ms": 14.9
+    },
+    "execute": {
+      "benchmark": "execute",
+      "command": "echo test",
+      "time_ms": 0.7
+    },
+    "replay": {
+      "benchmark": "replay",
+      "exec_id": "synthetic",
+      "time_ms": 0.03,
+      "integrity_verified": true
+    },
+    "scan_files": {
+      "benchmark": "scan_files",
+      "files_scanned": 3978,
+      "time_ms": 246.45,
+      "ms_per_file": 0.062
+    },
+    "timestamp": 1779036322.7162242
+  }
+}

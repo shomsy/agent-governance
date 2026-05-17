@@ -1,0 +1,21 @@
+{
+  "generated_at": 1779035408.027592,
+  "generated_at_iso": "2026-05-17T16:30:08Z",
+  "period_days": 7,
+  "sample_size": 0,
+  "duration": {
+    "avg_ms": 0,
+    "min_ms": 0,
+    "max_ms": 0
+  },
+  "overhead": {
+    "avg_ms": 0,
+    "min_ms": 0,
+    "max_ms": 0
+  },
+  "context_budget": {
+    "avg_bytes": 0,
+    "max_bytes": 0
+  },
+  "time_series": []
+}
