@@ -55,6 +55,13 @@ class State(Enum):
     INVALIDATED = "INVALIDATED"
     EXPIRED = "EXPIRED"
 
+TRUST_TIER_RANKS = {
+    "READ_ONLY": 1,
+    "WORKSPACE_WRITE": 2,
+    "GOVERNANCE_WRITE": 3,
+    "TRUSTED": 4,
+}
+
 class CapabilityToken:
     def __init__(self, token_id, lease_duration, max_memory_mb, allowed_tools, allowed_scopes, trust_tier):
         self.token_id = token_id
@@ -82,8 +89,7 @@ class CapabilityToken:
             if s not in self.allowed_scopes:
                 return False, f"Escalation attempt: child requested scope '{s}' not held by parent"
         # Escalation Block: child cannot request higher trust tier
-        tier_ranks = {"READ_ONLY": 1, "WORKSPACE_WRITE": 2, "GOVERNANCE_WRITE": 3, "TRUSTED": 4}
-        if tier_ranks.get(child_token.trust_tier, 0) > tier_ranks.get(self.trust_tier, 0):
+        if TRUST_TIER_RANKS.get(child_token.trust_tier, 0) > TRUST_TIER_RANKS.get(self.trust_tier, 0):
             return False, f"Escalation attempt: child requested tier '{child_token.trust_tier}' higher than parent '{self.trust_tier}'"
         return True, "Valid narrowing"
 
@@ -300,6 +306,7 @@ class ExecutionSubstrate:
         stdout_content = ""
         stderr_content = ""
         exit_code = 0
+        sandbox_mode = "no_command"
 
         if task_command:
             try:
@@ -529,7 +536,7 @@ class ExecutionSubstrate:
         if not chain_valid:
             print(f"  ❌ AUDIT CHAIN CORRUPTION: Chain broken at entry {broken_idx}")
             return False
-        print(f"  - Audit chain:      VERIFIED ({len(self.hmac_audit_chain._entries)} entries)")
+        print(f"  - Audit chain:      VERIFIED ({len(self.hmac_audit_chain)} entries)")
 
         # Rerun payload and assert deterministic exit code
         contract = manifest["replay_contract"]

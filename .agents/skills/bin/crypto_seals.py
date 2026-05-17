@@ -272,6 +272,10 @@ class HMACAuditChain:
             for entry in self._entries:
                 f.write(json.dumps(entry) + "\n")
 
+    def __len__(self):
+        """Return the number of entries in the audit chain."""
+        return len(self._entries)
+
     def get_latest_chain_hash(self):
         """Return the head hash of the chain, or None if empty."""
         if not self._entries:

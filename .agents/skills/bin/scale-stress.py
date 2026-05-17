@@ -161,8 +161,6 @@ def test_manifest_generation(exec_count=1000):
 
 def test_nonce_growth(nonce_count=10000):
     """Test nonce registry with large number of entries."""
-    import tempfile
-
     tmpdir = tempfile.mkdtemp(prefix="stress-nonce-")
     reg_path = os.path.join(tmpdir, "nonce-registry.jsonl")
 

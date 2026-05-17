@@ -142,6 +142,7 @@ def audit_storage_growth(target_dir):
     oldest = None
     newest = None
     oldest_age = 0
+    newest_age = None
     for dirpath, _, filenames in os.walk(evidence_dir):
         for fn in filenames:
             fp = os.path.join(dirpath, fn)
@@ -149,7 +150,8 @@ def audit_storage_growth(target_dir):
             if age > oldest_age:
                 oldest_age = age
                 oldest = os.path.relpath(fp, td)
-            if newest is None or _age_days(fp) < _age_days(os.path.join(td, newest)):
+            if newest_age is None or age < newest_age:
+                newest_age = age
                 newest = os.path.relpath(fp, td)
 
     # Estimate growth rate (if we have execution manifests with timestamps)

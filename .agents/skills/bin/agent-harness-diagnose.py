@@ -19,8 +19,7 @@ import sys
 import json
 import stat
 import shutil
-from pathlib import Path
-from typing import Any
+import time
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -403,7 +402,6 @@ def self_heal(target_dir="."):
     # Fix 4: Clean expired nonces
     nonce_path = os.path.join(td, ".agents/management/evidence/security/nonce-registry.jsonl")
     if os.path.exists(nonce_path):
-        import time
         cleaned = 0
         kept = 0
         now = time.time()
@@ -428,7 +426,6 @@ def self_heal(target_dir="."):
     # Fix 5: Clean expired revocations
     revocation_path = os.path.join(td, ".agents/management/evidence/security/revocation-registry.jsonl")
     if os.path.exists(revocation_path):
-        import time
         cleaned = 0
         now = time.time()
         entries = []

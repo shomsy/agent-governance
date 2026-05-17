@@ -31,6 +31,13 @@ def _target_dir(path=None):
     return os.path.normpath(path) if path else "."
 
 
+def _fmt_score(score):
+    """Format compatibility score dict as 'X/Y' string."""
+    if isinstance(score, dict):
+        return f"{score['score']}/{score['max_score']}"
+    return str(score)
+
+
 def _run(cmd, cwd=None, timeout=30):
     """Run a command and return (returncode, stdout, stderr)."""
     try:
@@ -63,13 +70,20 @@ def validate_single_repo(repo_path, harness_root=None):
     is_git = os.path.exists(os.path.join(repo, ".git"))
     results["is_git_repo"] = is_git
 
-    # 2. Has source files
+    # 2. Has source files / 6. File count and size — single os.walk pass
     source_extensions = {".py", ".ts", ".tsx", ".js", ".jsx", ".php", ".go", ".rs", ".java", ".rb", ".cs", ".c", ".cpp", ".h"}
     source_files = []
+    total_files = 0
+    total_size = 0
+    skip_dirs = ("node_modules", "vendor", "build", "dist", "target")
     for root, dirs, files in os.walk(repo):
-        # Skip hidden and build dirs
-        dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("node_modules", "vendor", "build", "dist", "target")]
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d not in skip_dirs]
         for f in files:
+            total_files += 1
+            try:
+                total_size += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                pass
             if os.path.splitext(f)[1] in source_extensions:
                 source_files.append(f)
     results["source_files"] = len(source_files)
@@ -104,17 +118,6 @@ def validate_single_repo(repo_path, harness_root=None):
         results["bootstrap_available"] = False
         results["bootstrap_passed"] = False
 
-    # 6. File count and size
-    total_files = 0
-    total_size = 0
-    for root, dirs, files in os.walk(repo):
-        dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("node_modules", "vendor", "build", "dist", "target")]
-        for f in files:
-            total_files += 1
-            try:
-                total_size += os.path.getsize(os.path.join(root, f))
-            except OSError:
-                pass
     results["total_files"] = total_files
     results["total_size_mb"] = round(total_size / (1024 * 1024), 1)
 
@@ -134,7 +137,7 @@ def validate_single_repo(repo_path, harness_root=None):
     if results.get("diagnose_passed"): score += 1
     if results.get("bootstrap_passed"): score += 1
 
-    results["compatibility_score"] = f"{score}/{max_score}"
+    results["compatibility_score"] = {"score": score, "max_score": max_score}
     results["compatible"] = score >= 3  # At least 3/5 for basic compatibility
 
     return results
@@ -168,7 +171,7 @@ def validate_multiple_repos(repo_paths, harness_root=None):
 
             score = result.get("compatibility_score", "?")
             compatible = "YES" if result.get("compatible") else "NO"
-            print(f"    Score: {score} | Compatible: {compatible} | {duration:.0f}ms")
+            print(f"    Score: {_fmt_score(score)} | Compatible: {compatible} | {duration:.0f}ms")
         except Exception as e:
             print(f"    ERROR: {e}")
             all_results.append({
@@ -196,7 +199,7 @@ def validate_multiple_repos(repo_paths, harness_root=None):
         print("  Compatible repos:")
         for r in compatible:
             langs = ", ".join(r.get("languages", {}).keys())
-            print(f"    - {r['repo_name']} ({r.get('compatibility_score', '?')}) [{langs}]")
+            print(f"    - {r['repo_name']} ({_fmt_score(r.get('compatibility_score', '?'))}) [{langs}]")
 
     if incompatible:
         print("  Incompatible repos:")
@@ -224,7 +227,7 @@ def run_demo(harness_root=None):
     # Test against this harness itself (baseline)
     print("  [1/3] Testing harness repository (baseline)...")
     result1 = validate_single_repo(harness, harness)
-    print(f"    Score: {result1['compatibility_score']} | Compatible: {result1['compatible']}")
+    print(f"    Score: {_fmt_score(result1['compatibility_score'])} | Compatible: {result1['compatible']}")
     print(f"    Files: {result1['source_files']} source, {result1['total_files']} total")
     print(f"    Languages: {', '.join(result1.get('languages', {}).keys()) or 'none detected'}")
     print()
@@ -239,7 +242,7 @@ def run_demo(harness_root=None):
         with open(os.path.join(tmpdir, "main.py"), "w") as f:
             f.write("print('hello')\n")
         result2 = validate_single_repo(tmpdir, harness)
-        print(f"    Score: {result2['compatibility_score']} | Compatible: {result2['compatible']}")
+        print(f"    Score: {_fmt_score(result2['compatibility_score'])} | Compatible: {result2['compatible']}")
         print(f"    Files: {result2['source_files']} source, {result2['total_files']} total")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
@@ -261,7 +264,7 @@ def run_demo(harness_root=None):
         with open(os.path.join(tmpdir2, "routes/web.php"), "w") as f:
             f.write("<?php\nRoute::get('/', function () {});\n")
         result3 = validate_single_repo(tmpdir2, harness)
-        print(f"    Score: {result3['compatibility_score']} | Compatible: {result3['compatible']}")
+        print(f"    Score: {_fmt_score(result3['compatibility_score'])} | Compatible: {result3['compatible']}")
         print(f"    Files: {result3['source_files']} source, {result3['total_files']} total")
         print(f"    Languages: {', '.join(result3.get('languages', {}).keys()) or 'none detected'}")
         print(f"    Project files: {', '.join(result3.get('project_files', []))}")
@@ -270,13 +273,17 @@ def run_demo(harness_root=None):
     print()
 
     # Overall summary
-    all_compatible = all([result1.get("compatible"), True, True])  # demo always passes
+    all_compatible = all([
+        result1.get("compatible", False),
+        result2.get("compatible", False),
+        result3.get("compatible", False),
+    ])
     print("=" * 70)
     print(" DEMO SUMMARY")
     print("=" * 70)
     print(f"  Repositories tested: 3")
     print(f"  All compatible: {'YES' if all_compatible else 'NO'}")
-    print(f"  Harness baseline: {result1['compatibility_score']}")
+    print(f"  Harness baseline: {_fmt_score(result1['compatibility_score'])}")
     print("=" * 70)
 
     return all_compatible
