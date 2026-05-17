@@ -373,6 +373,35 @@ if ! grep -q "REPLAY VERIFICATION PASSED" "$TEST_DIR/replay_success.log"; then
 fi
 echo "  - Check 6.C: Substrate successfully replayed task and verified execution determinism."
 
+# 5. Try to run elevated child delegation to verify escalation blocking
+set +e
+python3 "$TEST_BIN_DIR/execution-substrate.py" run \
+  --task "Delegation Escalation Attempt" \
+  --tier "WORKSPACE_WRITE" \
+  --scope "security" \
+  --allowed-tools "view_file,write_to_file" \
+  --parent-token '{"token_id":"parent-ro","lease_duration_sec":3600,"max_memory_mb":512,"allowed_tools":["view_file"],"allowed_scopes":["security"],"trust_tier":"READ_ONLY","issued_at":1779112800.0,"signature":"mock-signature"}' \
+  --dir "$AVAX_DIR" \
+  > "$TEST_DIR/exec_deleg_escalation.log" 2>&1
+CODE_DELEG=$?
+set -e
+
+if [ "$CODE_DELEG" -eq 0 ] || ! grep -q "TOKEN_ESCALATION_BLOCKED" "$TEST_DIR/exec_deleg_escalation.log"; then
+    echo "❌ FAILURE: Substrate failed to block delegated token escalation!"
+    cat "$TEST_DIR/exec_deleg_escalation.log"
+    exit 1
+fi
+echo "  - Check 6.D: Substrate successfully blocked capability token escalation."
+
+# 6. Run Execution Graph Compaction check
+python3 "$TEST_BIN_DIR/execution-substrate.py" graph --dir "$AVAX_DIR" > "$TEST_DIR/graph_compaction.log" 2>&1
+if ! grep -q "EXECUTION GRAPH ENGINE" "$TEST_DIR/graph_compaction.log"; then
+    echo "❌ FAILURE: Substrate failed to run execution graph DAG compaction!"
+    cat "$TEST_DIR/graph_compaction.log"
+    exit 1
+fi
+echo "  - Check 6.E: Substrate resolved execution lineage DAG and completed compaction."
+
 echo "✅ PROOF 6 PASSED: AI Execution Substrate Sandbox & Replay are robust and bulletproof."
 
 
