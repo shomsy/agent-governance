@@ -1,0 +1,7 @@
+{
+  "objective": "Plan the implementation of feature X",
+  "trust_tier": "READ_ONLY",
+  "allowed_tools": ["view_file", "search_web"],
+  "expected_artifact": "tests/delegation_proof/planner_artifact.json",
+  "rollback_policy": "NO_ROLLBACK"
+}

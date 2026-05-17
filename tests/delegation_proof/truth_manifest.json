@@ -1,0 +1,7 @@
+{
+  "objective": "Aggregate final evidence and generate truth artifact",
+  "trust_tier": "TRUSTED",
+  "allowed_tools": ["write_to_file"],
+  "expected_artifact": "tests/delegation_proof/truth_artifact.json",
+  "rollback_policy": "MANUAL_REVIEW"
+}

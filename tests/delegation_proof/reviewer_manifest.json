@@ -1,0 +1,7 @@
+{
+  "objective": "Review the implementation artifact against governance constraints",
+  "trust_tier": "READ_ONLY",
+  "allowed_tools": ["view_file"],
+  "expected_artifact": "tests/delegation_proof/reviewer_artifact.json",
+  "rollback_policy": "NO_ROLLBACK"
+}

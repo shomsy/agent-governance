@@ -1,0 +1,7 @@
+{
+  "objective": "Execute the implementation of feature X based on planner artifact",
+  "trust_tier": "SANDBOXED",
+  "allowed_tools": ["write_to_file", "replace_file_content"],
+  "expected_artifact": "tests/delegation_proof/executor_artifact.json",
+  "rollback_policy": "AUTO_REVERT"
+}
