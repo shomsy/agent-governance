@@ -271,6 +271,42 @@ if [ -f "$BIN_DIR/compile-governance.py" ]; then
     python3 "$BIN_DIR/aggregate-context.py" "$TARGET_DIR"
 fi
 
+# --- Check 12: Installer Help and Discovery ---
+echo "🔍 [KERNEL] Checking installer help and discovery..."
+if [ -f "$TARGET_DIR/install-os.sh" ]; then
+    if ! "$TARGET_DIR/install-os.sh" --help >/dev/null 2>&1; then
+        echo "❌ ERROR [ERR_INSTALLER_HELP]: install-os.sh --help failed."
+        echo "  Remediation: Ensure installer has --help flag implemented."
+        exit 1
+    fi
+
+    for list_cmd in --list-languages --list-frameworks --list-project-types --list-repo-kinds --list-overlays; do
+        if ! "$TARGET_DIR/install-os.sh" "$list_cmd" >/dev/null 2>&1; then
+            echo "❌ ERROR [ERR_INSTALLER_DISCOVERY]: install-os.sh $list_cmd failed."
+            echo "  Remediation: Ensure installer profile discovery is implemented."
+            exit 1
+        fi
+    done
+
+    if "$TARGET_DIR/install-os.sh" "$TARGET_DIR" --language=__nonexistent__ --dry-run >/dev/null 2>&1; then
+        echo "❌ ERROR [ERR_INSTALLER_VALIDATION]: install-os.sh did not fail on unknown profile."
+        echo "  Remediation: Installer must exit non-zero for unknown profiles."
+        exit 1
+    fi
+
+    help_output=$("$TARGET_DIR/install-os.sh" --help 2>&1)
+    for stale in "stale-profile" "deprecated-lang" "old-framework"; do
+        if echo "$help_output" | grep -qF "$stale"; then
+            echo "❌ ERROR [ERR_STALE_PROFILE_REF]: Help output contains stale profile reference: $stale"
+            echo "  Remediation: Help text is generated from live profile directories; verify no hardcoded stale values."
+            exit 1
+        fi
+    done
+    echo "✅ [KERNEL] Installer Help & Discovery Validated."
+else
+    echo "⚠️  [KERNEL] install-os.sh not found — skipping installer validation."
+fi
+
 # OS Validation (via Installer validation mode)
 if [ -f "./install-os.sh" ]; then
     ./install-os.sh "$TARGET_DIR" --validate
