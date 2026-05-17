@@ -17,46 +17,22 @@ Agents MUST follow this order in this repository:
 3. `.agents/governance/core/quality/quality-gates.md`
 4. `.agents/governance/core/bootstrap/agent-bootstrap.md`
 5. `.agents/governance/core/resolution/profile-resolution-algorithm.md`
-6. `.agents/governance/profiles/**`
-7. `.agents/governance/architecture/**`
-8. `.agents/governance/security/**`
-9. `.agents/governance/execution/policy/execution-policy.md`
-10. `.agents/governance/execution/routing/prompt-to-governance-flow.md`
-11. `.agents/governance/execution/hooks/hooks-policy.md`
-12. `.agents/governance/execution/approvals/approval-policy.md`
-13. `.agents/governance/core/flags/feature-flags.md`
-14. `.agents/governance/standards/review/how-to-code-review.md`
-15. `.agents/governance/standards/review/how-to-strict-review.md`
-16. `.agents/governance/standards/review/recursive-review-contract.md`
-17. `.agents/governance/standards/coding/how-to-coding-standards.md`
-18. `.agents/governance/standards/coding/naming-standard.md`
-19. `.agents/governance/standards/coding/ai-coding-contract.md`
-20. `.agents/governance/standards/documentation/how-to-document-flow.md`
-21. `.agents/governance/standards/documentation/how-to-document.md`
-22. `.agents/governance/standards/documentation/evidence-model.md`
-23. `.agents/governance/standards/governance/governance-authoring-standard.md`
-24. `.agents/governance/standards/governance/governance-evolution-policy.md`
-25. `.agents/governance/delivery/release/release-and-rollback-policy.md`
-26. `.agents/governance/delivery/release/advanced-deployment-policy.md`
-27. `.agents/governance/delivery/operations/management-model.md`
-28. `.agents/governance/delivery/operations/enterprise-operational-lifecycle.md`
-29. `.agents/governance/intelligence/memory/memory-lifecycle.md`
-30. `.agents/governance/intelligence/memory/v3-intelligence-lifecycle.md`
-31. `.agents/governance/skills/contract/skill-contract.md`
-32. `.agents/governance/agents/roles/agent-roles.md`
-33. `.agents/governance/delivery/workflows/workflow-pipelines.md`
-34. `.agents/governance/intelligence/context/context-management.md`
-35. `.agents/governance/intelligence/learning/continuous-learning.md`
-36. `.agents/governance/intelligence/learning/instincts-policy.md`
-37. `.agents/governance/integrations/platforms/platform-compatibility.md`
-38. `.agents/governance/integrations/mcp/mcp-integration-policy.md`
-39. `.agents/governance/execution/sandbox/sandbox-boundary-policy.md`
-40. `.agents/governance/agents/orchestration/society-of-mind-pattern.md`
-41. `.agents/governance/delivery/operations/**`
-42. `.agents/skills/**` (Reusable Agent Skills)
-43. `EVIDENCE/**`
-44. `README.md`
-45. `scaffolds/**`
+6. `.agents/governance/standards/documentation/evidence-model.md`
+7. `.agents/management/TODO.md` | `.agents/management/BUGS.md`
+8. `.agents/skills/**` (Reusable Agent Skills)
+9. `EVIDENCE/**`
+10. `README.md`
+11. `scaffolds/**`
+
+**Governance directories** (loaded on demand, not by precedence order):
+
+- `.agents/governance/profiles/**` — language, framework, project-type profiles
+- `.agents/governance/architecture/**` — architecture profiles and standards
+- `.agents/governance/security/**` — threat models, abuse cases, security lanes
+- `.agents/governance/delivery/operations/**` — runbooks, operational procedures
+- `.agents/governance/core/flags/` — feature flag definitions
+
+The precedence chain MUST NOT reference files that do not exist on disk.
 
 ## 1) Local Rules
 

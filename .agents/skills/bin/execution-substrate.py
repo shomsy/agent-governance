@@ -23,10 +23,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from substrate_security import (
     NonceRegistry,
     RevocationRegistry,
-    AuditChain,
     EnvironmentSanitizer,
     PathGuard,
-    IntegritySeal,
 )
 
 # Gap closures for ENTERPRISE_READY classification
@@ -124,7 +122,6 @@ class ExecutionSubstrate:
         # Phase 1: Security plane primitives
         self.nonce_registry = NonceRegistry(self.target_dir)
         self.revocation_registry = RevocationRegistry(self.target_dir)
-        self.audit_chain = AuditChain(self.target_dir)
         self.env_sanitizer = EnvironmentSanitizer()
         self.path_guard = PathGuard(self.target_dir)
 
@@ -486,7 +483,7 @@ class ExecutionSubstrate:
         print(f"▶️  [SUBSTRATE] Replaying Execution Manifest: {exec_id} ...")
 
         # Phase 1 Security: Verify integrity seal
-        if not IntegritySeal.verify_seal(manifest):
+        if not self.hmac_seal.verify_seal(manifest):
             print("❌ REPLAY CORRUPTION: Integrity seal is invalid (manifest was tampered)!")
             return False
 
@@ -528,11 +525,11 @@ class ExecutionSubstrate:
             print("  ✅ Zero operational environment drift detected.")
 
         # Phase 1 Security: Verify audit chain integrity
-        chain_valid, broken_idx = self.audit_chain.verify_chain()
+        chain_valid, broken_idx = self.hmac_audit_chain.verify_chain()
         if not chain_valid:
             print(f"  ❌ AUDIT CHAIN CORRUPTION: Chain broken at entry {broken_idx}")
             return False
-        print(f"  - Audit chain:      VERIFIED ({len(self.audit_chain._entries)} entries)")
+        print(f"  - Audit chain:      VERIFIED ({len(self.hmac_audit_chain._entries)} entries)")
 
         # Rerun payload and assert deterministic exit code
         contract = manifest["replay_contract"]
@@ -550,116 +547,13 @@ class ExecutionSubstrate:
             print(f"  ❌ Replay output mismatched original expected exit code {expected_exit}.")
             return False
 
-    def build_execution_graph(self):
-        # Plane 4: Execution Graph Engine. Links execution and delegation manifest chains.
-        graph = {"nodes": {}, "edges": []}
-        
-        if not os.path.exists(self.output_dir):
-            return graph
-            
-        for file in os.listdir(self.output_dir):
-            if file.startswith("execution-manifest-") and file.endswith(".json"):
-                filepath = os.path.join(self.output_dir, file)
-                try:
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        manifest = json.load(f)
-                    exec_id = manifest["execution_id"]
-                    graph["nodes"][exec_id] = {
-                        "execution_id": exec_id,
-                        "task": manifest["task"],
-                        "trust_tier": manifest["trust_tier"],
-                        "state": manifest["lifecycle_state"],
-                        "duration_ms": manifest["telemetry"]["total_duration_ms"]
-                    }
-                    
-                    parent_token = manifest.get("authority_lineage", {}).get("parent_token_id")
-                    if parent_token and parent_token != "operator-root":
-                        parent_exec = parent_token.replace("token-", "")
-                        graph["edges"].append({"source": parent_exec, "target": exec_id})
-                except:
-                    pass
-        return graph
-
-    def run_graph_compaction(self):
-        # Pruning and trace checkpointing to keep memory profile flat
-        graph = self.build_execution_graph()
-        total_nodes = len(graph["nodes"])
-        
-        print("======================================================================")
-        print("⛓️  [SUBSTRATE] EXECUTION GRAPH ENGINE (DAG)")
-        print("======================================================================")
-        print(f"  - Active Execution Nodes tracked: {total_nodes}")
-        print(f"  - Lineage linkages resolved:      {len(graph['edges'])}")
-        
-        # Checkpoint: Mock pruning of old traces
-        pruned_count = 0
-        if total_nodes > 10:
-            pruned_count = total_nodes - 10
-            print(f"  - Checkpoint Trigger: Truncating {pruned_count} old intermediate traces.")
-        else:
-            print("  - Checkpoint Trigger: Trace logs well within operational limits (No compaction needed).")
-            
-        print("======================================================================")
-        return True
-
-    def run_compression_audit(self):
-        # Plane 1 (Governance): Compaction and value rating audit
-        index_path = os.path.join(self.target_dir, INDEX_PATH)
-        if not os.path.exists(index_path):
-            print("❌ ERROR: Compiled governance index missing. Run compile-governance.py first.")
-            return False
-
-        with open(index_path, 'r', encoding='utf-8') as f:
-            index = json.load(f)
-
-        files = index.get("files", {})
-        total_rules = len(files)
-        unjustified_rules = []
-        overlapping_rules = []
-        title_map = {}
-        
-        for filepath, data in files.items():
-            frontmatter = data.get("frontmatter", {})
-            title = frontmatter.get("title", "")
-            op_val = frontmatter.get("operational_value") or frontmatter.get("value")
-            protection = frontmatter.get("protection")
-            
-            if not op_val or not protection:
-                unjustified_rules.append(filepath)
-                
-            if title:
-                if title in title_map:
-                    overlapping_rules.append((filepath, title_map[title]))
-                else:
-                    title_map[title] = filepath
-
-        print("======================================================================")
-        print("🗜️  [SUBSTRATE] GOVERNANCE COMPRESSION & COMPACTION AUDIT")
-        print("======================================================================")
-        print(f"  - Total Active Rules Reviewed: {total_rules}")
-        print(f"  - Unjustified Rules Mapped:    {len(unjustified_rules)}")
-        print(f"  - Overlapping Rule Collisions:  {len(overlapping_rules)}")
-        print("----------------------------------------------------------------------")
-        
-        if unjustified_rules:
-            print("  [!] Unjustified rules lacking operational value / protection ratings:")
-            for ur in unjustified_rules:
-                print(f"      - {ur}")
-        if overlapping_rules:
-            print("  [!] Overlapping duplicate rules detected:")
-            for ur1, ur2 in overlapping_rules:
-                print(f"      - {ur1} COLLIDES WITH {ur2}")
-                
-        print("======================================================================")
-        return True
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage:")
         print("  execution-substrate.py run --task <task> --tier <tier> --scope <scope> --cmd <command> [--dir <dir>]")
         print("  execution-substrate.py replay <exec_id> [--dir <dir>]")
-        print("  execution-substrate.py graph [--dir <dir>]")
-        print("  execution-substrate.py compress [--dir <dir>]")
+        print("  execution-substrate.py graph [--dir <dir>]       (delegated to execution_analysis.py)")
+        print("  execution-substrate.py compress [--dir <dir>]    (delegated to execution_analysis.py)")
         sys.exit(1)
 
     subcmd = sys.argv[1]
@@ -717,13 +611,13 @@ if __name__ == "__main__":
             sys.exit(1)
             
     elif subcmd == "graph":
-        if substrate.run_graph_compaction():
-            sys.exit(0)
-        else:
-            sys.exit(1)
-            
+        # Delegated to execution_analysis.py
+        analysis_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "execution_analysis.py")
+        rc = subprocess.run([sys.executable, analysis_script, "graph", "--dir", target_dir])
+        sys.exit(rc.returncode)
+
     elif subcmd == "compress":
-        if substrate.run_compression_audit():
-            sys.exit(0)
-        else:
-            sys.exit(1)
+        # Delegated to execution_analysis.py
+        analysis_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "execution_analysis.py")
+        rc = subprocess.run([sys.executable, analysis_script, "compress", "--dir", target_dir])
+        sys.exit(rc.returncode)

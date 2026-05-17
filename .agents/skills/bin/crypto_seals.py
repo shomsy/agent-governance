@@ -7,16 +7,12 @@
 # 1. HMACKeyManager    — Manages HMAC-SHA256 secret keys (generate / load / save)
 # 2. HMACSeal          — HMAC-SHA256 integrity seals on manifest dictionaries
 # 3. HMACAuditChain    — HMAC-protected append-only audit chain
-# 4. AsymmetricSeal    — Optional ed25519 signatures with HMAC fallback
-# 5. SealMigration     — Migrate old SHA-256 seals to HMAC seals
 #
 # CLI:
 #   python3 crypto_seals.py key generate
 #   python3 crypto_seals.py key show
 #   python3 crypto_seals.py seal <manifest_path>
 #   python3 crypto_seals.py verify <manifest_path>
-#   python3 crypto_seals.py migrate
-#   python3 crypto_seals.py status
 
 import os
 import sys
@@ -26,7 +22,6 @@ import hmac
 import hashlib
 import secrets
 import stat
-import warnings
 
 # ---------------------------------------------------------------------------
 # Default paths
@@ -354,287 +349,6 @@ class HMACAuditChain:
 
 
 # ---------------------------------------------------------------------------
-# 4. AsymmetricSeal (optional ed25519 with HMAC fallback)
-# ---------------------------------------------------------------------------
-
-class AsymmetricSeal:
-    """Optional ed25519-style signatures with HMAC-SHA256 fallback.
-
-    When the ``cryptography`` library is available, this class uses
-    Ed25519 key pairs for signing and verification. Otherwise all
-    operations fall back to HMAC-SHA256 with a clear warning.
-    """
-
-    def __init__(self, key_manager=None, target_dir=DEFAULT_TARGET_DIR):
-        self.target_dir = os.path.normpath(target_dir)
-        self.key_manager = key_manager or HMACKeyManager(target_dir=target_dir)
-        self._crypto_available = self._check_crypto()
-
-    @staticmethod
-    def _check_crypto():
-        """Check if the cryptography library is available."""
-        try:
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-                Ed25519PrivateKey,
-                Ed25519PublicKey,
-            )
-            from cryptography.hazmat.primitives.serialization import (
-                Encoding,
-                PrivateFormat,
-                PublicFormat,
-                NoEncryption,
-            )
-            return True
-        except ImportError:
-            return False
-
-    def is_asymmetric_available(self):
-        """Return True if the cryptography library is available."""
-        return self._crypto_available
-
-    def _canonical_json(self, manifest_dict):
-        sealable = {
-            k: v
-            for k, v in manifest_dict.items()
-            if k not in ("asymmetric_seal", "hmac_seal", "integrity_seal",
-                         "sealed_at", "seal_algorithm", "key_id")
-        }
-        return json.dumps(sealable, sort_keys=True, separators=(",", ":"))
-
-    def seal_manifest(self, manifest_dict, private_key=None, key=None):
-        """Sign a manifest with ed25519, falling back to HMAC-SHA256.
-
-        Args:
-            manifest_dict: The manifest to seal.
-            private_key: Optional Ed25519 private key bytes (only when crypto available).
-            key: Optional HMAC key bytes override (used for fallback).
-
-        Returns:
-            Hex-encoded signature (ed25519 or HMAC).
-        """
-        msg = self._canonical_json(manifest_dict).encode("utf-8")
-
-        if self._crypto_available and private_key is not None:
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-            signing_key = Ed25519PrivateKey.from_private_bytes(private_key)
-            signature = signing_key.sign(msg)
-            return signature.hex()
-
-        # Fallback to HMAC
-        if not self._crypto_available:
-            warnings.warn(
-                "AsymmetricSeal: cryptography library not available, "
-                "falling back to HMAC-SHA256. Install 'cryptography' for ed25519 support.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
-        actual_key = self.key_manager.get_key() if key is None else key
-        return hmac.new(actual_key, msg, hashlib.sha256).hexdigest()
-
-    def verify_seal(self, manifest_dict, signature, public_key=None, key=None):
-        """Verify an asymmetric seal, falling back to HMAC.
-
-        Args:
-            manifest_dict: The sealed manifest dictionary.
-            signature: Hex-encoded signature to verify.
-            public_key: Optional Ed25519 public key bytes.
-            key: Optional HMAC key bytes override.
-
-        Returns:
-            True if the signature is valid, False otherwise.
-        """
-        msg = self._canonical_json(manifest_dict).encode("utf-8")
-        sig_bytes = bytes.fromhex(signature)
-
-        if self._crypto_available and public_key is not None:
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-            try:
-                verify_key = Ed25519PublicKey.from_public_bytes(public_key)
-                verify_key.verify(sig_bytes, msg)
-                return True
-            except Exception:
-                return False
-
-        # Fallback to HMAC
-        actual_key = self.key_manager.get_key() if key is None else key
-        expected = hmac.new(actual_key, msg, hashlib.sha256).hexdigest()
-        return hmac.compare_digest(expected, signature)
-
-
-# ---------------------------------------------------------------------------
-# 5. SealMigration
-# ---------------------------------------------------------------------------
-
-class SealMigration:
-    """Migrate old unkeyed SHA-256 seals to HMAC-SHA256 seals.
-
-    Scans for execution manifest JSON files, removes the old
-    ``integrity_seal`` field, and re-seals with HMAC.
-    """
-
-    def __init__(self, key_manager=None, target_dir=DEFAULT_TARGET_DIR):
-        self.target_dir = os.path.normpath(target_dir)
-        self.key_manager = key_manager or HMACKeyManager(target_dir=target_dir)
-        self.hmac_seal = HMACSeal(key_manager=self.key_manager, target_dir=target_dir)
-
-    def _find_manifests(self, target_dir=None):
-        """Find all execution manifest JSON files."""
-        td = target_dir or self.target_dir
-        manifests = []
-
-        # Common manifest locations
-        search_dirs = [
-            os.path.join(td, ".agents/management/evidence/execution"),
-            os.path.join(td, ".agents/management/evidence/generated"),
-            os.path.join(td, "EVIDENCE/execution"),
-        ]
-
-        for search_dir in search_dirs:
-            if not os.path.isdir(search_dir):
-                continue
-            for fname in os.listdir(search_dir):
-                if fname.endswith(".json"):
-                    manifests.append(os.path.join(search_dir, fname))
-
-        return manifests
-
-    def _is_sealed(self, manifest_data):
-        """Check if a manifest has any kind of seal."""
-        return bool(
-            manifest_data.get("hmac_seal")
-            or manifest_data.get("integrity_seal")
-        )
-
-    def _is_hmac_sealed(self, manifest_data):
-        """Check if a manifest has an HMAC seal specifically."""
-        return (
-            "hmac_seal" in manifest_data
-            and manifest_data.get("seal_algorithm") == "HMAC-SHA256"
-        )
-
-    def migrate_old_manifests(self, target_dir=None):
-        """Scan execution manifests and re-seal with HMAC.
-
-        Args:
-            target_dir: Root directory to search for manifests.
-
-        Returns:
-            Dict with keys: migrated, already_hmac, skipped, errors, paths.
-        """
-        manifests = self._find_manifests(target_dir)
-        result = {
-            "migrated": 0,
-            "already_hmac": 0,
-            "skipped": 0,
-            "errors": 0,
-            "paths": [],
-        }
-
-        for manifest_path in manifests:
-            try:
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                if not isinstance(data, dict):
-                    result["skipped"] += 1
-                    result["paths"].append((manifest_path, "not_a_dict"))
-                    continue
-
-                if self._is_hmac_sealed(data):
-                    result["already_hmac"] += 1
-                    result["paths"].append((manifest_path, "already_hmac"))
-                    continue
-
-                if not self._is_sealed(data):
-                    result["skipped"] += 1
-                    result["paths"].append((manifest_path, "not_sealed"))
-                    continue
-
-                # Remove old seal fields
-                for old_field in ("integrity_seal", "sealed_at", "seal_algorithm"):
-                    data.pop(old_field, None)
-
-                # Re-seal with HMAC
-                sealed = self.hmac_seal.create_seal_entry(data)
-
-                with open(manifest_path, "w", encoding="utf-8") as f:
-                    json.dump(sealed, f, indent=2)
-
-                result["migrated"] += 1
-                result["paths"].append((manifest_path, "migrated"))
-
-            except (json.JSONDecodeError, IOError, OSError) as exc:
-                result["errors"] += 1
-                result["paths"].append((manifest_path, f"error: {exc}"))
-
-        return result
-
-    def verify_migration(self, target_dir=None):
-        """Verify all manifests have valid HMAC seals.
-
-        Args:
-            target_dir: Root directory to search for manifests.
-
-        Returns:
-            Dict with keys: valid, invalid, total.
-        """
-        manifests = self._find_manifests(target_dir)
-        result = {"valid": 0, "invalid": 0, "total": 0}
-
-        for manifest_path in manifests:
-            result["total"] += 1
-            try:
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                if not isinstance(data, dict):
-                    result["invalid"] += 1
-                    continue
-
-                if self.hmac_seal.verify_seal(data):
-                    result["valid"] += 1
-                else:
-                    result["invalid"] += 1
-
-            except (json.JSONDecodeError, IOError, OSError):
-                result["invalid"] += 1
-
-        return result
-
-    def report_migration_status(self, target_dir=None):
-        """Report migration status for all manifests.
-
-        Args:
-            target_dir: Root directory to search for manifests.
-
-        Returns:
-            A formatted status string.
-        """
-        migration_result = self.migrate_old_manifests(target_dir)
-        verify_result = self.verify_migration(target_dir)
-
-        lines = [
-            "=== HMAC Seal Migration Report ===",
-            f"  Manifests found:      {verify_result['total']}",
-            f"  Already HMAC-sealed:  {migration_result['already_hmac']}",
-            f"  Migrated this run:    {migration_result['migrated']}",
-            f"  Not sealed (skipped): {migration_result['skipped']}",
-            f"  Errors:               {migration_result['errors']}",
-            "---",
-            f"  Valid HMAC seals:     {verify_result['valid']}",
-            f"  Invalid seals:        {verify_result['invalid']}",
-            "=== End Report ===",
-        ]
-
-        if migration_result["paths"]:
-            lines.append("\nDetails:")
-            for path, status in migration_result["paths"]:
-                lines.append(f"  [{status}] {path}")
-
-        return "\n".join(lines)
-
-
-# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -706,14 +420,6 @@ def _cli_verify(manifest_path):
         return 1
 
 
-def _cli_migrate():
-    """CLI: Migrate all manifests to HMAC seals."""
-    migration = SealMigration()
-    report = migration.report_migration_status()
-    print(report)
-    return 0
-
-
 def _cli_status():
     """CLI: Show overall HMAC seal status."""
     mgr = HMACKeyManager()
@@ -740,17 +446,6 @@ def _cli_status():
     if chain_exists:
         lines.append(f"  Entries:         {chain_entries}")
 
-    # Check manifests
-    migration = SealMigration()
-    verify = migration.verify_migration()
-    lines.append(f"Manifests:         {verify['total']} found")
-    lines.append(f"  Valid HMAC:      {verify['valid']}")
-    lines.append(f"  Invalid:         {verify['invalid']}")
-
-    # Check asymmetric availability
-    asym = AsymmetricSeal()
-    lines.append(f"Asymmetric (ed25519): {'available' if asym.is_asymmetric_available() else 'not available (HMAC fallback)'}")
-
     lines.append("=== End Status ===")
     print("\n".join(lines))
     return 0
@@ -766,7 +461,6 @@ def main():
         print("  key show              Show the current key ID")
         print("  seal <manifest_path>  Seal a manifest with HMAC")
         print("  verify <manifest_path> Verify an HMAC seal")
-        print("  migrate               Migrate all manifests to HMAC seals")
         print("  status                Show overall HMAC seal status")
         return 1
 
@@ -796,9 +490,6 @@ def main():
             print("Usage: python3 crypto_seals.py verify <manifest_path>", file=sys.stderr)
             return 1
         return _cli_verify(sys.argv[2])
-
-    elif command == "migrate":
-        return _cli_migrate()
 
     elif command == "status":
         return _cli_status()

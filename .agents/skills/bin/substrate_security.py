@@ -4,10 +4,8 @@
 # Provides reusable security primitives imported by execution-substrate.py:
 # 1. NonceRegistry         — Prevents token replay attacks
 # 2. RevocationRegistry    — Tracks revoked tokens and delegation-chain revocation
-# 3. AuditChain            — Immutable hash chain of execution manifests
-# 4. EnvironmentSanitizer  — Cleans environment before subprocess execution
-# 5. PathGuard             — Symlink and path traversal protection
-# 6. IntegritySeal         — Integrity seals on manifests
+# 3. EnvironmentSanitizer  — Cleans environment before subprocess execution
+# 4. PathGuard             — Symlink and path traversal protection
 
 import os
 import sys
@@ -196,98 +194,6 @@ class RevocationRegistry:
         return revoked_ids
 
 
-class AuditChain:
-    """Immutable append-only hash chain of execution manifests for tamper-evident auditing."""
-
-    def __init__(self, target_dir="."):
-        self.target_dir = os.path.normpath(target_dir)
-        self.chain_path = os.path.join(
-            self.target_dir, ".agents/management/evidence/security/audit-chain.jsonl"
-        )
-        os.makedirs(os.path.dirname(self.chain_path), exist_ok=True)
-        self._entries = []  # list of dicts in chain order
-        self._load()
-
-    def _load(self):
-        """Load existing chain entries from the JSONL file."""
-        if os.path.exists(self.chain_path):
-            with open(self.chain_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    self._entries.append(json.loads(line))
-
-    def _persist(self):
-        """Write the full chain to the JSONL file."""
-        with open(self.chain_path, "w", encoding="utf-8") as f:
-            for entry in self._entries:
-                f.write(json.dumps(entry) + "\n")
-
-    def get_latest_chain_hash(self):
-        """Return the head hash of the chain, or None if the chain is empty."""
-        if not self._entries:
-            return None
-        return self._entries[-1]["chain_hash"]
-
-    def append_entry(self, manifest_data):
-        """Append a new entry to the hash chain.
-
-        The chain_hash is computed as SHA256(prev_chain_hash + json.dumps(manifest_data)).
-
-        Args:
-            manifest_data: Dict of manifest data to hash into the chain.
-
-        Returns:
-            The newly created entry dict.
-        """
-        prev_hash = self.get_latest_chain_hash() or ""
-        manifest_json = json.dumps(manifest_data, sort_keys=True)
-        chain_hash_input = prev_hash + manifest_json
-        chain_hash = hashlib.sha256(chain_hash_input.encode("utf-8")).hexdigest()
-
-        entry_hash = hashlib.sha256(manifest_json.encode("utf-8")).hexdigest()
-
-        entry = {
-            "chain_position": len(self._entries),
-            "manifest_data": manifest_data,
-            "entry_hash": entry_hash,
-            "chain_hash": chain_hash,
-            "timestamp": time.time(),
-        }
-        self._entries.append(entry)
-        self._persist()
-        return entry
-
-    def verify_chain(self):
-        """Verify the integrity of the entire hash chain.
-
-        Returns:
-            Tuple of (valid: bool, first_broken_index: int or None).
-            If valid is True, first_broken_index is None.
-        """
-        prev_hash = ""
-        for idx, entry in enumerate(self._entries):
-            manifest_data = entry.get("manifest_data", {})
-            manifest_json = json.dumps(manifest_data, sort_keys=True)
-
-            # Verify the entry's own hash
-            expected_entry_hash = hashlib.sha256(manifest_json.encode("utf-8")).hexdigest()
-            if entry["entry_hash"] != expected_entry_hash:
-                return False, idx
-
-            # Verify the chain linkage
-            expected_chain_hash = hashlib.sha256(
-                (prev_hash + manifest_json).encode("utf-8")
-            ).hexdigest()
-            if entry["chain_hash"] != expected_chain_hash:
-                return False, idx
-
-            prev_hash = entry["chain_hash"]
-
-        return True, None
-
-
 class EnvironmentSanitizer:
     """Cleans the environment dictionary before subprocess execution.
 
@@ -417,60 +323,3 @@ class PathGuard:
             if os.path.islink(abs_path):
                 symlinks.append(rel_path)
         return symlinks
-
-
-class IntegritySeal:
-    """Creates and verifies SHA-256 integrity seals on manifest dictionaries."""
-
-    @staticmethod
-    def seal_manifest(manifest_dict):
-        """Add an integrity_seal field to a copy of the manifest.
-
-        The seal is computed over the JSON serialization of the manifest
-        *without* the integrity_seal field itself.
-
-        Args:
-            manifest_dict: The manifest dictionary to seal.
-
-        Returns:
-            A new dict with the 'integrity_seal' field added.
-        """
-        # Work on a copy without the seal field
-        sealable = {k: v for k, v in manifest_dict.items() if k != "integrity_seal"}
-        canonical_json = json.dumps(sealable, sort_keys=True)
-        seal = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
-
-        sealed = dict(manifest_dict)
-        sealed["integrity_seal"] = seal
-        sealed["sealed_at"] = time.time()
-        return sealed
-
-    @staticmethod
-    def verify_seal(manifest_dict):
-        """Verify that the integrity_seal on a manifest is valid.
-
-        Args:
-            manifest_dict: A sealed manifest dict containing 'integrity_seal'.
-
-        Returns:
-            True if the seal matches, False otherwise or if no seal is present.
-        """
-        if "integrity_seal" not in manifest_dict:
-            return False
-
-        stored_seal = manifest_dict["integrity_seal"]
-        # Re-compute seal without the seal field and without sealed_at
-        sealable = {
-            k: v
-            for k, v in manifest_dict.items()
-            if k not in ("integrity_seal", "sealed_at")
-        }
-        canonical_json = json.dumps(sealable, sort_keys=True)
-        computed_seal = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
-
-        return computed_seal == stored_seal
-
-    @staticmethod
-    def create_seal_timestamp():
-        """Return the current Unix timestamp for sealing purposes."""
-        return time.time()
