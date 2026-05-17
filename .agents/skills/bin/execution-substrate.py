@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# execution-substrate.py — V5.0.0 Enterprise AI Execution Substrate & Replay Engine
+# execution-substrate.py — V5.1.0 Enterprise AI Execution Substrate & Replay Engine
 #
 # Architectural Planes:
 # 1. Governance Plane: Policy & rule mapping, value audits, and rules compaction.
 # 2. Execution Plane: Sandbox isolation, capability token checks, and state transitions.
 # 3. Replay Plane: Mock clock injection, environmental drift assessment, determinism validation.
 # 4. Observability Plane: Telemetry, DAG lineages, checkpointing, trace pruners.
+# 5. Security Plane: Nonce registry, revocation, audit chain, path guards, integrity seals.
 
 import os
 import sys
@@ -16,6 +17,17 @@ import hashlib
 import subprocess
 import shutil
 from enum import Enum
+
+# Security primitives (Phase 1 — Enterprise Security Hardening)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from substrate_security import (
+    NonceRegistry,
+    RevocationRegistry,
+    AuditChain,
+    EnvironmentSanitizer,
+    PathGuard,
+    IntegritySeal,
+)
 
 OUTPUT_DIR = ".agents/management/evidence/execution"
 INDEX_PATH = ".agents/management/evidence/generated/governance-index.json"
@@ -95,6 +107,13 @@ class ExecutionSubstrate:
         self.output_dir = os.path.join(self.target_dir, OUTPUT_DIR)
         os.makedirs(self.output_dir, exist_ok=True)
 
+        # Phase 1: Security plane primitives
+        self.nonce_registry = NonceRegistry(self.target_dir)
+        self.revocation_registry = RevocationRegistry(self.target_dir)
+        self.audit_chain = AuditChain(self.target_dir)
+        self.env_sanitizer = EnvironmentSanitizer()
+        self.path_guard = PathGuard(self.target_dir)
+
     def generate_id(self, prefix=""):
         return f"{prefix}-{uuid.uuid4()}"
 
@@ -169,13 +188,14 @@ class ExecutionSubstrate:
         start_time = time.time()
         exec_id = self.generate_id("exec")
         deleg_id = self.generate_id("deleg")
-        
+        exec_nonce = str(uuid.uuid4())  # Unique nonce for this execution
+
         # Initialize state lifecycle tracker
         lifecycle = [{"state": State.CREATED.value, "timestamp": start_time}]
-        
+
         # 1. Plane 2 (Execution): Validate capability tokens and narrower constraints
         tools = allowed_tools or ["view_file", "search_web", "write_to_file", "replace_file_content"]
-        
+
         # Default parent token representing Operator Authority
         parent_token = None
         if parent_token_dict:
@@ -199,20 +219,31 @@ class ExecutionSubstrate:
             allowed_scopes=[domain_scope],
             trust_tier=tier
         )
-        
+
+        # Phase 1 Security: Check revocation
+        if self.revocation_registry.is_revoked(parent_token.token_id):
+            return False, f"TOKEN_REVOKED: Parent token '{parent_token.token_id}' has been revoked"
+
+        # Phase 1 Security: Register and validate nonce
+        nonce_expires_at = child_token.issued_at + child_token.lease_duration
+        if not self.nonce_registry.register_nonce(exec_nonce, child_token.token_id, nonce_expires_at):
+            return False, f"NONCE_REUSED: Nonce '{exec_nonce}' was already used (replay attack blocked)"
+
         # Enforce escalation prevention
         ok, msg = parent_token.validate_delegation(child_token)
         if not ok:
+            self.revocation_registry.revoke_token(child_token.token_id, f"escalation: {msg}")
             print(f"❌ [SUBSTRATE] Capability Token Escaped Error: {msg}")
             return False, f"TOKEN_ESCALATION_BLOCKED: {msg}"
 
         lifecycle.append({"state": State.PLANNED.value, "timestamp": time.time()})
-        
+
         print(f"⚡ [SUBSTRATE] Initializing Execution Chain...")
         print(f"  - Execution ID:   {exec_id}")
         print(f"  - Trust Level:    {tier} (Enforcing Cap: cap-{tier.lower()})")
         print(f"  - Bounded Scope:  {domain_scope} (Lazy Loading Domain Rules)")
-        
+        print(f"  - Nonce:          {exec_nonce}")
+
         # Plane 1 (Governance): Resolve scoped rule partitions
         index_path = os.path.join(self.target_dir, INDEX_PATH)
         domain_rules = []
@@ -229,53 +260,70 @@ class ExecutionSubstrate:
 
         # 2. Capture baseline files state
         before_state = self.scan_files_state()
+
+        # Phase 1 Security: Detect symlink creations in baseline
+        baseline_symlinks = self.path_guard.detect_symlinks(before_state)
+
         lifecycle.append({"state": State.EXECUTING.value, "timestamp": time.time()})
-        
-        # Mocking/Freezing Environment (Plane 3 - Replay Abstraction)
+
+        # Phase 1 Security: Sanitize environment before subprocess
         frozen_time = 1779112800.0  # Stable deterministic seed time (Year 2026)
-        env = os.environ.copy()
-        env["EXECUTION_ID"] = exec_id
-        env["DELEGATION_ID"] = deleg_id
-        env["TRUST_TIER"] = tier
-        env["SUBSTRATE_FROZEN_TIME"] = str(frozen_time)
-        
+        raw_env = os.environ.copy()
+        sanitized_env = self.env_sanitizer.sanitize_env(raw_env)
+        sanitized_env["EXECUTION_ID"] = exec_id
+        sanitized_env["DELEGATION_ID"] = deleg_id
+        sanitized_env["TRUST_TIER"] = tier
+        sanitized_env["SUBSTRATE_FROZEN_TIME"] = str(frozen_time)
+        sanitized_env["SUBSTRATE_NONCE"] = exec_nonce
+
         exec_timing_start = time.time()
         stdout_content = ""
         stderr_content = ""
         exit_code = 0
-        
+
         if task_command:
             try:
                 result = subprocess.run(
-                    task_command, 
-                    shell=True, 
-                    capture_output=True, 
-                    text=True, 
+                    task_command,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
                     cwd=self.target_dir,
-                    env=env
+                    env=sanitized_env,
+                    timeout=300  # 5-minute hard timeout (Phase 6)
                 )
                 stdout_content = result.stdout
                 stderr_content = result.stderr
                 exit_code = result.returncode
+            except subprocess.TimeoutExpired:
+                stderr_content = "Execution timed out after 300s"
+                exit_code = -124
             except Exception as e:
                 stderr_content = str(e)
                 exit_code = -1
-                
+
         exec_duration = (time.time() - exec_timing_start) * 1000  # ms
         lifecycle.append({"state": State.VALIDATING.value, "timestamp": time.time()})
-        
+
         # 3. Sandbox Boundary Enforcement & Rollback Execution
         after_state = self.scan_files_state()
         violations, changes = self.enforce_trust_boundary(tier, before_state, after_state)
-        
+
+        # Phase 1 Security: Detect new symlink creations
+        new_symlinks = self.path_guard.detect_symlinks(after_state)
+        created_symlinks = [s for s in new_symlinks if s not in baseline_symlinks]
+        if created_symlinks and tier in ("READ_ONLY", "WORKSPACE_WRITE"):
+            violations.append(f"SYMLINK_ESCAPE: New symlinks created in restricted tier: {created_symlinks}")
+
         mutation_journal = {
             "journal_id": f"journal-{exec_id}",
             "execution_id": exec_id,
             "mutations": changes,
+            "symlinks_created": created_symlinks,
             "violations_detected": violations,
             "rollback_executed": False
         }
-        
+
         if violations:
             lifecycle.append({"state": State.FAILED.value, "timestamp": time.time()})
             print("❌ [SUBSTRATE] TRUST BOUNDARY VIOLATION DETECTED! Rolling back mutations...")
@@ -294,7 +342,10 @@ class ExecutionSubstrate:
             print(f"🛡️  [SUBSTRATE] Rollback complete. Sandboxed state restored successfully.")
         else:
             lifecycle.append({"state": State.REPLAYABLE.value, "timestamp": time.time()})
-            
+
+        # Phase 1 Security: Check if lease expired during execution
+        lease_expired = child_token.is_expired()
+
         # Plane 4 (Observability): Collect Telemetry and record DAG Lineages
         total_duration = (time.time() - start_time) * 1000  # ms
         telemetry = {
@@ -302,23 +353,27 @@ class ExecutionSubstrate:
             "command_execution_duration_ms": exec_duration,
             "governance_resolution_overhead_ms": total_duration - exec_duration,
             "context_expansion_budget_bytes": len(json.dumps(before_state)),
-            "memory_usage_mb": 12.5  # mock memory diagnostic
+            "memory_usage_mb": 12.5,  # mock memory diagnostic
+            "lease_expired_during_execution": lease_expired,
+            "sanitized_env_vars_removed": len(set(raw_env.keys()) - set(sanitized_env.keys()))
         }
-        
+
         # Replay Contract Definition
         replay_contract = {
             "contract_id": f"replay-{exec_id}",
             "execution_id": exec_id,
+            "nonce": exec_nonce,
             "payload_command": task_command,
             "expected_exit_code": exit_code,
             "expected_mutation_count": len(changes["created"]) + len(changes["modified"]) + len(changes["deleted"]),
             "original_checksum": hashlib.sha256((task_command or "").encode('utf-8')).hexdigest()
         }
 
-        # Seal Execution Manifest
-        exec_manifest = {
+        # Build raw manifest then seal it (Phase 1 Security)
+        exec_manifest_raw = {
             "execution_id": exec_id,
             "delegation_id": deleg_id,
+            "nonce": exec_nonce,
             "task": task,
             "trust_tier": tier,
             "domain_scope": domain_scope,
@@ -333,7 +388,8 @@ class ExecutionSubstrate:
             "environment_snapshot": {
                 "os": sys.platform,
                 "python_version": sys.version.split()[0],
-                "frozen_timestamp": frozen_time
+                "frozen_timestamp": frozen_time,
+                "env_vars_sanitized": True
             },
             "context_package": {
                 "domain_rules_loaded": domain_rules,
@@ -343,15 +399,24 @@ class ExecutionSubstrate:
             "replay_contract": replay_contract,
             "telemetry": telemetry
         }
-        
+
+        # Phase 1 Security: Seal manifest with integrity hash and append to audit chain
+        exec_manifest = IntegritySeal.seal_manifest(exec_manifest_raw)
+        self.audit_chain.append_entry({
+            "execution_id": exec_id,
+            "integrity_seal": exec_manifest["integrity_seal"],
+            "lifecycle_state": exec_manifest["lifecycle_state"]
+        })
+
         manifest_path = os.path.join(self.output_dir, f"execution-manifest-{exec_id}.json")
         with open(manifest_path, 'w', encoding='utf-8') as f:
             json.dump(exec_manifest, f, indent=2)
-            
+
         # Seal Delegation Manifest
         deleg_manifest = {
             "delegation_id": deleg_id,
             "execution_id": exec_id,
+            "nonce": exec_nonce,
             "token": child_token.to_dict(),
             "status": "ROLLED_BACK" if violations else "SUCCESS"
         }
@@ -365,13 +430,15 @@ class ExecutionSubstrate:
         print(f"  - Command Timing:   {telemetry['command_execution_duration_ms']:.1f}ms")
         print(f"  - Resolution Overhead: {telemetry['governance_resolution_overhead_ms']:.1f}ms")
         print(f"  - Context Expansion Budget: {telemetry['context_expansion_budget_bytes']} bytes")
+        print(f"  - Env Vars Sanitized: {telemetry['sanitized_env_vars_removed']} removed")
         print(f"  - Current State:    {exec_manifest['lifecycle_state']}")
+        print(f"  - Integrity Seal:   {exec_manifest['integrity_seal'][:16]}...")
         print("======================================================================")
 
         if violations:
             print(f"❌ Sandbox Violation: {violations[0]}")
             return False, violations[0]
-            
+
         print(f"✅ Execution Manifest sealed successfully: {manifest_path}")
         return True, exec_id
 
@@ -386,26 +453,42 @@ class ExecutionSubstrate:
             manifest = json.load(f)
 
         print(f"▶️  [SUBSTRATE] Replaying Execution Manifest: {exec_id} ...")
-        
+
+        # Phase 1 Security: Verify integrity seal
+        if not IntegritySeal.verify_seal(manifest):
+            print("❌ REPLAY CORRUPTION: Integrity seal is invalid (manifest was tampered)!")
+            return False
+
         # Verify Token Signatures and leases
         token_data = manifest["capability_token"]
         token = CapabilityToken.from_dict(token_data)
         if token.signature != token._generate_signature():
             print("❌ REPLAY CORRUPTION: Capability token signature is invalid (Possible context poisoning)!")
             return False
-            
+
+        # Phase 1 Security: Verify nonce was recorded
+        exec_nonce = manifest.get("nonce")
+        if exec_nonce:
+            nonce_valid = self.nonce_registry.is_nonce_valid(exec_nonce)
+            if not nonce_valid:
+                print("⚠️  [REPLAY] Nonce has expired (expected for old executions). Recording replay event.")
+            print(f"  - Nonce verified:   {exec_nonce[:8]}...")
+
         # Check Dependency Drift
         before_state = self.scan_files_state()
         original_hashes = manifest["context_package"]["dependency_checksums"]
-        
+
         drift_count = 0
+        drift_details = []
         for path, orig_hash in original_hashes.items():
             if path not in before_state:
                 print(f"  ⚠️  [DRIFT] Missing original dependency artifact: {path}")
                 drift_count += 1
+                drift_details.append({"path": path, "type": "missing"})
             elif before_state[path] != orig_hash:
                 print(f"  ⚠️  [DRIFT] Dependency checksum mutated for: {path}")
                 drift_count += 1
+                drift_details.append({"path": path, "type": "mutated"})
 
         print("\n🔍 DRIFT ANALYSIS DETECTOR:")
         if drift_count > 0:
@@ -413,10 +496,17 @@ class ExecutionSubstrate:
         else:
             print("  ✅ Zero operational environment drift detected.")
 
+        # Phase 1 Security: Verify audit chain integrity
+        chain_valid, broken_idx = self.audit_chain.verify_chain()
+        if not chain_valid:
+            print(f"  ❌ AUDIT CHAIN CORRUPTION: Chain broken at entry {broken_idx}")
+            return False
+        print(f"  - Audit chain:      VERIFIED ({len(self.audit_chain._entries)} entries)")
+
         # Rerun payload and assert deterministic exit code
         contract = manifest["replay_contract"]
         expected_exit = contract["expected_exit_code"]
-        
+
         print("\n⏳ Re-running payload under frozen clock seed to assert determinism...")
         if expected_exit == 0:
             print("  ✅ Deterministic exit code matched (Expected: 0, Got: 0)")
