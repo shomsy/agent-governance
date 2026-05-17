@@ -150,10 +150,10 @@ for arg in "$@"; do
     case $arg in
         --language=*)
         LANGUAGE_NAME="${arg#*=}"
-        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/languages/$LANGUAGE_NAME.md" ]; then
+        if [ -f "$SCRIPT_DIR/.agents/.rules/governance/profiles/languages/$LANGUAGE_NAME.md" ]; then
             SELECTED_LANGUAGES+=("$LANGUAGE_NAME")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/languages/$LANGUAGE_NAME.md")
-            if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
+            if [ -f "$SCRIPT_DIR/.agents/.rules/governance/architecture/profiles/languages/$LANGUAGE_NAME.md" ]; then
                 ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/languages/$LANGUAGE_NAME.md")
             fi
         else
@@ -162,10 +162,10 @@ for arg in "$@"; do
         ;;
         --framework=*)
         FRAME="${arg#*=}"
-        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/frameworks/$FRAME.md" ]; then
+        if [ -f "$SCRIPT_DIR/.agents/.rules/governance/profiles/frameworks/$FRAME.md" ]; then
             SELECTED_FRAMEWORKS+=("$FRAME")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/frameworks/$FRAME.md")
-            if [ -f "$SCRIPT_DIR/.agents/governance/architecture/profiles/frameworks/$FRAME.md" ]; then
+            if [ -f "$SCRIPT_DIR/.agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md" ]; then
                 ARCH_PROFILES+=(".agents/.rules/governance/architecture/profiles/frameworks/$FRAME.md")
             fi
         else
@@ -174,7 +174,7 @@ for arg in "$@"; do
         ;;
         --repository-profile=*|--repo-kind=*)
         REPOSITORY_PROFILE_NAME="${arg#*=}"
-        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md" ]; then
+        if [ -f "$SCRIPT_DIR/.agents/.rules/governance/profiles/repository-kinds/$REPOSITORY_PROFILE_NAME.md" ]; then
             SELECTED_REPOSITORY_PROFILES+=("$REPOSITORY_PROFILE_NAME")
         else
             echo "⚠️  Unknown reusable repository profile: $REPOSITORY_PROFILE_NAME"
@@ -182,7 +182,7 @@ for arg in "$@"; do
         ;;
         --project-type=*)
         TYPE="${arg#*=}"
-        if [ -f "$SCRIPT_DIR/.agents/governance/profiles/project-types/$TYPE.md" ]; then
+        if [ -f "$SCRIPT_DIR/.agents/.rules/governance/profiles/project-types/$TYPE.md" ]; then
             PROJECT_TYPES+=("$TYPE")
             CODING_PROFILES+=(".agents/.rules/governance/profiles/project-types/$TYPE.md")
         else
