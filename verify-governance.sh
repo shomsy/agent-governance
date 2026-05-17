@@ -110,4 +110,14 @@ if [ -f "./install-os.sh" ]; then
     ./install-os.sh "$TARGET_DIR" --validate
 fi
 
+# 8. Performance Budget & Delegation Proof (P1/P0)
+echo "🔍 Running Executable Runtime Proofs..."
+if [ -f "$TARGET_DIR/tests/measure-performance.sh" ]; then
+    "$TARGET_DIR/tests/measure-performance.sh"
+fi
+
+if [ -f "$TARGET_DIR/tests/delegation-runtime-proof.sh" ]; then
+    "$TARGET_DIR/tests/delegation-runtime-proof.sh"
+fi
+
 echo "🚀 Governance Verified: FULL_GREEN_EXECUTABLE_GOVERNANCE_RUNTIME_READY (verified locally)"
