@@ -1,9 +1,9 @@
 # Status — System Health Snapshot
 
 Last updated: 2026-05-16
-Commit: 8d4e3d274a4eca00e4e95f81ba068e31a417e26b
+Commit: d4241722daf20ea049b45cf291bb12abb2500301
 
-## Overall Status: FULL_GREEN
+## Overall Status: FULL_GREEN_EXECUTABLE_GOVERNANCE_RUNTIME_READY
 
 ## Health Matrix
 

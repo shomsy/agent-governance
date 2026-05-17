@@ -113,7 +113,7 @@ if [ -d "$TARGET_DIR/.agents/governance" ]; then
             
             subfolder=$(echo "$rel_overlay" | cut -d'/' -f1)
             case "$subfolder" in
-                core|architecture|security|execution|standards|delivery|intelligence|profiles|skills)
+                agents|architecture|core|delivery|execution|integrations|intelligence|product|profiles|security|skills|standards)
                     # Valid path structure
                     ;;
                 *)
@@ -166,7 +166,7 @@ RAW_CLAIMED=$(grep -i "## Status:" "$CURRENT_MD" || echo "UNKNOWN")
 if [[ "$RAW_CLAIMED" == *"|"* ]] || [[ "$RAW_CLAIMED" == *"YELLOW"* && "$RAW_CLAIMED" == *"RED"* ]]; then
     CLAIMED_STATUS=""
 else
-    CLAIMED_STATUS=$(echo "$RAW_CLAIMED" | awk '{print $3}' | tr -d '[]"\r' || echo "UNKNOWN")
+    CLAIMED_STATUS=$(echo "$RAW_CLAIMED" | awk '{print $NF}' | tr -d '[]"\r ' || echo "UNKNOWN")
 fi
 
 if [ -n "$CLAIMED_STATUS" ] && [[ "$CLAIMED_STATUS" == *"GREEN"* ]]; then
@@ -186,10 +186,7 @@ if [ -f "$STATUS_FILE" ]; then
     if [[ "$RAW_MGT" == *"|"* ]] || [[ "$RAW_MGT" == *"Current"* ]] || [[ "$RAW_MGT" == *"state"* ]] || [[ "$RAW_MGT" == *"State"* ]]; then
         MGT_STATUS=""
     else
-        MGT_STATUS=$(echo "$RAW_MGT" | awk '{print $3}' | tr -d '[]"\r' || true)
-        if [ -z "$MGT_STATUS" ] || [[ "$MGT_STATUS" == *"Status"* ]]; then
-            MGT_STATUS=$(echo "$RAW_MGT" | awk '{print $2}' | tr -d '[]"\r' || true)
-        fi
+        MGT_STATUS=$(echo "$RAW_MGT" | awk '{print $NF}' | tr -d '[]"\r ' || true)
     fi
     
     ACTUAL_CLAIMED="$CLAIMED_STATUS"
@@ -261,6 +258,7 @@ if [ -f "$TARGET_DIR/.agents/skills/bin/compile-governance.py" ]; then
     python3 "$TARGET_DIR/.agents/skills/bin/compile-governance.py" "$TARGET_DIR"
     python3 "$TARGET_DIR/.agents/skills/bin/lint-governance.py" "$TARGET_DIR"
     python3 "$TARGET_DIR/.agents/skills/bin/check-complexity-budget.py" "$TARGET_DIR"
+    python3 "$TARGET_DIR/.agents/skills/bin/evidence-lifecycle.py" "$TARGET_DIR"
     python3 "$TARGET_DIR/.agents/skills/bin/replay-evidence.py" "$TARGET_DIR"
     python3 "$TARGET_DIR/.agents/skills/bin/aggregate-context.py" "$TARGET_DIR"
 fi
