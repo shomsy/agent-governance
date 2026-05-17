@@ -23,12 +23,14 @@ find "$TARGET_DIR/.agents/governance" -type f -name "*.md" -exec sed -i "s/Versi
 # 3. Detect Stale Profiles
 echo "🔍 Detecting Stale Profiles..."
 # Logic to check if AGENTS.md references profiles that don't exist in .rules
-PROFILES=$(grep ".md" "$TARGET_DIR/AGENTS.md" | grep -o ".agents/.*\.md") || true
-for p in $PROFILES; do
-    if [ ! -f "$TARGET_DIR/$p" ]; then
-        echo "⚠️  STALE PROFILE DETECTED: $p (referenced in AGENTS.md but missing in tree)"
-    fi
-done
+if [ -f "$TARGET_DIR/AGENTS.md" ]; then
+    PROFILES=$(grep ".md" "$TARGET_DIR/AGENTS.md" 2>/dev/null | grep -o ".agents/.*\.md" || true)
+    for p in $PROFILES; do
+        if [ ! -f "$TARGET_DIR/$p" ]; then
+            echo "⚠️  STALE PROFILE DETECTED: $p (referenced in AGENTS.md but missing in tree)"
+        fi
+    done
+fi
 
 # 4. Final Verification
 if [ -f "./install-os.sh" ]; then

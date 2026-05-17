@@ -17,3 +17,5 @@ agent-harness.part-*.txt
 
 # Installer-copied rules engine (reproduced via install-os.sh --upgrade)
 .agents/.rules/
+projects/
+artifacts/

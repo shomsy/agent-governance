@@ -299,8 +299,14 @@ function shouldIgnoreDirectory(dirName, relDir, exceptRules, canonical) {
     return true;
   }
 
-  if (canonical && relDir.startsWith('.agents/archive')) {
-    return true;
+  if (canonical) {
+    if (relDir.startsWith('.agents/archive') || 
+        relDir.startsWith('EVIDENCE/archive') || 
+        relDir.startsWith('.agents/management/evidence/archive') ||
+        relDir.startsWith('projects') ||
+        relDir.startsWith('artifacts')) {
+      return true;
+    }
   }
 
   for (const rule of exceptRules) {
