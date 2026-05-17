@@ -87,7 +87,15 @@ echo "tampered rule content" >> "$AVAX_DIR/.agents/.rules/governance/core/bootst
 
 # 2. Create a local custom overlay in .agents/governance/
 mkdir -p "$AVAX_DIR/.agents/governance/core/bootstrap"
-echo "custom local overlay" > "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md"
+cat > "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md" <<'EOF'
+---
+title: "Agent Bootstrap Lifecycle"
+status: "APPROVED"
+operational_value: "high"
+protection: "high"
+---
+custom local overlay
+EOF
 
 # 3. Modify root AGENTS.md locally
 echo "## Custom Local Rule Additions" >> "$AVAX_DIR/AGENTS.md"
@@ -284,6 +292,89 @@ echo "🧪 PROOF 5: Replaying Successful Clean Build Verification..."
 # Run verify-governance on clean repository again to prove stable green state
 "$AVAX_DIR/verify-governance.sh" "$AVAX_DIR"
 echo "✅ PROOF 5 PASSED: Repository successfully restored and validated green."
+
+
+# ---------------------------------------------------------
+# PROOF 6: AI Execution Substrate Sandbox & Replay Determinism
+# ---------------------------------------------------------
+echo "🧪 PROOF 6: Testing AI Execution Substrate Sandbox & Replay..."
+
+TEST_BIN_DIR="$AVAX_DIR/.agents/skills/bin"
+if [ ! -f "$TEST_BIN_DIR/execution-substrate.py" ]; then
+    if [ -f "$AVAX_DIR/.agents/.rules/skills/bin/execution-substrate.py" ]; then
+        TEST_BIN_DIR="$AVAX_DIR/.agents/.rules/skills/bin"
+    fi
+fi
+
+# 1. Run a valid task under READ_ONLY
+python3 "$TEST_BIN_DIR/execution-substrate.py" run \
+  --task "Read environment details" \
+  --tier "READ_ONLY" \
+  --scope "security" \
+  --cmd "echo 'Substrate Execution Success'" \
+  --dir "$AVAX_DIR" \
+  > "$TEST_DIR/exec_ro_success.log" 2>&1
+
+# Extract execution ID
+EXEC_ID=$(grep -oE "exec-[a-f0-9-]{36}" "$TEST_DIR/exec_ro_success.log" | head -n 1 || true)
+if [ -z "$EXEC_ID" ]; then
+    echo "❌ FAILURE: Substrate failed to output valid execution ID!"
+    cat "$TEST_DIR/exec_ro_success.log"
+    exit 1
+fi
+
+# Assert manifests generated
+[ -f "$AVAX_DIR/.agents/management/evidence/execution/execution-manifest-$EXEC_ID.json" ] || { echo "❌ Execution manifest missing"; exit 1; }
+
+# 2. Try to write a file under READ_ONLY to trigger accidental mutation check & rollback
+set +e
+python3 "$TEST_BIN_DIR/execution-substrate.py" run \
+  --task "Unsafe Write Attempt" \
+  --tier "READ_ONLY" \
+  --scope "security" \
+  --cmd "echo 'violating write' > '$AVAX_DIR/unauthorized_write.txt'" \
+  --dir "$AVAX_DIR" \
+  > "$TEST_DIR/exec_ro_violation.log" 2>&1
+CODE_RO_VIOLATION=$?
+set -e
+
+if [ "$CODE_RO_VIOLATION" -eq 0 ] || [ -f "$AVAX_DIR/unauthorized_write.txt" ]; then
+    echo "❌ FAILURE: READ_ONLY tier allowed writing unauthorized file or did not fail!"
+    cat "$TEST_DIR/exec_ro_violation.log"
+    exit 1
+fi
+echo "  - Check 6.A: Sandbox successfully blocked unauthorized workspace mutations under READ_ONLY."
+
+# 3. Try to write to governance folder under WORKSPACE_WRITE to check protection & rollback
+set +e
+python3 "$TEST_BIN_DIR/execution-substrate.py" run \
+  --task "Unsafe Governance Write Attempt" \
+  --tier "WORKSPACE_WRITE" \
+  --scope "security" \
+  --cmd "echo 'violating gov write' > '$AVAX_DIR/.agents/governance/unauthorized_gov.txt'" \
+  --dir "$AVAX_DIR" \
+  > "$TEST_DIR/exec_ww_violation.log" 2>&1
+CODE_WW_VIOLATION=$?
+set -e
+
+if [ "$CODE_WW_VIOLATION" -eq 0 ] || [ -f "$AVAX_DIR/.agents/governance/unauthorized_gov.txt" ]; then
+    echo "❌ FAILURE: WORKSPACE_WRITE tier allowed writing to protected governance folder!"
+    cat "$TEST_DIR/exec_ww_violation.log"
+    exit 1
+fi
+echo "  - Check 6.B: Sandbox successfully blocked unauthorized governance mutations under WORKSPACE_WRITE."
+
+# 4. Replay the successful task and assert determinism
+python3 "$TEST_BIN_DIR/execution-substrate.py" replay "$EXEC_ID" --dir "$AVAX_DIR" > "$TEST_DIR/replay_success.log" 2>&1
+if ! grep -q "REPLAY VERIFICATION PASSED" "$TEST_DIR/replay_success.log"; then
+    echo "❌ FAILURE: Substrate replay failed or flagged drift on clean re-run!"
+    cat "$TEST_DIR/replay_success.log"
+    exit 1
+fi
+echo "  - Check 6.C: Substrate successfully replayed task and verified execution determinism."
+
+echo "✅ PROOF 6 PASSED: AI Execution Substrate Sandbox & Replay are robust and bulletproof."
+
 
 echo ""
 echo "==========================================================="

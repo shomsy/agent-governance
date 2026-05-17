@@ -122,7 +122,7 @@
     }
   },
   {
-    "timestamp": 1779032604.9810777,
+    "timestamp": 1779032979.4921532,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/governance-provenance-graph.json",
     "data": {
@@ -139,7 +139,7 @@
     }
   },
   {
-    "timestamp": 1779032605.0188277,
+    "timestamp": 1779032979.5525148,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/strategic-context-summary.json",
     "data": {
@@ -149,7 +149,7 @@
     }
   },
   {
-    "timestamp": 1779032605.0638487,
+    "timestamp": 1779032979.5995922,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/governance-index.json",
     "data": {
@@ -1974,7 +1974,7 @@
     }
   },
   {
-    "timestamp": 1779032605.06402,
+    "timestamp": 1779032979.5997665,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/governance-dependency-graph.json",
     "data": {
@@ -2113,7 +2113,7 @@
     }
   },
   {
-    "timestamp": 1779032605.064116,
+    "timestamp": 1779032979.5998578,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/governance-entropy.json",
     "data": {
@@ -2234,7 +2234,7 @@
     }
   },
   {
-    "timestamp": 1779032605.0644937,
+    "timestamp": 1779032979.6002002,
     "type": "generated",
     "source": "./.agents/management/evidence/generated/governance-precedence.json",
     "data": {

@@ -254,13 +254,21 @@ if find "$TARGET_DIR" -name "PARENT-AGENTS.md" | grep -v "node_modules" >/dev/nu
 fi
 
 # Run Executable Governance Compiler & Linter if present
-if [ -f "$TARGET_DIR/.agents/skills/bin/compile-governance.py" ]; then
-    python3 "$TARGET_DIR/.agents/skills/bin/compile-governance.py" "$TARGET_DIR"
-    python3 "$TARGET_DIR/.agents/skills/bin/lint-governance.py" "$TARGET_DIR"
-    python3 "$TARGET_DIR/.agents/skills/bin/check-complexity-budget.py" "$TARGET_DIR"
-    python3 "$TARGET_DIR/.agents/skills/bin/evidence-lifecycle.py" "$TARGET_DIR"
-    python3 "$TARGET_DIR/.agents/skills/bin/replay-evidence.py" "$TARGET_DIR"
-    python3 "$TARGET_DIR/.agents/skills/bin/aggregate-context.py" "$TARGET_DIR"
+BIN_DIR="$TARGET_DIR/.agents/skills/bin"
+if [ ! -f "$BIN_DIR/compile-governance.py" ]; then
+    if [ -f "$TARGET_DIR/.agents/.rules/skills/bin/compile-governance.py" ]; then
+        BIN_DIR="$TARGET_DIR/.agents/.rules/skills/bin"
+    fi
+fi
+
+if [ -f "$BIN_DIR/compile-governance.py" ]; then
+    python3 "$BIN_DIR/compile-governance.py" "$TARGET_DIR"
+    python3 "$BIN_DIR/lint-governance.py" "$TARGET_DIR"
+    python3 "$BIN_DIR/check-complexity-budget.py" "$TARGET_DIR"
+    python3 "$BIN_DIR/evidence-lifecycle.py" "$TARGET_DIR"
+    python3 "$BIN_DIR/replay-evidence.py" "$TARGET_DIR"
+    python3 "$BIN_DIR/execution-substrate.py" compress
+    python3 "$BIN_DIR/aggregate-context.py" "$TARGET_DIR"
 fi
 
 # OS Validation (via Installer validation mode)
