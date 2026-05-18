@@ -53,15 +53,15 @@ __PROJECT_NAME__
 
 ### 1.2 Project Type
 
-(e.g., PHP Framework, Web Application, CLI Tool, API Service, Library)
+(e.g., Framework, Web Application, CLI Tool, API Service, Library)
 
 ### 1.3 Primary Language
 
-(e.g., PHP 8.5, TypeScript, Go)
+(e.g., TypeScript, Python, Go, Rust, Java)
 
 ### 1.4 Runtime
 
-(e.g., php-fpm, frankenphp, roadrunner, node)
+(e.g., node, deno, bun, python, go, compiled binary)
 
 ---
 
