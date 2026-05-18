@@ -1306,11 +1306,11 @@ install_baseline_rules() {
     fi
 
     # Granular copy of rules tree
-    local src_base="$SCRIPT_DIR/.agents"
+    local src_base="$SCRIPT_DIR/.agents/.rules"
     local dest_base=".agents/.rules"
 
     if [ ! -d "$src_base" ]; then
-        echo "WARNING: Source baseline .agents not found at $src_base"
+        echo "WARNING: Source baseline .rules not found at $src_base"
         return 0
     fi
 
@@ -1319,7 +1319,7 @@ install_baseline_rules() {
         local rel_path="${src_file#$src_base/}"
         # Skip self-referential and git artifacts
         case "$rel_path" in
-            .rules/*|.agents/*|.git/*|archive/pilots/*) continue ;;
+            .agents/*|.git/*|archive/pilots/*) continue ;;
         esac
         sync_file "$src_file" "$dest_base/$rel_path" "true"
     done < <(find "$src_base" -type f)
@@ -1581,6 +1581,37 @@ install_governance_index() {
 }
 
 # =============================================================================
+# PHASE 12D: PERSIST PROJECT NAME TO CONFIG
+# =============================================================================
+persist_project_config() {
+    local config_file="$TARGET_DIR/.agents/config/project.json"
+    if [ ! -f "$config_file" ]; then
+        return 0
+    fi
+
+    local project_slug
+    project_slug="$(detect_project_name)"
+    local project_display
+    project_display="$(echo "$project_slug" | sed -e 's/-/ /g' -e 's/\b\(.\)/\u\1/g')"
+
+    if [ "$DRY_RUN" = false ]; then
+        # Inject "name" field into project.json if not already present
+        if ! python3 -c "import json; d=json.load(open('$config_file')); assert 'name' in d" 2>/dev/null; then
+            python3 -c "
+import json
+with open('$config_file', 'r') as f:
+    data = json.load(f)
+data['name'] = '$project_slug'
+data['displayName'] = '$project_display'
+with open('$config_file', 'w') as f:
+    json.dump(data, f, indent=2)
+" 2>/dev/null
+            echo "  Persisted project name to .agents/config/project.json: $project_slug"
+        fi
+    fi
+}
+
+# =============================================================================
 # PHASE 12: PLATFORM ADAPTERS
 # =============================================================================
 install_platform_adapters() {
@@ -1736,6 +1767,9 @@ install_project_contract
 
 # Step 6c: Governance index
 install_governance_index
+
+# Step 6d: Persist project name to config
+persist_project_config
 
 # Step 7: Core utilities
 install_core_utilities

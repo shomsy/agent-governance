@@ -14,7 +14,7 @@ The visible `.agents/` folders are the project workspace skeleton.
 Agents MUST follow this order:
 
 1. `AGENTS.md`
-2. __AGENTS_PROJECT_CONTRACT__
+2. __AGENTS_PROJECT_CONTRACT__  # Layer 4 project-local overlay
 3. `.agents/.rules/AGENTS.md`
 4. `.agents/.rules/governance/core/quality/quality-gates.md`
 5. `.agents/.rules/governance/core/bootstrap/agent-bootstrap.md`
