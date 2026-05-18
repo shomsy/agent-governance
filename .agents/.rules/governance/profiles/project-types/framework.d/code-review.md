@@ -8,7 +8,7 @@
 > (frameworks, platforms, infrastructure components, SDKs, shared libraries).
 >
 > This is **not** a PR review.
-> The output of this review must enable a **clear technical decision** about the system’s future.
+> The output of this review must enable a **clear technical decision** about the system's future.
 
 ---
 
@@ -16,18 +16,14 @@
 
 ### What This Review IS
 
-- System-level analysis
-- Architecture and design validation
-- Foundational assumption challenge
-- Performance-by-design evaluation
-- Failure-mode and diagnostic surface sanity check (minimal, not a tooling deep dive)
+System-level analysis, architecture and design validation, foundational assumption challenge,
+performance-by-design evaluation, failure-mode and diagnostic surface sanity check (minimal, not a tooling deep
+dive).
 
 ### What This Review IS NOT
 
-- Style or formatting review
-- Line-by-line refactor suggestions
-- Feature-level feedback
-- Full observability or tooling audit (dashboards, vendors, agents, pipelines)
+Style or formatting review, line-by-line refactor suggestions, feature-level feedback, full observability or
+tooling audit (dashboards, vendors, agents, pipelines).
 
 ---
 
@@ -39,11 +35,9 @@ At the end of this review, we must be able to answer **unambiguously**:
 2. **Is evolution safe, or does complexity compound?**
 3. **What is the correct next action?**
 
-The review must conclude with **exactly one** of the following outcomes:
-
-- ✅ **Keep and Improve**: system is sound, proceed with incremental evolution
-- ⚠️ **Redesign**: core assumptions are stressed, targeted redesign required
-- 🚨 **Rewrite Candidate**: foundational design is flawed, rewrite is rational
+The review must conclude with **exactly one** of the following outcomes: Keep and Improve (system is sound,
+proceed with incremental evolution), Redesign (core assumptions are stressed, targeted redesign required), or
+Rewrite Candidate (foundational design is flawed, rewrite is rational).
 
 If the review cannot support one of these decisions, **it is incomplete**.
 
@@ -51,15 +45,9 @@ If the review cannot support one of these decisions, **it is incomplete**.
 
 ## Hard Gates (Stop Conditions)
 
-Stop the review immediately if any of the following cannot be produced:
-
-- A correct **as-built execution flow**
-- A **primary axis** statement (central abstraction)
-- A completed **responsibility and boundary map**
-- A set of **system invariants** (at least 5)
-
----
-
+Stop the review immediately if any of the following cannot be produced: a correct as-built execution flow, a
+primary axis statement (central abstraction), a completed responsibility and boundary map, or a set of system
+invariants (at least 5).
 
 ---
 
@@ -77,7 +65,7 @@ Stop the review immediately if any of the following cannot be produced:
 
 ---
 
-## Mandatory Recursive Governance Review Before Commit
+## Mandatory Governance Review Before Commit
 
 ### Status
 
@@ -85,92 +73,43 @@ MANDATORY.
 
 Implementation is not complete when tests pass.
 
-Implementation is complete only when:
-
-1. implementation/refactor/fix is done
-2. required validation passes
-3. required gates pass
-4. governance code review passes
-5. evidence is written
-6. truth/backlog files match reality
-7. staged files are intentional
-8. no forbidden generated/cache/local files are committed
+Implementation is complete only when: implementation/refactor/fix is done, required validation passes, required
+gates pass, governance code review passes, evidence is written, truth/backlog files match reality, staged files are
+intentional, and no forbidden generated/cache/local files are committed.
 
 ### Rule
 
 After every implementation, refactor, remediation, test fix, validation fix, or gate fix, the agent MUST perform a
 governance code review before commit or push.
 
-The review MUST check the changed scope against:
-
-- `AGENTS.md`
-- `.agents/how-to/how-to-code-review.md`
-- every applicable `.agents/how-to/how-to-*.md`
-- current stage evidence
-- current acceptance criteria
-- component-specific governance
-- production-readiness rules
+The review MUST check the changed scope against: root governance contract, applicable how-to governance
+documents, current stage evidence, current acceptance criteria, component-specific governance, and
+production-readiness rules.
 
 ### Recursive Loop
 
-The required loop is:
-
-```text
-implement/fix
-run validation
-run gates
-perform governance review
-fix every BLOCKER/HIGH/MEDIUM finding
-rerun validation
-perform governance review again
-repeat until clean
-write evidence
-update truth/backlog
-commit
-push only if requested/allowed
-```
+The required loop is: implement/fix, run validation, run gates, perform governance review, fix every
+BLOCKER/HIGH/MEDIUM finding, rerun validation, perform governance review again, repeat until clean, write
+evidence, update truth/backlog, commit, push only if requested/allowed.
 
 ### After Broken Test Fixes
 
-Fixing broken tests is new implementation work.
-
-Therefore, after fixing a failing test, PHPStan error, gate failure, or validation issue, the agent MUST run governance
-review again before commit.
-
-A test fix MUST NOT be committed only because the test now passes.
+Fixing broken tests is new implementation work. Therefore, after fixing a failing test, static analysis error,
+gate failure, or validation issue, the agent MUST run governance review again before commit. A test fix MUST NOT
+be committed only because the test now passes.
 
 ### Required Review Checks
 
-The review MUST explicitly check:
-
-* architecture placement
-* naming rules
-* DI/container ownership
-* runtime composition leaks
-* ServiceProvider/Configuration ownership
-* Configuration/Builders boundary
-* PublicSurface delegation
-* Foundation misuse
-* hidden fallback construction
-* static state and reset safety
-* test quality
-* gate quality
-* evidence/truth consistency
-* no broad suppressions
-* no fake shims
-* no fake GREEN
+The review MUST explicitly check: architecture placement, naming rules, DI/container ownership, runtime composition
+leaks, service provider/configuration ownership, configuration/builders boundary, public entry point delegation,
+foundation misuse, hidden fallback construction, static state and reset safety, test quality, gate quality,
+evidence/truth consistency, no broad suppressions, no fake shims.
 
 ### Commit Rule
 
-Commit is FORBIDDEN if:
-
-* validation is failing
-* mandatory gates are failing
-* governance review has unresolved BLOCKER/HIGH/MEDIUM findings
-* truth files disagree with validation
-* evidence is missing
-* unrelated dirty files are staged
-* cache/generated/local files are staged without explicit approval
+Commit is FORBIDDEN if: validation is failing, mandatory gates are failing, governance review has unresolved
+BLOCKER/HIGH/MEDIUM findings, truth files disagree with validation, evidence is missing, unrelated dirty files are
+staged, or cache/generated/local files are staged without explicit approval.
 
 ### Recursive Review Accepted Debt Rule
 
@@ -180,35 +119,17 @@ Unresolved YELLOW findings are allowed only as accepted governance debt.
 
 If any YELLOW finding remains, the phase MUST NOT be reported as pure FULL_GREEN.
 
-Allowed final statuses:
+Allowed final statuses: FULL_GREEN (validation clean, gates clean, governance review has zero unresolved findings),
+GREEN_WITH_ACCEPTED_YELLOW_DEBT (validation/gates clean, no BLOCKER/HIGH/MEDIUM remains, but YELLOW findings are
+formally accepted), YELLOW_WITH_EXACT_BLOCKERS (findings remain and may affect readiness), RED (validation,
+security, truth, or mandatory gates are broken).
 
-- FULL_GREEN: validation clean, gates clean, governance review has zero unresolved findings.
-- GREEN_WITH_ACCEPTED_YELLOW_DEBT: validation/gates clean, no BLOCKER/HIGH/MEDIUM remains, but YELLOW findings are
-  formally accepted.
-- YELLOW_WITH_EXACT_BLOCKERS: findings remain and may affect readiness.
-- RED: validation, security, truth, or mandatory gates are broken.
+Accepted YELLOW debt MUST include: affected files, exact pattern, severity, why it is not HIGH/BLOCKER, owner,
+target phase/version, expiry or review date, risk, mitigation, evidence location, and truth/backlog entry.
 
-Accepted YELLOW debt MUST include:
-
-- affected files
-- exact pattern
-- severity
-- why it is not HIGH/BLOCKER
-- owner
-- target phase/version
-- expiry or review date
-- risk
-- mitigation
-- evidence location
-- V5.9 blocking decision
-- truth/backlog entry
-
-Commit is allowed with accepted YELLOW debt only if:
-
-- no BLOCKER/HIGH/MEDIUM review finding remains
-- no HIGH/BLOCKER security issue remains
-- YELLOW debt is tracked with owner/target/risk/expiry
-- truth files clearly say it is not pure FULL_GREEN
+Commit is allowed with accepted YELLOW debt only if: no BLOCKER/HIGH/MEDIUM review finding remains, no
+HIGH/BLOCKER security issue remains, YELLOW debt is tracked with owner/target/risk/expiry, and truth files clearly
+say it is not pure FULL_GREEN.
 
 ### Final Acceptance
 
@@ -216,142 +137,58 @@ A pass may be marked FULL_GREEN only when validation and governance review are b
 
 If validation is green but governance review is not clean, status is YELLOW or RED depending on severity.
 
-If a mandatory `how-to-*.md` rule is violated, the scope MUST NOT be marked GREEN.
+If a mandatory governance rule is violated, the scope MUST NOT be marked GREEN.
 
 ---
 
 ## Cross-Governance Compliance Gate (Mandatory)
 
 This review MUST verify that the reviewed code, tests, architecture, and documentation comply with **every applicable
-rule from every `how-to-*.md` governance document** in the repository.
+rule from every governance document** in the repository.
 
 This is not optional.
 This is not a reminder.
 This is a hard review gate.
 
-A code review that does not explicitly check the `how-to-*.md` governance set is incomplete, even if the architecture
+A code review that does not explicitly check the applicable governance set is incomplete, even if the architecture
 analysis is strong.
 
 ### Governance Inventory Rule
 
-Before writing findings, the reviewer MUST discover and list all governance documents matching:
+Before writing findings, the reviewer MUST discover and list all applicable governance documents.
 
-```text
-**/how-to-*.md
-```
+The inventory MUST include: file path, main purpose, applicable scope, whether it applies to this scope, and if not,
+the exact reason why.
 
-The inventory MUST include at least:
-
-- file path
-- document title or main purpose
-- applicable scope: architecture / clean code / code style / coding standards / testing / documentation / review
-  process / other
-- whether the document applies to this reviewed system
-- if not applicable, the exact reason why it does not apply
-
-The reviewer MUST NOT silently ignore a `how-to-*.md` document.
-
-If a governance document exists but cannot be read, parsed, or reconciled with the review scope, the review MUST mark
-this as a **Governance Blocker**.
+The reviewer MUST NOT silently ignore a governance document. If a governance document exists but cannot be read,
+parsed, or reconciled with the review scope, the review MUST mark this as a **Governance Blocker**.
 
 ### Rule Extraction Rule
 
-For every applicable `how-to-*.md` document, the reviewer MUST extract and enforce:
+For every applicable governance document, the reviewer MUST extract and enforce every `MUST`, `MUST NOT`, `HARD
+RULE`, `Mandatory`, `Non-Negotiable`, explicit checklist, required output, forbidden anti-pattern, and
+naming/ownership/testing/documentation/style/architecture law.
 
-- every `MUST` rule
-- every `MUST NOT` rule
-- every `HARD RULE`
-- every `Mandatory` section
-- every `Non-Negotiable` section
-- every explicit checklist item
-- every required output or deliverable
-- every forbidden anti-pattern
-- every naming, ownership, testing, documentation, style, or architecture law
-
-`SHOULD` rules must also be reviewed, but they may be treated as improvement opportunities when the trade-off is
-justified.
-
-The reviewer MUST NOT cherry-pick only the obvious rules.
-The reviewer MUST treat the governance set as a complete contract.
+`SHOULD` rules must also be reviewed but may be treated as improvement opportunities when the trade-off is justified.
 
 ### Compliance Matrix Rule
 
-The review output MUST include a `GOVERNANCE COMPLIANCE REPORT` section with a matrix like this:
+The review output MUST include a `GOVERNANCE COMPLIANCE REPORT` with a matrix listing: governance document, rule,
+applies?, status (Pass / Partial / Fail / Not Applicable / Blocked), evidence, missing area, required action, severity.
 
-| Governance Document      | Rule / Requirement                                                                   | Applies? | Status                | Evidence                           | Missing / Weak Area | Required Action                                | Severity                      |
-|--------------------------|--------------------------------------------------------------------------------------|----------|-----------------------|------------------------------------|---------------------|------------------------------------------------|-------------------------------|
-| `how-to-architecture.md` | folder says flow or capability, unit says responsibility, function says exact action | Yes      | Pass / Partial / Fail | file/folder/class/function pointer | exact gap           | keep / rename / move / split / merge / rewrite | Low / Medium / High / Blocker |
-
-Status values:
-
-- **Pass**: rule is clearly satisfied
-- **Partial**: rule is attempted but incomplete, vague, weak, inconsistent, or under-documented
-- **Fail**: rule is violated
-- **Not Applicable**: rule honestly does not apply, with a concrete reason
-- **Blocked**: rule cannot be evaluated because evidence is missing or the governance source cannot be read
-
-The matrix MUST be concrete.
-Do not write vague entries like "mostly follows clean code" or "tests are okay".
+Do not write vague entries.
 
 ### Exact Gap Reporting Rule
 
-For every `Partial`, `Fail`, or `Blocked` item, the review MUST state exactly:
+For every `Partial`, `Fail`, or `Blocked` item, the review MUST state exactly: what is missing, where it is missing,
+why it matters, which governance document and rule it violates, what should be done next, and the required action
+category: add, remove, rename, move, split, merge, simplify, document, test, harden, rewrite, or deprecate.
 
-- **what is missing**
-- **where it is missing**: file, class, method, folder, test, doc, public API, or flow
-- **why it matters**
-- **which governance document and rule it violates**
-- **what should be done next**
-- whether the required action is:
-    - add
-    - remove
-    - rename
-    - move
-    - split
-    - merge
-    - simplify
-    - document
-    - test
-    - harden
-    - rewrite
-    - deprecate
-
-The report MUST include concrete suggestions, rewrites, or replacement shapes when they improve clarity.
-
-If the reviewer believes a rule should not be followed in this specific case, they MUST write an explicit exception
-with:
-
-- reason
-- trade-off
-- risk
-- owner of the exception
-- expiration or revisit condition
-
-Silent exceptions are forbidden.
-
-### Governance Coverage Summary
-
-The review MUST include a short summary:
-
-```text
-Governance documents found: <number>
-Governance documents applied: <number>
-Rules checked: <number or best-effort count>
-Passed: <number>
-Partial: <number>
-Failed: <number>
-Blocked: <number>
-Highest severity: Low / Medium / High / Blocker
-```
-
-If the reviewer cannot count every rule exactly, they MUST provide a best-effort count and explain why exact counting
-was not possible.
+Silent exceptions are forbidden. Any exception must include: reason, trade-off, risk, owner, and expiration condition.
 
 ### Governance Failure Impact Rule
 
-Governance failures MUST influence the final decision.
-
-Use this interpretation:
+Governance failures MUST influence the final decision:
 
 - **Low**: local improvement, does not change the final decision by itself
 - **Medium**: affects maintainability, documentation, tests, naming, or local ownership
@@ -360,17 +197,12 @@ Use this interpretation:
 
 A system may not receive **✅ Keep and Improve** if there is an unresolved governance blocker.
 
-A system may not receive a clean approval if any `MUST`, `MUST NOT`, `HARD RULE`, or `Non-Negotiable` item fails without
-an explicit exception.
-
 ### Mandatory Governance Finding Template
-
-Use this template for governance-specific findings:
 
 ```md
 ### Governance Finding: <short title>
 
-- **Governance Source:** `<how-to-file.md>` -> `<section/rule>`
+- **Governance Source:** `<governance-file.md>` -> `<section/rule>`
 - **Required Rule:** ...
 - **Observed Gap:** ...
 - **Where It Fails:** file/folder/class/method/test/doc path
@@ -383,93 +215,27 @@ Use this template for governance-specific findings:
 
 ### Cross-Document Conflict Rule
 
-If two `how-to-*.md` documents appear to conflict, the reviewer MUST NOT guess.
+If two governance documents appear to conflict, the reviewer MUST NOT guess. Resolve using this priority: correctness
+and safety, explicit project governance, architecture and ownership clarity, public API stability, testability,
+documentation truthfulness, coding standards and style, local taste.
 
-Resolve conflicts using this priority order:
-
-1. correctness and safety
-2. explicit project governance
-3. architecture and ownership clarity
-4. public API stability
-5. testability
-6. documentation truthfulness
-7. coding standards and style
-8. local taste
-
-The review MUST record the conflict and the chosen interpretation in `DECISIONS-LOG`.
+Record the conflict and chosen interpretation in `DECISIONS-LOG`.
 
 ### Minimum Required Governance Checks
 
-When these files exist, the review MUST check them explicitly:
+When governance documents exist for architecture, component design, DDD extension, advanced patterns, clean code,
+code style, coding standards, dogfooding, modern language/DI features, unit testing, documentation, security,
+performance, production readiness, dependency injection, runtime composition, and code review, the review MUST check
+them explicitly.
 
-- `how-to-architecture.md`: ownership, screaming architecture, flow/capability slicing, hierarchy, boundaries, locality,
-  public surface, security, refactoring, and change governance
-- `how-to-design-components.md`: component shape, filesystem law, PublicSurface, Flows, Capabilities, forbidden folders
-- `how-to-architecture-extension-with-ddd.md`: DDD application, bounded context, entities, value objects
-- `how-to-use-advanced-architecture-patterns.md`: advanced patterns, GoF application, event sourcing, CQRS
-- `how-to-clean-code.md`: correctness, readability, simplicity, naming, function design, module design, error handling,
-  testing, refactoring discipline, anti-pattern rejection
-- `how-to-code-style.md`: project-specific formatting, typing, imports, constructor promotion, nullable type style,
-  named arguments, static closures, pipe usage when applicable
-- `how-to-coding-standards.md`: PHP version expectations, security, DevSecOps gates, modern language features, output
-  expectations, privacy/legal notes where relevant
-- `how-to-dogfooding.md`: internal component reuse, one capability one owner, dependency direction, PublicSurface
-  thinness,
-  hot-path efficiency, Filesystem/Storage/Queue/Messaging/Reliability/Observability/CallableSerialization adoption
-  matrix,
-  no raw file/process/serialization/retry logic outside owners
-- `how-to-modern-php-attributes-di.md`: PHP 8.0-8.5 feature adoption, attribute compilation (not
-  reflection-per-request),
-  DI/autowiring discipline, constructor bloat rules (0-4 normal, 5-7 check, 8+ warning), compiled metadata vs hot-path
-  reflection,
-  WeakMap cache policy, property hooks, asymmetric visibility, NoDiscard, pipe operator for pure transformations only,
-  superglobal isolation behind AvaX Request, tooling gates
-- `how-to-unit-test.md`: behavior-first tests, happy/failure/edge/regression/security scenarios, naming,
-  Arrange/Act/Assert, one-act rule, assertion precision, test data clarity
-- `how-to-document.md`: docs location, filesystem-first documentation, `how-this-works.md`, mermaid diagrams, real
-  triggers, debug-first guidance, documentation completeness
-- `how-to-system-security.md`: security governance, boundaries, authentication, authorization, secrets, input
-  validation, output encoding, naming rules
-- `how-to-system-performance.md`: performance governance, hot paths, hidden I/O, bounding, latency budgets, memory
-  management
-- `how-to-production-readiness.md`: production gates, health checks, doctor, runtime safety, failure handling
-- `how-to-dependency-injection.md`: DI/autowiring, ServiceProvider coverage, Container Ownership Rule, Approved
-  Composition Contexts, Container Resolution Rule, Gate Enforcement Rule, Forbidden Patterns, factory precision, golden
-  path examples
-- `how-to-runtime-composition.md`: Runtime Composition Leak Law, Forbidden Patterns, Container Ownership Rule, static
-  facade law, path/context-aware gate enforcement
-- `how-to-code-review.md`: this review process itself, including hard gates, findings, decision, next steps, and
-  governance compliance
-
-Hard rule:
-
-A code review that does not explicitly check `how-to-dogfooding.md` and `how-to-modern-php-attributes-di.md` when they
-exist is incomplete.
-
-These two documents are central to AvaX V5 governance.
-
-If either is missing from the checklist, the checklist is stale and the review is invalid.
-
-### Governance Drift Rule
-
-If a new `how-to-*.md` document exists but is missing from this review checklist, the review checklist is stale.
-
-A stale review checklist is a governance defect.
-
-If any listed file is missing, the reviewer MUST state whether it is expected to exist for this repository.
+Hard rule: A code review that does not explicitly check dogfooding and modern language/DI governance documents when
+they exist is incomplete. If either is missing from the checklist, the checklist is stale and the review is invalid.
 
 ### Deliverable
 
-The final `review.md` MUST include:
-
-- `GOVERNANCE INVENTORY`
-- `GOVERNANCE COMPLIANCE REPORT`
-- `GOVERNANCE FINDINGS`
-- `GOVERNANCE EXCEPTIONS` if any
-- `GOVERNANCE COVERAGE SUMMARY`
-- `DECISIONS-LOG` entries for conflicts, exceptions, or waived rules
-
-If these sections are missing, the review fails the review process itself.
+The final `review.md` MUST include: GOVERNANCE INVENTORY, GOVERNANCE COMPLIANCE REPORT, GOVERNANCE FINDINGS,
+GOVERNANCE EXCEPTIONS if any, GOVERNANCE COVERAGE SUMMARY, and DECISIONS-LOG entries for conflicts, exceptions,
+or waived rules. If these sections are missing, the review fails the review process itself.
 
 ---
 
@@ -480,7 +246,7 @@ If these sections are missing, the review fails the review process itself.
 | Low          | Localized issue, does not spread across boundaries, low coupling, easy to test and fix without ripple effects.                       |
 | Medium       | Crosses module boundaries or affects extension points, requires coordination, increases maintenance cost.                            |
 | High         | Impacts correctness, safety, or evolution, forces touching multiple core classes, increases systemic fragility.                      |
-| Rewrite Risk | Indicates the system’s axis is wrong or the complexity-to-capability ratio is compounding. Requires structural change, not patching. |
+| Rewrite Risk | Indicates the system's axis is wrong or the complexity-to-capability ratio is compounding. Requires structural change, not patching. |
 
 ---
 
@@ -499,18 +265,12 @@ If these sections are missing, the review fails the review process itself.
 
 ## Required Artifacts (Deliverables)
 
-The review must produce these file review.md as output
-in the folder EVIDENCE with sections:
-
-- `ARCHITECTURE NOTES` (or this doc filled in)
-- `GOVERNANCE INVENTORY` (all discovered `how-to-*.md` documents)
-- `GOVERNANCE COMPLIANCE REPORT` (rule-by-rule compliance matrix)
-- `GOVERNANCE FINDINGS` (all governance gaps using the mandatory governance finding template)
-- `GOVERNANCE EXCEPTIONS` (only when a rule is intentionally waived with justification)
-- `FINDINGS` (all findings using the standard template)
-- `DECISION` (final decision, max 10 sentences)
-- `DECISIONS-LOG` (decision log entries, see template below)
-- `NEXT STEPS` (action-oriented plan based on the decision)
+The review must produce review.md as output in the EVIDENCE folder with sections: ARCHITECTURE NOTES (or this doc
+filled in), GOVERNANCE INVENTORY (all discovered governance documents), GOVERNANCE COMPLIANCE REPORT (rule-by-rule
+compliance matrix), GOVERNANCE FINDINGS (all governance gaps using the mandatory template), GOVERNANCE EXCEPTIONS
+(only when a rule is intentionally waived with justification), FINDINGS (all findings using the standard template),
+DECISION (final decision, max 10 sentences), DECISIONS-LOG (decision log entries), NEXT STEPS (action-oriented
+plan based on the decision).
 
 NOTE: overwrite existing reviews
 ---
@@ -571,11 +331,7 @@ Identify explicitly:
 - Where decisions are **made**
 - Where execution is **pure / mechanical**
 
-**Deliverable:**
-
-- One diagram (ASCII / Mermaid / external)
-- A 5 to 10 line explanation titled:
-  **"This is how the system actually works."**
+**Deliverable:** one diagram (ASCII/Mermaid/external) and a 5 to 10 line explanation titled "This is how the system actually works."
 
 Example Mermaid skeleton (optional):
 
@@ -598,19 +354,7 @@ Answer with one sentence only:
 
 > "This system is fundamentally organized around **<PRIMARY_AXIS>**."
 
-Examples:
-
-- Kernel
-
-- Pipeline
-
-- Context
-
-- Configuration
-
-- Engine
-
-- Other (explicitly name it)
+Examples: Kernel, Pipeline, Context, Configuration, Engine, or other (explicitly name it).
 
 ### 2.2 Secondary Axis (Optional, but Controlled)
 
@@ -620,11 +364,7 @@ If a second axis exists, name it explicitly:
 
 **Rule:** If a secondary axis exists, mark **Design Risk: Dual-axis complexity** and justify why it is necessary.
 
-**Deliverable:**
-
-- Primary axis sentence
-
-- Optional secondary axis sentence + justification
+**Deliverable:** primary axis sentence and optional secondary axis sentence with justification.
 
 ---
 
@@ -646,11 +386,7 @@ For the primary axis, answer Yes / No:
 
 - 🚨 Fail: wrong axis
 
-**Deliverable:**
-
-- Classification (Pass / Weak / Fail)
-
-- write clear justification(s) with evidence pointers
+**Deliverable:** classification (Pass/Weak/Fail) with clear justification(s) and evidence pointers.
 
 ---
 
@@ -672,12 +408,7 @@ Map responsibilities explicitly:
 
 - Boundaries leak through "helper" backdoors
 
-**Deliverable:**
-
-- Completed table
-
-- A 3 line summary:  
-  **"Responsibility boundaries are: clear / stressed / violated."**
+**Deliverable:** completed table and a 3 line summary: "Responsibility boundaries are: clear / stressed / violated."
 
 ---
 
@@ -703,13 +434,7 @@ Is this pipeline a formal state machine?
 
 - Explicit terminal and error states exist
 
-**Deliverable:**
-
-- Table
-
-- Explicit answer: **Yes / No**
-
-- If "No": mark as **Foundational Risk: Implicit ordering**
+**Deliverable:** table, explicit answer Yes/No, and if "No" mark as Foundational Risk: Implicit ordering.
 
 ---
 
@@ -721,36 +446,18 @@ List all mutable objects:
 |--------|-------|----------|--------------|----------------------------------------|
 |        |       |          |              | Necessary / Convenience / Design Smell |
 
-**Deliverable:**
-
-- Table
-
-- Summary sentence:  
-  **"Mutability is: justified / excessive / misplaced."**
+**Deliverable:** table and summary sentence: "Mutability is: justified / excessive / misplaced."
 
 ---
 
 ## 7. System Invariants (Mandatory)
 
-Define invariants the system must preserve. Examples:
+Define invariants the system must preserve. Examples: deterministic resolution under same inputs, no hidden
+mutation outside the central context, no global state access without explicit boundary, circular dependency
+handling is explicit and policy-driven, errors carry context and are classifiable, extensions cannot bypass safety
+rules.
 
-- Deterministic resolution under same inputs
-
-- No hidden mutation outside the central context
-
-- No global state access without explicit boundary
-
-- Circular dependency handling is explicit and policy-driven
-
-- Errors carry context and are classifiable
-
-- Extensions cannot bypass safety rules
-
-**Deliverable:**
-
-- as much as possible invariants
-
-- For each invariant, list where it is enforced (or not enforced)
+**Deliverable:** as many invariants as possible, with enforcement location and status (Enforced/Partially/Not enforced) for each.
 
 Template:
 
@@ -762,7 +469,7 @@ Template:
 
 # PHASE 2: Foundational and Critical Design Review
 
-**Goal:** Decide whether the system’s initial assumptions were correct.
+**Goal:** Decide whether the system's initial assumptions were correct.
 
 ---
 
@@ -778,51 +485,23 @@ Check if present:
 
 - Complexity without proportional capability
 
-**Deliverable:**
-
-- Present / Not Present
-
-- celar explanation(s) with evidence pointers
+**Deliverable:** Present/Not Present with clear explanation(s) and evidence pointers.
 
 ---
 
 ### 8.2 Abstractions Without Real Variance
 
-Identify:
+Identify: interfaces with a single implementation, extension points never exercised, configuration flags that mimic polymorphism. Classify each: Acceptable, Premature abstraction, or Design debt.
 
-- Interfaces with a single implementation
-
-- Extension points never exercised
-
-- Configuration flags that mimic polymorphism
-
-Classify each:
-
-- Acceptable
-
-- Premature abstraction
-
-- Design debt
-
-**Deliverable:**
-
-- List + classification + evidence
+**Deliverable:** list with classification and evidence.
 
 ---
 
 ### 8.3 "Too Clever" Design Test
 
-Answer explicitly:
+Answer explicitly: is the design optimized for reading or writing, and does usage require internal knowledge?
 
-- Is the design optimized for **reading** or **writing**?
-
-- Does usage require internal knowledge?
-
-**Deliverable:**
-
-- Clear / Risky / Over-engineered
-
-- Short justification with one usage scenario
+**Deliverable:** Clear/Risky/Over-engineered with short justification and one usage scenario.
 
 ---
 
@@ -844,32 +523,18 @@ Answer Yes / No:
 
 - Fundamentally flawed
 
-**Deliverable:**
-
-- Classification + reasoning + evidence
+**Deliverable:** classification (Healthy/Risky/Fundamentally flawed) with reasoning and evidence.
 
 ---
 
 ## 10. Performance-by-Design Sanity Check
 
-Answer Yes / No:
+Answer Yes / No: is caching required for acceptable performance, are many objects created per request or resolve,
+could parts be plain functions instead of objects, is reflection on the hot path without mitigation?
 
-- Is caching required for acceptable performance?
+If 2 or more are Yes, mark: Design-Level Performance Risk.
 
-- Are many objects created per request or resolve?
-
-- Could parts be plain functions instead of objects?
-
-- Is reflection on the hot path without mitigation?
-
-If 2 or more are Yes, mark:  
-**Design-Level Performance Risk**
-
-**Deliverable:**
-
-- Yes/No matrix
-
-- Conclusion and evidence pointers
+**Deliverable:** Yes/No matrix with conclusion and evidence pointers.
 
 ---
 
@@ -877,21 +542,11 @@ If 2 or more are Yes, mark:
 
 This is not a tooling audit. This is a design sanity check.
 
-Answer Yes / No:
+Answer Yes / No: are errors categorized (programmer error vs runtime error vs domain error), do exceptions include
+context (what, where, why), can the system explain why a decision was made in a minimal way, are failure states
+explicit in the pipeline or axis?
 
-- Are errors categorized (programmer error vs runtime error vs domain error)?
-
-- Do exceptions include context (what, where, why)?
-
-- Can the system explain "why a decision was made" in a minimal way (debug hooks, traces, or structured error details)?
-
-- Are failure states explicit in the pipeline or axis?
-
-**Deliverable:**
-
-- Yes/No matrix
-
-- write clear conclusion
+**Deliverable:** Yes/No matrix with clear conclusion.
 
 ---
 
@@ -918,13 +573,7 @@ Check items and sum weights.
 
 - Score 5+: rewrite is rational unless constraints prohibit it
 
-**Deliverable:**
-
-- Checked list
-
-- Final score
-
-- One paragraph justification referencing findings
+**Deliverable:** checked list, final score, and one paragraph justification referencing findings.
 
 ---
 
@@ -935,41 +584,25 @@ All rules are defined in `how-to-document.md` - these are explicit enforcement c
 
 ### Pre-Review: Document Validation
 
-Before reviewing any documentation, verify the documentation files meet quality gates:
+Before reviewing any documentation, verify: all `how-this-works.md` files contain valid frontmatter (title, owner,
+last_reviewed, classification), a mermaid diagram block (sequenceDiagram or flowchart type), autonumber where flow
+order matters, and real participant names (file/function names, not generic placeholders).
 
-#### For all `how-this-works.md` files:
-
-- [ ] File contains **valid frontmatter** (title, owner, last_reviewed, classification)
-- [ ] Contains **mermaid diagram block** (```mermaid``` fence)
-- [ ] Mermaid uses **`sequenceDiagram`** or **`flowchart`** type
-- [ ] Uses `autonumber` where flow order matters
-- [ ] All participant names are **real** (file/function names, NOT "Upstream", "Main Handler", etc.)
-
-#### Ship Check (from how-to-document.md):
-
-- [ ] Reader can retell **one exact path** from command to result WITHOUT opening code
-- [ ] Uses **real** participant names (not generic placeholders)
-- [ ] Uses **real command or trigger** at the start
-- [ ] Explains **what gets written to disk** or left as evidence
-- [ ] Explains **what user sees** on screen
-- [ ] Contains **where to debug first** section
+Ship Check: reader can retell one exact path from command to result without opening code, uses real participant
+names, uses real command or trigger at the start, explains what gets written to disk, explains what user sees, and
+contains a "where to debug first" section.
 
 ### Quality Anti-Patterns (Explicitly Forbidden)
 
-DO NOT APPROVE if documentation contains:
-
-- [ ] Generic placeholders like "Upstream Flow", "Main Handler", "Data Handler"
-- [ ] "handles", "works with", "supports" without concrete behavior
-- [ ] No mermaid diagram when flow is sequential
-- [ ] No flowchart when topology is more important than sequence
-- [ ] Missing "what gets written" explanation
-- [ ] Missing failure/shutdown path
+DO NOT APPROVE if documentation contains: generic placeholders like "Upstream Flow", "Main Handler", "Data
+Handler", vague verbs like "handles", "works with", "supports" without concrete behavior, missing mermaid diagram
+when flow is sequential, missing flowchart when topology matters more than sequence, missing "what gets written"
+explanation, or missing failure/shutdown path.
 
 ### Deliverable for Documentation Review:
 
-- [ ] All checked items from Document Validation
-- [ ] Any anti-patterns found with specific file:line references
-- [ ] Clear pass/fail decision for documentation quality
+All checked items from Document Validation, any anti-patterns found with specific file:line references, and a clear
+pass/fail decision for documentation quality.
 
 **If documentation fails any gate, the review FAILS.**
 
@@ -1111,7 +744,7 @@ Use one entry per significant decision.
 
 Metrics and quality scores MUST NOT regress from the previously established baseline.
 
-- **PHPStan Errors**: MUST stay at 0 or current baseline. New errors are BLOCKERS.
+- **Static Analysis Errors**: MUST stay at 0 or current baseline. New errors are BLOCKERS.
 - **Test Coverage**: MUST NOT decrease for the affected component.
 - **Runtime Leaks**: MUST stay at 0 confirmed leaks.
 - **Namespace Drift**: MUST stay at 0.
@@ -1122,52 +755,20 @@ Metrics and quality scores MUST NOT regress from the previously established base
 ### 14.2 Gate Self-Test Rule
 
 Every mandatory validation gate or architecture test MUST have at least one negative test case (proving it fails when
-the
-rule is violated).
+the rule is violated).
 
 - A gate that cannot fail is not a gate.
 - A gate with "0 scans" or "0 violations" is UNPROVEN until the scanner's ability to find violations is verified.
 - Mandatory gate without self-test or proof is BLOCKER for production-ready GREEN status.
 
-Required examples:
+Required examples: Runtime composition gate must fail on hidden fallback construction, nullable required services
+used as fallback, container service locator in runtime code, missing dependency checks. Git gate must fail on cache
+directories, generated local files, forbidden local AI cache files. Security gate must fail on obvious injection
+pattern, unsafe redirect, sensitive logging, path traversal, unsafe command execution, weak hashing/crypto where
+detectable.
 
-```text
-Runtime composition gate must fail on:
-  $dependency ?? new Dependency()
-  $dependency ??= new Dependency()
-  new BuildSomething() in runtime
-  $middleware[] = new SomeMiddleware(...)
-  class_exists() runtime wiring
-  builder->build() in runtime
-
-DI gate must fail on:
-  hidden fallback construction
-  nullable required services used as fallback
-  container service locator in runtime code
-  missing dependency checks in business/runtime code
-
-Git gate must fail on:
-  .phpunit.cache/**
-  .qoder/worktrees/**
-  avax.txt
-  generated local cache files
-  forbidden local AI cache files
-
-Security gate must fail on:
-  obvious SQL/query injection pattern
-  unsafe redirect pattern
-  sensitive logging pattern
-  path traversal pattern
-  unsafe command execution pattern
-  weak hashing/crypto pattern where detectable
-```
-
-Rules:
-
-- gate without self-test or proof is YELLOW at minimum
-- mandatory gate without self-test or proof cannot close BLOCKER
-- gate that scans zero active files is FAIL, not PASS
-- gate PASS with RED content is FAIL
+Rules: gate without self-test or proof is YELLOW at minimum, mandatory gate without self-test or proof cannot
+close BLOCKER, gate that scans zero active files is FAIL not PASS, gate PASS with RED content is FAIL.
 
 **Status:** MANDATORY  
 **Severity:** BLOCKER
@@ -1219,54 +820,27 @@ disconnected validation process.
 
 ### Mandatory Status Definitions
 
-A component, stage, or pass **MUST NOT** be marked GREEN unless:
+A component, stage, or pass **MUST NOT** be marked GREEN unless: all MANDATORY rules pass, all tests pass, static
+analysis passes (no errors), relevant gates pass, evidence agrees with code, no BLOCKER/HIGH issue remains
+unresolved, and every deferred MEDIUM issue has owner, reason, and next action.
 
-- All MANDATORY rules pass
-- All tests pass
-- PHPStan passes (no errors)
-- Relevant gates pass
-- Evidence agrees with code
-- No BLOCKER/HIGH issue remains unresolved
-- Every deferred MEDIUM issue has owner, reason, and next action
+A stage **MUST** be YELLOW if: validation passes but mandatory evidence is incomplete, or MEDIUM/HIGH findings
+remain deferred, or implementation is partial.
 
-A stage **MUST** be YELLOW if:
-
-- Validation passes
-- But mandatory evidence is incomplete
-- Or MEDIUM/HIGH findings remain deferred
-- Or implementation is partial
-
-A stage **MUST** be RED if:
-
-- Tests fail
-- PHPStan fails with errors
-- Security gate fails
-- Evidence contradicts code
-- Mandatory governance is ignored
+A stage **MUST** be RED if: tests fail, static analysis fails with errors, security gate fails, evidence
+contradicts code, or mandatory governance is ignored.
 
 ### Code Review Output Requirements
 
-Code review **MUST** produce for each finding:
-
-- **finding**: what was discovered
-- **governance source**: which how-to document and rule
-- **violated MUST/MUST NOT rule**: the exact rule violated
-- **file/path**: where the violation occurs
-- **severity**: BLOCKER / HIGH / MEDIUM / LOW
-- **why it matters**: impact explanation
-- **required fix**: what needs to be done
-- **whether it blocks GREEN**: yes/no with justification
-- **test/gate proof required**: what validates the fix
+Code review **MUST** produce for each finding: finding, governance source, violated MUST/MUST NOT rule, file/path,
+severity (BLOCKER/HIGH/MEDIUM/LOW), why it matters, required fix, whether it blocks GREEN (with justification), and
+test/gate proof required.
 
 Code review **MUST NOT** say "all findings fixed" if any HIGH/MEDIUM finding remains deferred.
 
-Code review **MUST** distinguish:
-
-- **fixed**: confirmed resolved
-- **deferred**: acknowledged but not fixed, with owner and timeline
-- **accepted exception**: explicitly accepted with reason, trade-off, risk, and owner
-- **false positive**: incorrectly flagged
-- **not applicable**: rule doesn't apply to this context
+Code review **MUST** distinguish: fixed (confirmed resolved), deferred (acknowledged with owner/timeline), accepted
+exception (explicitly accepted with reason/trade-off/risk/owner), false positive (incorrectly flagged), not
+applicable (rule doesn't apply).
 
 ### Governance Compliance Summary
 
@@ -1296,37 +870,16 @@ Highest severity: BLOCKER / HIGH / MEDIUM / LOW
 
 Security-sensitive findings MUST be loud, explicit, and blocking by default.
 
-Any OWASP-class weakness, injection risk, authentication bypass, authorization bypass, sensitive data leak, unsafe
-deserialization, unsafe redirect, filesystem traversal, command execution risk, SSRF risk, XSS risk, CSRF risk,
+Any OWASP-class weakness, injection risk, authentication/authorization bypass, sensitive data leak, unsafe
+deserialization, unsafe redirect, filesystem traversal, command execution risk, SSRF/XSS/CSRF risk,
 SQL/query injection risk, weak cryptography, secret exposure, unsafe logging, or session/cookie weakness MUST be
 classified as HIGH or BLOCKER unless proven otherwise.
 
-Security findings MUST NOT be hidden as:
+Security findings MUST NOT be hidden as cleanup, style issue, minor refactor note, pre-existing harmless debt,
+accepted risk without owner/expiry, non-blocking note, code quality nit, or low-priority cleanup.
 
-```text
-cleanup
-style issue
-minor refactor note
-pre-existing harmless debt
-accepted risk without owner/expiry
-non-blocking note
-code quality nit
-low-priority cleanup
-```
-
-A security finding may be downgraded only with:
-
-```text
-exact threat explanation
-affected path
-exploitability assessment
-mitigation proof
-test or gate evidence
-owner
-expiry if accepted temporarily
-truth/backlog entry
-explicit stage-blocking decision
-```
+A security finding may be downgraded only with: exact threat explanation, affected path, exploitability assessment,
+mitigation proof, test or gate evidence, owner, expiry if accepted temporarily, and explicit stage-blocking decision.
 
 ### Minimum Severity Rule
 
@@ -1346,51 +899,16 @@ explicit stage-blocking decision
 
 ### Rule
 
-Security review is mandatory when a change touches any of the following:
-
-```text
-authentication
-authorization
-roles/permissions
-sessions
-cookies
-CSRF
-CORS
-redirects
-user input
-request parsing
-validation
-serialization/deserialization
-database query building
-filesystem I/O
-file upload/download
-logging
-secrets
-hashing
-encryption
-HTTP client/server
-queues and message payloads
-cache keys containing user or user-derived data
-template/rendering
-command/process execution
-event payloads crossing boundaries
-webhooks
-signed URLs
-tokens
-API keys
-password reset flows
-rate limiting
-tenant isolation
-sandboxing
-plugin execution
-object storage paths
-URL generation
-proxy/trusted header handling
-```
+Security review is mandatory when a change touches: authentication, authorization, sessions, cookies, CSRF, CORS,
+redirects, user input, request parsing, validation, serialization/deserialization, database query building, filesystem
+I/O, file upload/download, logging, secrets, hashing, encryption, HTTP client/server, queues and message payloads,
+cache keys with user data, template/rendering, command/process execution, event payloads crossing boundaries, webhooks,
+signed URLs, tokens, API keys, password reset flows, rate limiting, tenant isolation, sandboxing, plugin execution,
+object storage paths, URL generation, or proxy/trusted header handling.
 
 ### Required Review Evidence
 
-If triggered, the review MUST include this table:
+If triggered, the review MUST include:
 
 | Area | Changed? | Risk checked | Finding | Severity | Fix/mitigation | Blocks commit? |
 |---|---:|---|---|---|---:|
@@ -1413,32 +931,10 @@ Security review cannot be skipped silently.
 ### Rule
 
 A commit is FORBIDDEN if the current change introduces, exposes, or leaves unresolved any security issue classified as:
-
-```text
-BLOCKER
-HIGH
-OWASP-class weakness
-authentication bypass
-authorization bypass
-injection risk
-XSS risk
-CSRF risk
-SSRF risk
-unsafe redirect
-unsafe deserialization
-path traversal
-command execution risk
-secret exposure
-sensitive data logging
-weak cryptography or hashing
-session or cookie weakness
-unsafe file upload or download
-database query injection risk
-unsafe event payload crossing trust boundary
-unsafe queue payload handling
-unsafe tenant boundary
-unsafe plugin or sandbox execution
-```
+BLOCKER, HIGH, OWASP-class weakness, authentication/authorization bypass, injection risk, XSS/CSRF/SSRF risk, unsafe
+redirect/deserialization, path traversal, command execution risk, secret exposure, sensitive data logging, weak
+cryptography, session/cookie weakness, unsafe file upload/download, database query injection risk, unsafe event/queue
+payload handling, unsafe tenant boundary, or unsafe plugin/sandbox execution.
 
 ### Required Action
 
@@ -1454,105 +950,55 @@ unsafe plugin or sandbox execution
 
 A security issue may remain only if final status is YELLOW or RED. Never GREEN.
 
-If temporarily accepted, it MUST have:
-
-```text
-exact issue
-affected path
-severity
-exploitability assessment
-owner
-mitigation
-expiry or version
-backlog or truth entry
-evidence
-explicit decision whether it blocks the current stage
-```
+If temporarily accepted, it MUST have: exact issue, affected path, severity, exploitability assessment, owner,
+mitigation, expiry or version, evidence, and explicit decision whether it blocks the current stage.
 
 ### Forbidden Masking
 
-Security issues MUST NOT be hidden as:
-
-```text
-cleanup
-style issue
-low priority
-pre-existing harmless debt
-non-blocking note
-accepted risk without proof
-```
+Security issues MUST NOT be hidden as cleanup, style issue, low priority, pre-existing harmless debt, non-blocking
+note, or accepted risk without proof.
 
 ---
 
-## 20. Security and Performance Trigger Cross-Rule
+## 19. Security and Performance Trigger Cross-Rule
 
-Security review MUST be triggered by changes to areas listed in:
+Security review MUST be triggered by changes to areas listed in applicable security governance documents.
 
-```text
-.agents/how-to/how-to-system-security.md §44
-```
-
-Performance review MUST be triggered by changes to areas listed in:
-
-```text
-.agents/how-to/how-to-system-performance.md §44
-```
+Performance review MUST be triggered by changes to areas listed in applicable performance governance documents.
 
 If triggered, the review evidence MUST include the compliance matrix sections for security and performance. If not
 triggered, the review MUST say why.
 
-## 21. Large Unit Review Thresholds
+## 20. Large Unit Review Thresholds
 
 Large code is not automatically wrong, but it is automatically suspicious.
 
-Mandatory review triggers:
-
-```text
-Class over 300 lines:            mandatory responsibility review
-Method over 50 lines:            mandatory extraction or explanation review
-Constructor with 8+ dependencies: mandatory design review
-PublicSurface over 150 lines:    mandatory behavior leak review
-Builder over 300 lines:          BLOCKER until classified
-ServiceProvider over 250 lines:  mandatory split review
-Test class over 500 lines:       mandatory test organization review
-```
+Mandatory review triggers: class over 300 lines (mandatory responsibility review), method over 50 lines (mandatory
+extraction or explanation review), constructor with 8+ dependencies (mandatory design review), public entry point
+over 150 lines (mandatory behavior leak review), builder over 300 lines (BLOCKER until classified), service
+provider over 250 lines (mandatory split review), test class over 500 lines (mandatory test organization review).
 
 Threshold trigger does not automatically mean refactor. It does require documented decision. No large unit may be called
 GREEN without review decision.
 
-## 22. Canonical Term Registry Rule
+## 21. Canonical Term Registry Rule
 
 One concept must have one canonical name. If the same concept appears under multiple names, review MUST choose one
 canonical term and mark the others as aliases, deprecated terms, or wrong terms.
 
-Check the registry at:
+Check the project's canonical term registry (if one exists) before introducing or accepting new terminology.
 
-```text
-docs/governance/canonical-terms.md
-```
+**Severity escalation:** Default HIGH. BLOCKER when naming drift affects public API surface, DI/container, response
+layer, events, runtime, boot DSL, failure boundary, database lifecycle, security-sensitive APIs, or public
+compatibility.
 
-before introducing or accepting new terminology.
+## 22. Governance Exception Register Rule
 
-**Severity escalation:** Default HIGH. BLOCKER when naming drift affects PublicSurface, DI/container, Response layer,
-Events, Runtime, Boot DSL, FailureBoundary, Database lifecycle, security-sensitive APIs, or public compatibility.
-
-## 23. Governance Exception Register Rule
-
-A documented governance exception is valid only when recorded in the exception register at:
-
-```text
-EVIDENCE/accepted-exceptions-ledger.md
-```
+A documented governance exception is valid only when recorded in the project's exception register.
 
 An exception without owner and expiry is not an exception. It is unresolved governance debt.
 
-For the full exception format, see:
-
-```text
-.agents/how-to/how-to-production-readiness.md §8
-```
-
-## 24. PHPDoc Review Rule
+## 23. PHPDoc Review Rule
 
 ### Status
 
@@ -1561,43 +1007,19 @@ For the full exception format, see:
 
 ### Rule
 
-Code review MUST check PHPDoc quality.
-
-A scope cannot be GREEN if:
-
-```text
-a production class has no semantic class PHPDoc
-a public/protected method has no semantic method PHPDoc
-a method that throws lacks @throws
-array shapes, generics, or iterables are undocumented
-PHPDoc lies or drifts from implementation
-PHPDoc merely repeats code without explaining intent
-PHPDoc hides architecture confusion behind vague language
-PHPDoc uses fully-qualified names instead of imports
-PHPDoc conflicts with native types or PHPStan/Psalm analysis
-```
+Code review MUST check PHPDoc quality. A scope cannot be GREEN if: a production class has no semantic class
+PHPDoc, a public/protected method has no semantic method PHPDoc, a method that throws lacks @throws, array
+shapes/generics/iterables are undocumented, PHPDoc lies or drifts from implementation, PHPDoc merely repeats code
+without explaining intent, PHPDoc hides architecture confusion behind vague language, PHPDoc uses fully-qualified
+names instead of imports, or PHPDoc conflicts with native types or static analysis.
 
 ### Severity
 
-```text
-BLOCKER: misleading docs that can cause wrong usage, security risk, public API misuse, or runtime misunderstanding
-HIGH:    public API or framework behavior is undocumented
-MEDIUM:  internal behavior is under-documented but not dangerous
-LOW:     wording polish
-```
+BLOCKER for misleading docs that can cause wrong usage, security risk, public API misuse, or runtime
+misunderstanding. HIGH for undocumented public API or framework behavior. MEDIUM for under-documented internal
+behavior that is not dangerous. LOW for wording polish.
 
-### Cross-Reference
-
-For full PHPDoc rules including class, method, tag, flow/action documentation, gate, severity, phased adoption, and
-GREEN status rule, see:
-
-```text
-.agents/how-to/how-to-document.md — Semantic PHPDoc Rule
-```
-
----
-
-## 25. Critical Quality Signal Rule
+## 24. Critical Quality Signal Rule
 
 ### Status
 
@@ -1606,82 +1028,28 @@ GREEN status rule, see:
 
 ### Severity Escalation
 
-Default severity is HIGH.
+Default severity is HIGH. Escalates to **BLOCKER** when the issue threatens: security, data integrity, runtime
+safety, long-lived worker safety, truth/evidence integrity, public API compatibility, dependency graph correctness,
+or rollback/recovery safety.
 
-Escalates to **BLOCKER** when the issue threatens:
-
-```text
-security
-data integrity
-runtime safety
-long-lived worker safety
-truth/evidence integrity
-public API compatibility
-dependency graph correctness
-rollback/recovery safety
-```
-
-Examples that MUST be BLOCKER when active:
-
-```text
-exploitable security issue
-data corruption risk
-request state stored in singleton
-unresolved runtime composition leak in active runtime
-fake GREEN
-gate PASS with RED content
-mandatory gate scans zero active files
-hidden fallback dependency in runtime
-missing required dependency discovered in business/runtime code
-service locator in business/runtime code
-```
+Examples that MUST be BLOCKER when active: exploitable security issue, data corruption risk, request state stored
+in singleton, unresolved runtime composition leak in active runtime, gate PASS with RED content, mandatory gate
+scans zero active files, hidden fallback dependency in runtime, missing required dependency discovered in
+business/runtime code, service locator in business/runtime code.
 
 ### Rule
 
-The review MUST loudly flag anything that threatens:
+The review MUST loudly flag anything that threatens: security, data integrity, runtime safety, long-lived worker
+safety, dependency graph correctness, public API compatibility, static analysis baseline, test reliability,
+performance hot paths, observability of failures, rollback or recovery safety, container verification, request
+scope isolation, tenant isolation, state reset safety, or failure boundary correctness.
 
-```text
-security
-data integrity
-runtime safety
-long-lived worker safety
-dependency graph correctness
-public API compatibility
-static analysis baseline
-test reliability
-performance hot paths
-observability of failures
-rollback or recovery safety
-container verification
-request scope isolation
-tenant isolation
-state reset safety
-failure boundary correctness
-```
-
-The following must not pass silently:
-
-```text
-hidden fallback construction
-runtime service assembly
-service locator usage in business code
-missing dependency checks in business or runtime code
-mutable static state without reset proof
-request state stored in singleton
-fake ServiceProvider
-fake PublicSurface
-broad try/catch swallowing errors
-broad PHPStan ignores
-weak tests
-assertTrue(true)
-evidence claiming GREEN while validation says otherwise
-gate PASS with RED content
-mandatory gate with zero scanned files
-fake compatibility shim
-duplicate canonical concepts
-large builders acting as hidden containers
-examples showing non-canonical style
-```
+The following must not pass silently: hidden fallback construction, runtime service assembly, service locator usage
+in business code, missing dependency checks in business or runtime code, mutable static state without reset proof,
+request state stored in singleton, fake service provider, fake public entry point, broad try/catch swallowing
+errors, broad static analysis ignores, weak tests, assertTrue(true), evidence claiming GREEN while validation says
+otherwise, gate PASS with RED content, mandatory gate with zero scanned files, fake compatibility shim, duplicate
+canonical concepts, large builders acting as hidden containers, examples showing non-canonical style.
 
 ### Core Principle
 

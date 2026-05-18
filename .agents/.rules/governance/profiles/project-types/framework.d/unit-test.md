@@ -6,7 +6,7 @@
 
 ## Status
 
-**MANDATORY** - This document defines non-negotiable unit testing rules for AvaX.
+**MANDATORY** - This document defines non-negotiable unit testing rules.
 
 ## Normative Language
 
@@ -162,9 +162,7 @@ How many methods exist here?
 Production code follows this naming law:
 
 ```text
-folder says flow or capability
-unit says responsibility
-function says exact action
+naming must reflect responsibility
 ```
 
 Unit tests follow the verification version of that law:
@@ -2539,12 +2537,7 @@ It should be:
 ## 90. Gate Self-Test Cross-Reference
 
 Every mandatory validation gate or architecture test MUST have at least one negative test case proving it fails when the
-rule is violated. See:
-
-```text
-.agents/how-to/how-to-code-review.md §14.2
-.agents/how-to/how-to-production-readiness.md §16
-```
+rule is violated.
 
 A gate that cannot fail is not a gate.
 
