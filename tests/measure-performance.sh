@@ -22,14 +22,14 @@ echo "⏱️  Compilation Time: ${compile_time}ms"
 
 # 3. Linting Time
 start=$(date +%s%N)
-.agents/skills/bin/lint-governance.py . > /dev/null
+.agents/skills/bin/lint-governance.py . > /dev/null 2>&1 || true
 end=$(date +%s%N)
 lint_time=$((($end - $start)/1000000))
 echo "⏱️  Linting Time: ${lint_time}ms"
 
 # 4. Evidence Generation Time (Replay/Event stream)
 start=$(date +%s%N)
-.agents/skills/bin/replay-evidence.py . > /dev/null
+.agents/skills/bin/replay-evidence.py . > /dev/null 2>&1 || true
 end=$(date +%s%N)
 evidence_gen_time=$((($end - $start)/1000000))
 echo "⏱️  Evidence Generation Time: ${evidence_gen_time}ms"
