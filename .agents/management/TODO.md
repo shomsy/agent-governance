@@ -19,6 +19,13 @@
 - [ ] Phase 15: Validation
 - [ ] Phase 16: Recursive Governance Review
 - [ ] Phase 17: Finalization
+- [x] Phase 18: Finding Lifecycle Closure
+  - [x] Schema: finding-decision.schema.json
+  - [x] Tool: finding_decisions.py (validate/list/explain/add/expire-check/match)
+  - [x] Governance law: recursive-review-contract.md, evidence-model.md, quality-gates.md, how-to-code-review.md
+  - [x] Scanner contract: finding-lifecycle.md
+  - [x] Gate integration: verify-governance.sh Check 12, release-readiness.sh Section 13
+  - [x] Tests: finding-lifecycle-test.sh (17 sub-tests)
 
 ## Deferred — Missing Governance Documents (27 files)
 
@@ -38,7 +45,7 @@ Each file below is optional — create only if the adopting repository needs it.
 - [ ] `.agents/governance/standards/coding/naming-standard.md`
 - [ ] `.agents/governance/standards/review/how-to-code-review.md`
 - [ ] `.agents/governance/standards/review/how-to-strict-review.md`
-- [ ] `.agents/governance/standards/review/recursive-review-contract.md`
+- [x] `.agents/governance/standards/review/recursive-review-contract.md`
 
 ### Documentation Standards
 - [ ] `.agents/governance/standards/documentation/how-to-document-flow.md`

@@ -2,36 +2,11 @@
 
 ## 1. Status of This Document
 
-This document is part of the AvaX governance system.
+This document is part of the framework governance system.
 
-It defines how performance must be designed, implemented, reviewed, tested, measured, observed, and proven across AvaX.
+It defines how performance must be designed, implemented, reviewed, tested, measured, observed, and proven across a PHP framework.
 
-This document applies to:
-
-```text
-framework runtime
-components
-public surfaces
-flows
-capabilities
-configuration
-foundation primitives
-HTTP endpoints
-console commands
-workers
-queues
-events
-message buses
-database access
-cache access
-filesystem access
-external service integrations
-operator tools
-developer tooling
-examples
-tests
-AI-generated code
-```
+This document applies to framework runtime, components, public surfaces, flows, capabilities, configuration, HTTP endpoints, console commands, workers, queues, events, message buses, database, cache, filesystem, external integrations, tooling, tests, and AI-generated code.
 
 This document is not a micro-optimization guide.
 
@@ -43,7 +18,7 @@ Performance must serve the system.
 
 Performance must be proven with evidence.
 
-The core AvaX architecture law still wins:
+The core architecture law still wins:
 
 ```text
 folder says flow or capability
@@ -53,161 +28,47 @@ function says exact action
 
 Performance behavior must follow that law.
 
-Do not create vague folders such as:
+Do not create vague folders such as `Performance/`, `Services/`, `Managers/`, `Helpers/`, `Utils/`, `Optimizers/`, or `Processors/`.
 
-```text
-Performance/
-  Services/
-  Managers/
-  Helpers/
-  Utils/
-  Optimizers/
-  Processors/
-```
-
-Performance behavior must be named by what it measures, protects, improves, limits, caches, compiles, batches, or
-avoids.
-
-Good:
-
-```text
-Capabilities/
-  RouteCompilation/
-    CompileRoutes.php
-    ReadCompiledRouteTable.php
-
-  QueryBudget/
-    RecordQueryCount.php
-    DetectTooManyQueries.php
-
-  CacheWarming/
-    WarmCompiledCache.php
-    WarmRouteCache.php
-
-  MemorySafety/
-    DetectWorkerMemoryGrowth.php
-    ResetRequestScopedState.php
-```
-
-Bad:
-
-```text
-Capabilities/
-  Performance/
-    PerformanceService.php
-    OptimizerManager.php
-    SpeedHelper.php
-```
+Performance behavior must be named by what it measures, protects, improves, limits, caches, compiles, batches, or avoids.
 
 ---
 
-## 2. Performance Thesis
+## 2. Non-Negotiable Performance Laws
 
-AvaX must be fast where speed matters.
-
-AvaX must be predictable where latency matters.
-
-AvaX must be memory-safe where workers are long-lived.
-
-AvaX must be observable where performance can degrade.
-
-AvaX must be honest where performance is unknown.
-
-No code may be called fast, optimized, lightweight, scalable, production-grade, or high-performance without evidence.
-
-Performance without measurement is opinion.
-
-Performance without correctness is a bug.
-
-Performance without security is a liability.
-
-Performance without observability is temporary luck.
-
----
-
-## 3. Non-Negotiable Performance Laws
-
-### 3.1 Measure Before Optimizing
+### 2.1 Measure Before Optimizing
 
 Do not optimize blindly.
 
-Before making a performance change, identify at least one of:
-
-```text
-measured latency problem
-measured memory problem
-measured CPU problem
-measured I/O problem
-measured allocation problem
-measured query problem
-measured queue backlog
-measured cache miss problem
-known algorithmic complexity risk
-hot path confirmed by design
-```
+Before making a performance change, identify at least one of: measured latency/memory/CPU/I/O/allocation/query problem, measured queue backlog, measured cache miss problem, known algorithmic complexity risk, or hot path confirmed by design.
 
 No measurement and no clear hot path means no performance claim.
 
-### 3.2 Correctness First
+### 2.2 Correctness First
 
 A faster wrong result is not an optimization.
 
-Never sacrifice:
-
-```text
-security
-authorization
-validation
-data integrity
-transaction safety
-idempotency
-runtime state isolation
-public API compatibility
-failure handling
-```
+Never sacrifice security, authorization, validation, data integrity, transaction safety, idempotency, runtime state isolation, public API compatibility, or failure handling.
 
 Performance must not remove safety.
 
-### 3.3 Secure Performance
+### 2.3 Secure Performance
 
 Do not improve performance by bypassing security controls.
 
-Forbidden:
-
-```text
-skip authorization for speed
-skip validation for speed
-log secrets for easier debugging
-disable TLS verification
-remove CSRF protection
-reuse request state in singleton
-cache cross-user sensitive data
-cache cross-tenant sensitive data
-```
+Forbidden: skip authorization or validation for speed, log secrets, disable TLS verification, remove CSRF protection, reuse request state in singleton, or cache cross-user/cross-tenant sensitive data.
 
 Security wins over speed.
 
-### 3.4 Predictability Beats Peak Speed
+### 2.4 Predictability Beats Peak Speed
 
-AvaX should prefer predictable behavior over impressive single-run numbers.
+Prefer predictable behavior over impressive single-run numbers.
 
-Good systems control:
-
-```text
-p50 latency
-p95 latency
-p99 latency
-memory growth
-queue depth
-connection pressure
-retry storms
-cache stampede
-tail latency
-```
+Good systems control p50/p95/p99 latency, memory growth, queue depth, connection pressure, retry storms, cache stampede, and tail latency.
 
 A fast average with terrible tail latency is not good performance.
 
-### 3.5 No Hidden I/O
+### 2.5 No Hidden I/O
 
 A method that looks like a local calculation must not secretly perform network, database, filesystem, queue, or external
 service I/O.
@@ -228,78 +89,29 @@ Good:
 $profiles->readDisplayName(userId: $userId);
 ```
 
-### 3.6 Bounded Work
+### 2.6 Bounded Work
 
 Every public or repeatable operation must have bounded work.
 
-Bound at least one of:
-
-```text
-input size
-batch size
-page size
-loop count
-query count
-memory use
-external calls
-queue fanout
-concurrency
-time budget
-```
+Bound at least one of: input size, batch size, page size, loop count, query count, memory use, external calls, queue fanout, concurrency, or time budget.
 
 Unbounded work is a production incident waiting to happen.
 
-### 3.7 Performance Needs Proof
+### 2.7 Performance Needs Proof
 
 No performance status can be green without evidence.
 
-Evidence may be:
-
-```text
-benchmark
-profile
-load test
-complexity analysis
-memory measurement
-latency measurement
-query count measurement
-cache hit ratio measurement
-before/after comparison
-runtime observability report
-```
+Evidence may be: benchmark, profile, load test, complexity analysis, memory/latency/query count/cache hit ratio measurement, before/after comparison, or runtime observability report.
 
 No proof means no green status.
 
 ---
 
-## 4. Performance Boundary Model
+## 3. Performance Boundary Model
 
 Every public or repeated execution boundary must define its performance boundary.
 
-Performance boundary examples:
-
-```text
-HTTP endpoint
-console command
-worker job
-queue consumer
-event listener
-database query path
-cache access path
-filesystem path
-external API call
-runtime boot
-request handling
-route matching
-dependency resolution
-view rendering
-serialization
-export
-import
-search
-batch processing
-AI provider call
-```
+Performance boundary examples: HTTP endpoint, console command, worker job, queue consumer, event listener, database/cache/filesystem access path, external API call, runtime boot, request handling, route matching, dependency resolution, view rendering, serialization, export, import, search, batch processing, AI provider call.
 
 A performance boundary answers:
 
@@ -321,27 +133,11 @@ A boundary without performance limits is incomplete.
 
 ---
 
-## 5. Performance Claim Rule
+## 4. Performance Claim Rule
 
 A performance claim must be proven.
 
-Forbidden claims without evidence:
-
-```text
-fast
-optimized
-lightweight
-low-latency
-high-throughput
-scalable
-production-grade
-memory-safe
-async-ready
-Swoole-ready
-RoadRunner-ready
-FrankenPHP-ready
-enterprise-grade performance
-```
+Forbidden claims without evidence: fast, optimized, lightweight, low-latency, high-throughput, scalable, production-grade, memory-safe, async-ready, enterprise-grade performance.
 
 Required evidence for claims:
 
@@ -383,23 +179,11 @@ p95 must stay below 2.0 ms for 1,000 routes.
 
 ---
 
-## 6. Latency Budget Rule
+## 5. Latency Budget Rule
 
 Every serious runtime path must have a latency budget.
 
-Examples:
-
-```text
-HTTP request handling
-route matching
-container resolution
-database query execution
-cache read
-queue job handling
-event publishing
-view rendering
-API response serialization
-```
+Examples: HTTP request handling, route matching, container resolution, database query execution, cache read, queue job handling, event publishing, view rendering, API response serialization.
 
 A latency budget defines:
 
@@ -413,7 +197,7 @@ observability metric
 regression threshold
 ```
 
-### 6.1 Naming
+### 5.1 Naming
 
 Good:
 
@@ -435,7 +219,7 @@ Performance/
   LatencyManager.php
 ```
 
-### 6.2 Latency Proof
+### 5.2 Latency Proof
 
 Required tests or reports:
 
@@ -448,40 +232,15 @@ latency regression threshold exists for critical path
 
 ---
 
-## 7. Hot Path Rule
+## 6. Hot Path Rule
 
 A hot path is code that runs often enough that overhead matters.
 
-Examples:
+Examples: every HTTP request, route match, container resolution, middleware step, database query, cache read, queue message, event dispatch, validation pass on public endpoints.
 
-```text
-every HTTP request
-every route match
-every container resolution
-every middleware step
-every database query
-every cache read
-every queue message
-every event dispatch
-every validation pass on public endpoints
-```
+Hot path code must avoid: unnecessary reflection, unbounded filesystem scans, repeated config/container/route compilation, excessive allocations, unnecessary string parsing, hidden I/O, debug logging by default, expensive exception use for normal control flow.
 
-Hot path code must avoid:
-
-```text
-unnecessary reflection
-unbounded filesystem scans
-repeated config parsing
-repeated container compilation
-repeated route compilation
-excessive allocations
-unnecessary string parsing
-hidden I/O
-debug logging by default
-expensive exception use for normal control flow
-```
-
-### 7.1 Hot Path Documentation
+### 6.1 Hot Path Documentation
 
 Every known hot path must document:
 
@@ -494,7 +253,7 @@ what is cached or compiled
 what benchmark proves it
 ```
 
-### 7.2 Hot Path Naming
+### 6.2 Hot Path Naming
 
 Good:
 
@@ -520,28 +279,13 @@ HotPath/
 
 ---
 
-## 8. Memory Budget Rule
+## 7. Memory Budget Rule
 
 Long-lived runtimes make memory growth dangerous.
 
 Every worker-safe component must define memory behavior.
 
-Memory-sensitive paths:
-
-```text
-HTTP worker
-queue worker
-scheduler
-stream processor
-large import
-large export
-view rendering
-query hydration
-event replay
-projection rebuild
-cache warming
-file processing
-```
+Memory-sensitive paths: HTTP worker, queue worker, scheduler, stream processor, large import/export, view rendering, query hydration, event replay, projection rebuild, cache warming, file processing.
 
 A memory budget defines:
 
@@ -555,7 +299,7 @@ streaming behavior
 leak detection
 ```
 
-### 8.1 Long-Lived Runtime Memory Rule
+### 7.1 Long-Lived Runtime Memory Rule
 
 Singletons must not retain request-specific data.
 
@@ -570,7 +314,7 @@ clear/reset behavior
 memory pressure behavior
 ```
 
-### 8.2 Memory Proof
+### 7.2 Memory Proof
 
 Required evidence:
 
@@ -583,7 +327,7 @@ cache memory is bounded
 
 ---
 
-## 9. Allocation Rule
+## 8. Allocation Rule
 
 Avoid excessive allocation in hot paths.
 
@@ -602,7 +346,7 @@ semantic objects are good
 decorative objects are expensive noise
 ```
 
-### 9.1 Allocation Review Questions
+### 8.1 Allocation Review Questions
 
 Ask:
 
@@ -617,25 +361,13 @@ Can this be normalized once at the boundary?
 
 ---
 
-## 10. Algorithmic Complexity Rule
+## 9. Algorithmic Complexity Rule
 
 Every component must avoid accidental algorithmic blowups.
 
-Watch for:
+Watch for: nested loops over unbounded collections, repeated searches inside loops, N+1 database/HTTP/filesystem calls, sorting huge arrays repeatedly, loading entire dataset when streaming is possible, cartesian product behavior, recursive traversal without depth limit.
 
-```text
-nested loops over unbounded collections
-repeated searches inside loops
-N+1 database queries
-N+1 HTTP calls
-N+1 filesystem calls
-sorting huge arrays repeatedly
-loading entire dataset when streaming is possible
-cartesian product behavior
-recursive traversal without depth limit
-```
-
-### 10.1 Complexity Naming
+### 9.1 Complexity Naming
 
 If complexity matters, name the capability by what it protects.
 
@@ -660,7 +392,7 @@ Performance/
   ComplexityHelper.php
 ```
 
-### 10.2 Complexity Proof
+### 9.2 Complexity Proof
 
 Required tests or analysis:
 
@@ -673,26 +405,11 @@ N+1 detection catches repeated query pattern
 
 ---
 
-## 11. I/O Boundary Rule
+## 10. I/O Boundary Rule
 
 I/O is expensive and failure-prone.
 
-I/O includes:
-
-```text
-database
-cache server
-filesystem
-network
-message broker
-external API
-object storage
-search index
-AI provider
-email provider
-payment provider
-CDN
-```
+I/O includes database, cache server, filesystem, network, message broker, external API, object storage, search index, AI provider, email provider, payment provider, and CDN.
 
 Every I/O boundary must define:
 
@@ -706,7 +423,7 @@ resource budget
 idempotency where side effects exist
 ```
 
-### 11.1 No Accidental I/O
+### 10.1 No Accidental I/O
 
 A function name must make I/O visible.
 
@@ -728,7 +445,7 @@ process
 handle
 ```
 
-### 11.2 I/O Proof
+### 10.2 I/O Proof
 
 Required evidence:
 
@@ -741,27 +458,13 @@ metrics record latency and failure
 
 ---
 
-## 12. Database Performance Rule
+## 11. Database Performance Rule
 
 Database access is one of the most common performance failure points.
 
-Every database-heavy flow must consider:
+Every database-heavy flow must consider: query count/latency, indexes, pagination, batch size, transaction length, lock duration, hydration cost, N+1 risk, connection pressure, result size.
 
-```text
-query count
-query latency
-indexes
-pagination
-batch size
-transaction length
-lock duration
-hydration cost
-N+1 risk
-connection pressure
-result size
-```
-
-### 12.1 Query Count Rule
+### 11.1 Query Count Rule
 
 A flow must not perform unbounded queries.
 
@@ -778,7 +481,7 @@ projections
 pagination
 ```
 
-### 12.2 Pagination Rule
+### 11.2 Pagination Rule
 
 Endpoints returning collections must use bounded pagination or streaming.
 
@@ -794,43 +497,25 @@ safe cursor or offset strategy
 resource budget
 ```
 
-### 12.3 Index Awareness Rule
+### 11.3 Index Awareness Rule
 
 A query that is expected to run in production must have an index strategy when data can grow.
 
 The code does not need to own the index, but the design must know it exists.
 
-### 12.4 Transaction Performance Rule
+### 11.4 Transaction Performance Rule
 
 Transactions must be as short as practical.
 
 Do not perform slow external I/O inside a database transaction unless explicitly justified.
 
-Examples to avoid inside transaction:
+Examples to avoid inside transaction: HTTP call, email send, message broker publish without outbox, large file operation, AI provider call, sleep/retry loop.
 
-```text
-HTTP call
-email send
-message broker publish without outbox
-large file operation
-AI provider call
-sleep/retry loop
-```
+### 11.5 Database Observability
 
-### 12.5 Database Observability
+Record: query latency, query count per request/job, slow/failed queries, connection acquisition failure, transaction duration where useful.
 
-Record:
-
-```text
-query latency
-query count per request/job
-slow queries
-failed queries
-connection acquisition failure
-transaction duration where useful
-```
-
-### 12.6 Database Proof
+### 11.6 Database Proof
 
 Required tests or reports:
 
@@ -844,38 +529,17 @@ transaction does not wrap slow external I/O unless justified
 
 ---
 
-## 13. Cache Performance Rule
+## 12. Cache Performance Rule
 
 Cache is not a magic speed button.
 
 Cache must have a reason, scope, invalidation rule, and measurement.
 
-Every cache use must define:
+Every cache use must define: what is cached and why, cache key, scope, TTL, invalidation rule, stampede protection if expensive, stale behavior if allowed, sensitive data rule, hit/miss metrics.
 
-```text
-what is cached
-why it is cached
-cache key
-scope
-TTL
-invalidation rule
-stampede protection if expensive
-stale behavior if allowed
-sensitive data rule
-hit/miss metrics
-```
+### 12.1 Cache Key Rule
 
-### 13.1 Cache Key Rule
-
-Cache keys must be:
-
-```text
-stable
-scoped
-versioned where needed
-safe
-not secret-bearing
-```
+Cache keys must be stable, scoped, versioned where needed, safe, and not secret-bearing.
 
 Bad:
 
@@ -889,7 +553,7 @@ Good:
 user-profile:<tenant-id>:<user-id>:v1
 ```
 
-### 13.2 Cache Stampede Rule
+### 12.2 Cache Stampede Rule
 
 If a cached value is expensive and many callers may request it together, stampede protection is required.
 
@@ -903,7 +567,7 @@ background refresh
 pre-warming
 ```
 
-### 13.3 Cache Invalidation Rule
+### 12.3 Cache Invalidation Rule
 
 Every cache must answer:
 
@@ -915,7 +579,7 @@ Can stale data be served?
 For how long?
 ```
 
-### 13.4 Cache Proof
+### 12.4 Cache Proof
 
 Required evidence:
 
@@ -930,23 +594,11 @@ hit/miss metrics exist
 
 ---
 
-## 14. Compilation and Warmup Rule
+## 13. Compilation and Warmup Rule
 
 Compile expensive runtime metadata before hot path execution when possible.
 
-Good candidates:
-
-```text
-routes
-container definitions
-configuration
-validation metadata
-serialization metadata
-public API schema
-view templates
-database metadata
-event/message schema
-```
+Good candidates: routes, container definitions, configuration, validation/serialization metadata, public API schema, view templates, database metadata, event/message schema.
 
 Compilation must be safe.
 
@@ -963,7 +615,7 @@ warmup command
 doctor check
 ```
 
-### 14.1 Naming
+### 13.1 Naming
 
 Good:
 
@@ -988,7 +640,7 @@ Optimizers/
   OptimizeEverything.php
 ```
 
-### 14.2 Compilation Proof
+### 13.2 Compilation Proof
 
 Required tests:
 
@@ -1002,61 +654,27 @@ fallback behavior is safe
 
 ---
 
-## 15. Reflection and Metadata Rule
+## 14. Reflection and Metadata Rule
 
 Reflection is useful.
 
 Reflection in hot paths is expensive.
 
-Use reflection during:
+Use reflection during boot, compile, warmup, development tooling, metadata build.
 
-```text
-boot
-compile
-warmup
-development tooling
-metadata build
-```
-
-Avoid repeated reflection during:
-
-```text
-every request
-every route match
-every container resolution
-every entity hydration
-every validation call
-every serialization call
-```
+Avoid repeated reflection during every request, route match, container resolution, entity hydration, validation call, serialization call.
 
 If repeated reflection is necessary, cache or compile the result.
 
 ---
 
-## 16. Serialization Performance Rule
+## 15. Serialization Performance Rule
 
 Serialization can dominate runtime cost.
 
-Every serialization-heavy path must define:
+Every serialization-heavy path must define: data shape, depth limit, circular reference behavior, field selection, sensitive field rule, format, streaming behavior for large output.
 
-```text
-data shape
-depth limit
-circular reference behavior
-field selection
-sensitive field rule
-format
-streaming behavior for large output
-```
-
-Avoid:
-
-```text
-serializing entire domain objects accidentally
-serializing lazy relations accidentally
-serializing internal runtime state
-serializing secrets
-```
+Avoid: serializing entire domain objects accidentally, serializing lazy relations accidentally, serializing internal runtime state or secrets.
 
 Good:
 
@@ -1075,218 +693,101 @@ return json_encode($domainObject)
 
 ---
 
-## 17. HTTP Performance Rule
+## 16. HTTP Performance Rule
 
 Every HTTP path must be bounded and observable.
 
-Endpoint performance must define:
+Endpoint performance must define: request body limit, validation/authorization cost, query count, external call count, response size, pagination limit, cache behavior, timeout behavior, rate limit where needed.
 
-```text
-request body limit
-validation cost
-authorization cost
-query count
-external call count
-response size
-pagination limit
-cache behavior
-timeout behavior
-rate limit where needed
-```
-
-### 17.1 Route Matching
+### 16.1 Route Matching
 
 Route matching is hot path behavior.
 
 Routes should be compiled or otherwise optimized when route count grows.
 
-### 17.2 Middleware
+### 16.2 Middleware
 
 Middleware runs often.
 
-Middleware must be:
+Middleware must be cheap, ordered deliberately, free of hidden I/O unless explicit, observable when expensive, free of request state leakage.
 
-```text
-cheap
-ordered deliberately
-free of hidden I/O unless explicit
-observable when expensive
-free of request state leakage
-```
-
-### 17.3 Response Size
+### 16.3 Response Size
 
 Large responses must be paginated, streamed, compressed, or explicitly justified.
 
 ---
 
-## 18. Queue and Worker Performance Rule
+## 17. Queue and Worker Performance Rule
 
 Workers must be memory-safe, retry-safe, and throughput-aware.
 
-Worker jobs must define:
+Worker jobs must define: timeout, max attempts, backoff, idempotency, batch size, memory budget, visibility timeout where relevant, dead-letter behavior, metrics.
 
-```text
-timeout
-max attempts
-backoff
-idempotency
-batch size
-memory budget
-visibility timeout where relevant
-dead-letter behavior
-metrics
-```
-
-### 18.1 Worker Memory
+### 17.1 Worker Memory
 
 Long-running workers must reset state between jobs.
 
-Track:
+Track: job duration, memory before/after/peak, failure count, retry count.
 
-```text
-job duration
-memory before
-memory after
-memory peak
-failure count
-retry count
-```
-
-### 18.2 Queue Backpressure
+### 17.2 Queue Backpressure
 
 If queue depth grows, the system must react.
 
-Possible actions:
-
-```text
-scale workers
-delay producers
-reject low-priority work
-shed load
-open circuit for downstream dependency
-alert operator
-```
+Possible actions: scale workers, delay producers, reject low-priority work, shed load, open circuit for downstream dependency, alert operator.
 
 Silent backlog growth is not acceptable.
 
 ---
 
-## 19. Event and Message Performance Rule
+## 18. Event and Message Performance Rule
 
 Events and messages must not create uncontrolled fanout.
 
-Every event/message path must define:
+Every event/message path must define: number of consumers, expected volume, payload size, serialization cost, delivery guarantee, retry/dead-letter behavior, observability.
 
-```text
-number of consumers
-expected volume
-payload size
-serialization cost
-delivery guarantee
-retry behavior
-dead-letter behavior
-observability
-```
-
-### 19.1 Fanout Rule
+### 18.1 Fanout Rule
 
 Fanout must be intentional.
 
 If one event triggers many consumers, measure and observe it.
 
-### 19.2 Payload Size Rule
+### 18.2 Payload Size Rule
 
 Messages should contain enough information to be useful, but not unnecessary large payloads.
 
-Avoid:
-
-```text
-full object graphs
-large binary payloads
-secrets
-unbounded arrays
-```
+Avoid: full object graphs, large binary payloads, secrets, unbounded arrays.
 
 ---
 
-## 20. External Service Performance Rule
+## 19. External Service Performance Rule
 
 External services are slow and unreliable compared to local code.
 
-Every external call must define:
+Every external call must define: timeout, retry policy, circuit breaker/bulkhead/fallback when useful, rate limit, observability, idempotency for side effects.
 
-```text
-timeout
-retry policy
-circuit breaker when useful
-bulkhead when useful
-fallback when useful
-rate limit
-observability
-idempotency for side effects
-```
-
-### 20.1 No External I/O in Hot Path Without Budget
+### 19.1 No External I/O in Hot Path Without Budget
 
 If an HTTP request needs external I/O, it must have a latency budget.
 
-If latency is not acceptable, use:
+If latency is not acceptable, use: queue, cache, pre-fetch, background sync, read model, stale data policy.
 
-```text
-queue
-cache
-pre-fetch
-background sync
-read model
-stale data policy
-```
-
-### 20.2 AI Provider Calls
+### 19.2 AI Provider Calls
 
 AI provider calls are expensive and variable.
 
-They require:
-
-```text
-timeout
-token budget
-cost budget
-retry policy
-fallback behavior
-observability
-redaction
-rate limit
-```
+They require: timeout, token budget, cost budget, retry policy, fallback behavior, observability, redaction, rate limit.
 
 Do not hide AI calls behind local-looking functions.
 
 ---
 
-## 21. Filesystem Performance Rule
+## 20. Filesystem Performance Rule
 
 Filesystem can be fast locally and slow in production.
 
-Every filesystem-heavy path must define:
+Every filesystem-heavy path must define: file count/size, directory traversal depth, streaming behavior, atomic write behavior, lock behavior, cleanup behavior.
 
-```text
-file count
-file size
-directory traversal depth
-streaming behavior
-atomic write behavior
-lock behavior
-cleanup behavior
-```
-
-Avoid:
-
-```text
-scanning whole directories on every request
-reading large files into memory
-writing non-atomic cache files
-unbounded temp files
-```
+Avoid: scanning whole directories on every request, reading large files into memory, writing non-atomic cache files, unbounded temp files.
 
 Good:
 
@@ -1301,87 +802,35 @@ Capabilities/
 
 ---
 
-## 22. Logging and Telemetry Cost Rule
+## 21. Logging and Telemetry Cost Rule
 
 Observability is required, but it has cost.
 
-Logging and telemetry must be:
+Logging and telemetry must be structured, bounded, sampled when high-volume, redacted, cheap on hot paths, async where useful.
 
-```text
-structured
-bounded
-sampled when high-volume
-redacted
-cheap on hot paths
-async where useful
-```
+Avoid: building expensive log context when log level is disabled, logging full payloads, logging every hot-path event without sampling, synchronous remote telemetry on request path without timeout.
 
-Avoid:
-
-```text
-building expensive log context when log level is disabled
-logging full payloads
-logging every hot-path event without sampling
-synchronous remote telemetry on request path without timeout
-```
-
-### 22.1 Metrics
+### 21.1 Metrics
 
 Prefer counters, histograms, and gauges over unstructured logs for high-volume performance signals.
 
-Record:
-
-```text
-latency
-duration
-count
-size
-memory
-queue depth
-cache hit ratio
-failure count
-retry count
-```
+Record: latency, duration, count, size, memory, queue depth, cache hit ratio, failure count, retry count.
 
 ---
 
-## 23. Rate Limiting and Abuse Performance Rule
+## 22. Rate Limiting and Abuse Performance Rule
 
 Abuse is a performance problem and a security problem.
 
-Rate limit or resource-limit:
+Rate limit or resource-limit: login, password reset, registration, webhook endpoints, search, export, import, file upload, AI endpoints, expensive reports, admin actions, queue-producing endpoints.
 
-```text
-login
-password reset
-registration
-webhook endpoints
-search
-export
-import
-file upload
-AI endpoints
-expensive reports
-admin actions
-queue-producing endpoints
-```
-
-Rate limits must be scoped by an appropriate key:
-
-```text
-user
-tenant
-IP
-API key
-route
-resource
-```
+Rate limits must be scoped by an appropriate key: user, tenant, IP, API key, route, resource.
 
 Rate limiting must be observable.
 
 ---
 
-## 24. Backpressure and Load Shedding Rule
+## 23. Backpressure and Load Shedding Rule
 
 When the system is overloaded, it must fail deliberately.
 
@@ -1389,16 +838,7 @@ Backpressure means slowing or rejecting work because downstream capacity is limi
 
 Load shedding means dropping or rejecting lower-priority work to protect critical work.
 
-Required for:
-
-```text
-queue depth overflow
-worker saturation
-external dependency outage
-database pressure
-memory pressure
-AI provider quota pressure
-```
+Required for: queue depth overflow, worker saturation, external dependency outage, database/memory pressure, AI provider quota pressure.
 
 Good naming:
 
@@ -1419,100 +859,41 @@ PerformanceManager
 
 ---
 
-## 25. Concurrency Rule
+## 24. Concurrency Rule
 
 Concurrency can improve throughput and create bugs.
 
-Use concurrency only when:
+Use concurrency only when: work is independent, shared state is controlled, idempotency is clear, failure behavior is clear, ordering requirements are known, resource limits are enforced.
 
-```text
-work is independent
-shared state is controlled
-idempotency is clear
-failure behavior is clear
-ordering requirements are known
-resource limits are enforced
-```
+Concurrency must not create: race conditions, duplicate side effects, lost updates, unbounded parallelism, connection exhaustion, memory spikes.
 
-Concurrency must not create:
-
-```text
-race conditions
-duplicate side effects
-lost updates
-unbounded parallelism
-connection exhaustion
-memory spikes
-```
-
-### 25.1 Locks and Leases
+### 24.1 Locks and Leases
 
 Use locks or leases when a shared resource must be protected.
 
-Locks must define:
-
-```text
-owner
-timeout
-expiry
-release behavior
-failure behavior
-deadlock prevention
-observability
-```
+Locks must define: owner, timeout, expiry, release/failure behavior, deadlock prevention, observability.
 
 Locks without timeout are dangerous.
 
 ---
 
-## 26. Streaming Rule
+## 25. Streaming Rule
 
 Use streaming when data can be large.
 
-Candidates:
+Candidates: large file read/upload, large export/import, large query result/response body, event replay, projection rebuild.
 
-```text
-large file read
-large file upload
-large export
-large import
-large query result
-large response body
-event replay
-projection rebuild
-```
-
-Streaming must define:
-
-```text
-chunk size
-memory budget
-error handling
-partial result behavior
-timeout
-backpressure
-```
+Streaming must define: chunk size, memory budget, error handling, partial result behavior, timeout, backpressure.
 
 Avoid loading unbounded data into memory.
 
 ---
 
-## 27. Batch Processing Rule
+## 26. Batch Processing Rule
 
 Batch processing must be bounded, resumable where needed, and observable.
 
-Batch flows must define:
-
-```text
-batch size
-cursor or offset strategy
-retry behavior
-idempotency
-partial failure behavior
-progress reporting
-memory budget
-time budget
-```
+Batch flows must define: batch size, cursor/offset strategy, retry behavior, idempotency, partial failure behavior, progress reporting, memory/time budget.
 
 Good:
 
@@ -1532,162 +913,65 @@ ImportProcessor
 
 ---
 
-## 28. Runtime Boot Performance Rule
+## 27. Runtime Boot Performance Rule
 
 Runtime boot must be measured.
 
-Boot performance matters for:
-
-```text
-PHP-FPM request startup
-console commands
-worker startup
-test startup
-serverless style runtimes
-local developer feedback
-```
+Boot performance matters for: PHP-FPM request startup, console commands, worker/test startup, serverless style runtimes, local developer feedback.
 
 Long-lived workers can pay boot cost once, but boot must still be bounded.
 
-Boot should avoid:
+Boot should avoid: scanning huge trees repeatedly, eager-loading unnecessary components, connecting to external services unnecessarily, compiling at request time.
 
-```text
-scanning huge trees repeatedly
-eager-loading unnecessary components
-connecting to external services unnecessarily
-compiling at request time
-```
-
-Use:
-
-```text
-lazy initialization
-explicit warmup
-compiled manifests
-configuration cache
-runtime doctor checks
-```
+Use: lazy initialization, explicit warmup, compiled manifests, configuration cache, runtime doctor checks.
 
 ---
 
-## 29. Container Performance Rule
+## 28. Container Performance Rule
 
 Container resolution can be hot.
 
-Container must avoid:
+Container must avoid: repeated reflection, unbounded autowiring search, hidden filesystem scans, resolving heavy services eagerly, request-scoped services in singletons.
 
-```text
-repeated reflection
-unbounded autowiring search
-hidden filesystem scans
-resolving heavy services eagerly
-request-scoped services in singletons
-```
-
-Container performance should support:
-
-```text
-compiled definitions
-singleton where safe
-scoped services where needed
-resettable state
-resolution metrics
-diagnostics for slow resolution
-```
+Container performance should support: compiled definitions, singleton where safe, scoped services where needed, resettable state, resolution metrics, diagnostics for slow resolution.
 
 ---
 
-## 30. Routing Performance Rule
+## 29. Routing Performance Rule
 
 Routing is hot path behavior.
 
-Routing must define:
+Routing must define: route count behavior, matching algorithm, compiled route table when needed, method matching, dynamic parameter extraction, fallback/405 behavior where applicable.
 
-```text
-route count behavior
-matching algorithm
-compiled route table when needed
-method matching
-dynamic parameter extraction
-fallback behavior
-405 behavior where applicable
-```
-
-Routing proof should include:
-
-```text
-many routes benchmark
-dynamic route benchmark
-not found route benchmark
-method mismatch benchmark
-```
+Routing proof should include: many routes benchmark, dynamic route benchmark, not found route benchmark, method mismatch benchmark.
 
 ---
 
-## 31. View Rendering Performance Rule
+## 30. View Rendering Performance Rule
 
-View rendering must avoid:
+View rendering must avoid: recompiling templates on every request in production, unbounded partial nesting, hidden database calls from templates, rendering raw domain objects, loading large collections without pagination.
 
-```text
-recompiling templates on every request in production
-unbounded partial nesting
-hidden database calls from templates
-rendering raw domain objects
-loading large collections without pagination
-```
-
-Use:
-
-```text
-compiled templates
-view models
-bounded loops
-explicit data preparation
-escaping by default
-```
+Use: compiled templates, view models, bounded loops, explicit data preparation, escaping by default.
 
 Templates must not become query engines.
 
 ---
 
-## 32. Configuration Performance Rule
+## 31. Configuration Performance Rule
 
 Configuration must not be parsed repeatedly in hot paths.
 
-Configuration should be:
+Configuration should be: loaded/validated/normalized once, compiled or cached where useful, redacted when dumped, reset-safe in long-lived runtimes.
 
-```text
-loaded once
-validated once
-normalized once
-compiled or cached where useful
-redacted when dumped
-reset-safe in long-lived runtimes
-```
-
-Avoid:
-
-```text
-reading .env on every request
-parsing many config files repeatedly
-doing filesystem scans in every container resolution
-```
+Avoid: reading .env on every request, parsing many config files repeatedly, doing filesystem scans in every container resolution.
 
 ---
 
-## 33. Developer Experience Performance Rule
+## 32. Developer Experience Performance Rule
 
 Developer tooling must be fast enough to be used.
 
-Governance checks, tests, static analysis, and recovery tools should be:
-
-```text
-incremental where possible
-cache-aware
-targetable by component
-clear in output
-safe to run locally
-```
+Governance checks, tests, static analysis, and recovery tools should be incremental where possible, cache-aware, targetable by component, clear in output, safe to run locally.
 
 Slow tooling gets skipped.
 
@@ -1695,56 +979,23 @@ Skipped tooling means broken governance.
 
 ---
 
-## 34. AI-Assisted Development Performance Rule
+## 33. AI-Assisted Development Performance Rule
 
 AI-generated changes must not add slow patterns accidentally.
 
-Reject AI code that:
-
-```text
-adds repeated filesystem scans
-adds hidden I/O
-adds unbounded loops
-adds N+1 queries
-adds eager loading of large trees
-adds global reflection on hot paths
-adds synchronous remote calls without timeout
-adds excessive logging
-adds broad catch and retry loops
-adds sleep in request path
-```
+Reject AI code that: adds repeated filesystem scans, hidden I/O, unbounded loops, N+1 queries, eager loading of large trees, global reflection on hot paths, synchronous remote calls without timeout, excessive logging, broad catch-and-retry loops, sleep in request path.
 
 AI must provide proof for performance claims.
 
 ---
 
-## 35. Naming Rules for Performance Code
+## 34. Naming Rules for Performance Code
 
 Performance names must be exact.
 
-Good:
+Good: CompileRoutes, WarmRouteCache, DetectSlowQuery, RecordQueryLatency, DetectWorkerMemoryGrowth, LimitExportBatchSize, RejectWorkWhenQueueIsFull, ReadCompiledContainer, MeasureRouteMatching.
 
-```text
-CompileRoutes
-WarmRouteCache
-DetectSlowQuery
-RecordQueryLatency
-DetectWorkerMemoryGrowth
-LimitExportBatchSize
-RejectWorkWhenQueueIsFull
-ReadCompiledContainer
-MeasureRouteMatching
-```
-
-Weak:
-
-```text
-PerformanceService
-OptimizationManager
-SpeedHelper
-FastProcessor
-TuningService
-```
+Weak: PerformanceService, OptimizationManager, SpeedHelper, FastProcessor, TuningService.
 
 Use what the code protects or improves.
 
@@ -1752,7 +1003,7 @@ Not how important it sounds.
 
 ---
 
-## 36. Performance Folder Placement
+## 35. Performance Folder Placement
 
 Performance logic belongs where the performance pressure lives.
 
@@ -1796,27 +1047,13 @@ A performance flow may exist when the optimization is part of one end-to-end beh
 
 ---
 
-## 37. Benchmark Rule
+## 36. Benchmark Rule
 
 Benchmarks must be honest and repeatable.
 
-A benchmark must include:
+A benchmark must include: command, environment, PHP version, runtime mode, input size, warmup rule, number of iterations, result, baseline, regression threshold, date.
 
-```text
-command
-environment
-PHP version
-runtime mode
-input size
-warmup rule
-number of iterations
-result
-baseline
-regression threshold
-date
-```
-
-### 37.1 Benchmark Naming
+### 36.1 Benchmark Naming
 
 Good:
 
@@ -1833,34 +1070,17 @@ fast-test.php
 speed.php
 ```
 
-### 37.2 Benchmark Review
+### 36.2 Benchmark Review
 
-A benchmark is weak if:
-
-```text
-input size is unrealistic
-warmup is missing
-baseline is missing
-only one run is measured
-output cannot be compared later
-environment is unknown
-```
+A benchmark is weak if: input size is unrealistic, warmup is missing, baseline is missing, only one run is measured, output cannot be compared later, environment is unknown.
 
 ---
 
-## 38. Profiling Rule
+## 37. Profiling Rule
 
 Use profiling when the bottleneck is unclear.
 
-Profiling should answer:
-
-```text
-where time is spent
-where memory is allocated
-which calls repeat too often
-which I/O dominates
-which hot path is unexpectedly expensive
-```
+Profiling should answer: where time is spent, where memory is allocated, which calls repeat too often, which I/O dominates, which hot path is unexpectedly expensive.
 
 Do not guess when profiling is available.
 
@@ -1868,55 +1088,27 @@ Record profiling summaries in performance reports.
 
 ---
 
-## 39. Performance Regression Rule
+## 38. Performance Regression Rule
 
 Performance-sensitive paths must have regression protection.
 
-Regression protection may be:
+Regression protection may be: benchmark threshold, architecture test, query count/memory growth assertion, latency budget alert, load test, runtime metric alert.
 
-```text
-benchmark threshold
-architecture test
-query count assertion
-memory growth assertion
-latency budget alert
-load test
-runtime metric alert
-```
-
-Examples:
-
-```text
-route matching p95 must stay below threshold
-container resolution count must not grow unexpectedly
-endpoint must not exceed maximum query count
-worker memory must not grow unbounded after N jobs
-```
+Examples: route matching p95 must stay below threshold, container resolution count must not grow unexpectedly, endpoint must not exceed maximum query count, worker memory must not grow unbounded after N jobs.
 
 ---
 
-## 40. Performance Static Analysis Rule
+## 39. Performance Static Analysis Rule
 
 Static checks should catch repeatable performance mistakes.
 
-Examples:
-
-```text
-raw filesystem scan in request path
-query inside loop
-HTTP call inside database transaction
-sleep in request path
-unbounded collection response
-debug logging in hot path
-reflection in route match path
-PublicSurface doing heavy work
-```
+Examples: raw filesystem scan in request path, query inside loop, HTTP call inside database transaction, sleep in request path, unbounded collection response, debug logging in hot path, reflection in route match path, public entry point doing heavy work.
 
 If a rule can be automated, automate it.
 
 ---
 
-## 41. Performance Review Checklist
+## 40. Performance Review Checklist
 
 A performance review passes only if:
 
@@ -1942,29 +1134,29 @@ If one item is missing in a performance-critical path, the design is not perform
 
 ---
 
-## 42. Performance Proof Matrix
+## 41. Performance Proof Matrix
 
-| Area          | Required Proof                                            |
-|---------------|-----------------------------------------------------------|
-| PublicSurface | delegates heavy work and does not hide I/O                |
-| HTTP endpoint | bounded input, pagination, query count awareness          |
-| Database      | query count bounded, slow query visible, N+1 controlled   |
-| Cache         | hit/miss/invalidation tested, stampede risk addressed     |
-| Queue         | timeout, retry, memory, idempotency, dead-letter behavior |
-| Worker        | repeated jobs do not leak memory                          |
-| Routing       | route matching benchmark when route count grows           |
-| Container     | resolution benchmark or compiled definitions for hot path |
-| External I/O  | timeout, retry, circuit behavior where needed             |
-| Serialization | large payload behavior bounded                            |
-| Filesystem    | path traversal aside, file size and streaming bounded     |
-| Batch         | batch size, progress, retry, partial failure behavior     |
-| Events        | fanout and payload size controlled                        |
-| Observability | telemetry cost bounded and high-volume signals sampled    |
-| Runtime       | boot and request lifecycle measured where relevant        |
+| Area                 | Required Proof                                            |
+|----------------------|-----------------------------------------------------------|
+| Public entry point   | delegates heavy work and does not hide I/O                |
+| HTTP endpoint        | bounded input, pagination, query count awareness          |
+| Database             | query count bounded, slow query visible, N+1 controlled   |
+| Cache                | hit/miss/invalidation tested, stampede risk addressed     |
+| Queue                | timeout, retry, memory, idempotency, dead-letter behavior |
+| Worker               | repeated jobs do not leak memory                          |
+| Routing              | route matching benchmark when route count grows           |
+| Container            | resolution benchmark or compiled definitions for hot path |
+| External I/O         | timeout, retry, circuit behavior where needed             |
+| Serialization        | large payload behavior bounded                            |
+| Filesystem           | path traversal aside, file size and streaming bounded     |
+| Batch                | batch size, progress, retry, partial failure behavior     |
+| Events               | fanout and payload size controlled                        |
+| Observability        | telemetry cost bounded and high-volume signals sampled    |
+| Runtime              | boot and request lifecycle measured where relevant        |
 
 ---
 
-## 43. Performance Classification
+## 42. Performance Classification
 
 ### GREEN
 
@@ -2013,65 +1205,9 @@ Blockers must be fixed before promotion.
 
 ---
 
-## 44. V1 / V2 / V3 Performance Discipline
+## 43. Existing Code Recovery Rule
 
-### 44.1 V1 Performance Minimum
-
-V1 must prove:
-
-```text
-autoload is clean
-runtime boot is bounded
-PublicSurface does not do heavy hidden work
-request state does not leak in long-lived runtime model
-database query execution is observable
-cache behavior is bounded where used
-HTTP kernel has bounded request handling
-doctor checks can report performance-sensitive risks
-```
-
-### 44.2 V2 Performance Expansion
-
-V2 must prove:
-
-```text
-API endpoints have resource limits
-integration components have timeouts and reliability policy
-queue workers are memory-safe
-scheduler is bounded
-observability cost is controlled
-cache warming and compiled artifacts work where useful
-delivery pipeline records performance evidence
-```
-
-### 44.3 V3 Performance Expansion
-
-V3 must validate system-design performance risks:
-
-```text
-capacity model
-load model
-latency budget
-throughput model
-queue depth behavior
-projection lag
-cache hit ratio
-failure simulation
-backpressure
-load shedding
-reference architecture benchmarks
-```
-
-V2 and V3 performance implementation remains locked until active stage allows it.
-
-Planning may continue.
-
----
-
-## 45. Existing Code Recovery Rule
-
-When recovering code from `avax-backup.txt`, `Framework.txt`, `Components.txt`, or git history, performance must be
-revalidated.
+When recovering code from old sources or git history, performance must be revalidated.
 
 Old code is not automatically performant.
 
@@ -2098,7 +1234,7 @@ Performance tests are the judge.
 
 ---
 
-## 47. Security and Performance Trigger Cross-Rule
+## 44. Security and Performance Trigger Cross-Rule
 
 Performance review MUST be triggered by changes to: hot paths, loops over routes/listeners/middleware, reflection,
 container resolution, event dispatch, queue workers, database query execution, route matching, filesystem scans, cache
@@ -2108,90 +1244,9 @@ models, graph compilation, or runtime scope creation/closing.
 If triggered, review evidence must include why performance is relevant, what was checked, result, remaining risk, and
 blocking decision. If not triggered, review must say why.
 
-For security triggers, see:
-
-```text
-.agents/how-to/how-to-system-security.md §44
-```
-
 ---
 
-## 48. Critical Quality Signal Rule
-
-### Status
-
-**MANDATORY**
-**Severity:** HIGH (escalates to BLOCKER — see below)
-
-### Severity Escalation
-
-Default severity is HIGH.
-
-Escalates to **BLOCKER** when the issue threatens:
-
-```text
-security
-data integrity
-runtime safety
-long-lived worker safety
-truth/evidence integrity
-public API compatibility
-dependency graph correctness
-rollback/recovery safety
-```
-
-Examples that MUST be BLOCKER when active:
-
-```text
-exploitable security issue
-data corruption risk
-request state stored in singleton
-unresolved runtime composition leak in active runtime
-fake GREEN
-gate PASS with RED content
-mandatory gate scans zero active files
-hidden fallback dependency in runtime
-missing required dependency discovered in business/runtime code
-service locator in business/runtime code
-```
-
-### Rule
-
-The review MUST loudly flag anything that threatens security, data integrity, runtime safety, long-lived worker safety,
-dependency graph correctness, public API compatibility, static analysis baseline, test reliability, performance hot
-paths, observability of failures, rollback/recovery safety, container verification, request scope isolation, tenant
-isolation, state reset safety, or failure boundary correctness.
-
-The following must not pass silently:
-
-```text
-hidden fallback construction
-runtime service assembly
-service locator usage in business code
-missing dependency checks in business or runtime code
-mutable static state without reset proof
-request state stored in singleton
-fake ServiceProvider
-fake PublicSurface
-broad try/catch swallowing errors
-broad PHPStan ignores
-weak tests
-assertTrue(true)
-evidence claiming GREEN while validation says otherwise
-gate PASS with RED content
-mandatory gate with zero scanned files
-fake compatibility shim
-duplicate canonical concepts
-large builders acting as hidden containers
-examples showing non-canonical style
-```
-
-If it can create a security hole, corrupt data, hide a runtime failure, break long-lived workers, or fake correctness,
-it must scream in review.
-
----
-
-## 46. Final Performance Law
+## 45. Final Performance Law
 
 Performance is not decoration.
 
@@ -2210,7 +1265,7 @@ Fast without security is dangerous.
 
 Fast without observability is fragile.
 
-AvaX must measure before optimizing, bound every public operation, expose performance truth, and protect long-lived
+Measure before optimizing, bound every public operation, expose performance truth, and protect long-lived
 runtimes from memory and state leaks.
 
 If performance makes the system clearer, safer, and more predictable, it belongs.

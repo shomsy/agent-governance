@@ -41,6 +41,18 @@ merge, the agent and developer must be able to defend these quality questions.
     tied to this change and its claimed scope?
 13. **Self-Healing Loop**: Were findings either fixed, revalidated, or turned
     into explicit tracked backlog items with evidence before closure?
+14. **Finding Lifecycle**: Are all detected findings either fixed, formally
+    accepted, or explicitly deferred with a machine-verifiable decision record
+    in `.agents/management/evidence/indexes/finding-decisions.json`?
+    Markdown-only closure is invalid.
+
+## Finding Closure Enforcement
+
+- A tool-detected finding is not closed by Markdown evidence alone
+- Every finding must have a registry entry with a valid decision type
+- Expired decisions revert the finding to active (RED) status
+- Bypassing this gate requires a decision entry, not just a comment in
+  `AGENTS.md` or a review summary
 
 ## Production-Ready Amplifiers
 

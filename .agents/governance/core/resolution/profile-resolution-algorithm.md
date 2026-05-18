@@ -57,7 +57,7 @@ config is advisory — `AGENTS.md` remains the human source of truth.
 Explicit declaration is preferred over inference.
 Inference exists only as a safe fallback.
 
-## V3 & V4 Resolution Engine & Overlay Architecture Rules
+## Resolution Engine & Overlay Architecture Rules
 
 To allow repositories to adopt the Agent Harness OS cleanly while preserving custom local rules, the system defines a three-tier overlay architecture:
 
@@ -73,6 +73,30 @@ To allow repositories to adopt the Agent Harness OS cleanly while preserving cus
 - **Extension**: Local project governance extends the baseline by adding files not present in the baseline.
 - **Immutability of Baseline**: Local developers MUST NOT modify files under `.agents/.rules/**` directly. Any customization of a baseline rule must be done by copying the file to `.agents/governance/` and editing it there.
 - **Verification Gates**: The runtime compiler and verify-governance tools actively validate overlay compliance (preventing illegal mutations, detecting shadowed duplicates, and ensuring no version corruption).
+
+### Project-Local Contract (Layer 4)
+
+Every adopting repository SHOULD declare a project-local contract at
+`.agents/how-to/how-to-write-{project}.md`. This file is the Layer 4 overlay
+that extends the reusable baseline with project-specific rules.
+
+Discovery order:
+
+1. Explicit declaration in root `AGENTS.md` under "Applied Governance Stack"
+2. File matching `how-to-write-*.md` in `.agents/how-to/` (exactly one expected)
+3. `.agents/config/project.json` with `name` field for project name inference
+
+The project-local contract MUST:
+
+- import reusable baseline profiles (L1-L3)
+- declare precedence semantics
+- contain project-specific deviations (not placeholder text)
+- not duplicate reusable baseline content verbatim
+- be referenced by root `AGENTS.md` in the precedence chain
+- be referenced by `.agents/GOVERNANCE_INDEX.md`
+
+If no project-local contract exists, the repository operates at L3 baseline
+only — functional but suboptimal. Validation flags this as YELLOW.
 
 1. **Inferred profiles are YELLOW only**: If a profile is inferred rather than declared, the resolution is considered YELLOW. Execute mode is permitted, but the debt must be recorded.
 2. **Execute mode requires explicit profile declaration**: Full GREEN execution requires explicit profile declaration in `AGENTS.md` or `.agents/config/project.json`.
@@ -98,23 +122,24 @@ Resolve rules in this order:
 
 1. root `AGENTS.md`
 2. `.agents/AGENTS.md`
-3. `.agents/governance/core/quality/quality-gates.md`
-4. `.agents/governance/intelligence/memory/universal-memory-standard.md`
-5. `.agents/governance/product/standards/product-management-standard.md`
-6. this file
-7. `.agents/governance/profiles/repository-kinds/**`
-8. `.agents/governance/profiles/**`
-9. `.agents/governance/profiles/roles/**` (Reviewer Personas)
-10. `.agents/governance/architecture/**`
-11. `.agents/governance/security/**`
-12. `.agents/governance/execution/policy/execution-policy.md`
-13. lane-specific governance such as review, documentation, governance, release, or ops
-14. `.agents/business-logic/**`
-15. `.agents/language-specific/**`
-16. `README.md` and other local supporting docs
-17. `.agent/memory/MEMORY.md` (Self-Improving Project Memory)
-18. `.agent/sessions/<SESSION_ID>/session_memory.md` (Active Session context)
-19. `.agent/context/**` (Strategic/Product Context Library)
+3. `.agents/how-to/how-to-write-{project}.md` (Layer 4 project-local contract)
+4. `.agents/governance/core/quality/quality-gates.md`
+5. `.agents/governance/intelligence/memory/universal-memory-standard.md`
+6. `.agents/governance/product/standards/product-management-standard.md`
+7. this file
+8. `.agents/governance/profiles/repository-kinds/**`
+9. `.agents/governance/profiles/**`
+10. `.agents/governance/profiles/roles/**` (Reviewer Personas)
+11. `.agents/governance/architecture/**`
+12. `.agents/governance/security/**`
+13. `.agents/governance/execution/policy/execution-policy.md`
+14. lane-specific governance such as review, documentation, governance, release, or ops
+15. `.agents/business-logic/**`
+16. `.agents/language-specific/**`
+17. `README.md` and other local supporting docs
+18. `.agent/memory/MEMORY.md` (Self-Improving Project Memory)
+19. `.agent/sessions/<SESSION_ID>/session_memory.md` (Active Session context)
+20. `.agent/context/**` (Strategic/Product Context Library)
 
 If two rules conflict:
 

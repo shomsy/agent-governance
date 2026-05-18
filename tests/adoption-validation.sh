@@ -135,8 +135,8 @@ find_substrate_bin() {
     local target_dir="$1"
     if [ -f "$target_dir/.agents/skills/bin/execution-substrate.py" ]; then
         echo "$target_dir/.agents/skills/bin/execution-substrate.py"
-    elif [ -f "$target_dir/.agents/.rules/skills/bin/execution-substrate.py" ]; then
-        echo "$target_dir/.agents/.rules/skills/bin/execution-substrate.py"
+    elif [ -f "$target_dir/.agents/skills/bin/execution-substrate.py" ]; then
+        echo "$target_dir/.agents/skills/bin/execution-substrate.py"
     else
         echo ""
     fi

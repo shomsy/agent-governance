@@ -1,13 +1,12 @@
-# How To Design Components
+# Framework Component Design Governance
 
 ## Status
 
-**MANDATORY** - This document defines non-negotiable component design rules for AvaX.
+**MANDATORY** - This document defines non-negotiable component design rules for framework projects.
 
 ## Normative Language
 
-The words **MUST**, **MUST NOT**, **REQUIRED**, **MANDATORY**, **SHOULD**, **SHOULD NOT**, **MAY**, **FORBIDDEN**, *
-*BLOCKER**, **HIGH**, **MEDIUM**, **LOW** are governance keywords.
+The words **MUST**, **MUST NOT**, **REQUIRED**, **MANDATORY**, **SHOULD**, **SHOULD NOT**, **MAY**, **FORBIDDEN**, **BLOCKER**, **HIGH**, **MEDIUM**, **LOW** are governance keywords.
 
 - **MUST / REQUIRED / MANDATORY**: non-negotiable rule.
 - **MUST NOT / FORBIDDEN**: prohibited pattern.
@@ -27,38 +26,17 @@ Code review **MUST NOT** mark a scope GREEN when a mandatory rule is violated.
 
 ## 1. Purpose
 
-This document defines how AvaX components must be designed, completed, composed, exported, tested, and promoted into
-platform-level capabilities.
-
-AvaX must not become a pile of components.
-
-AvaX must become a coherent platform made of clear planes:
-
-```text
-runtime
-control plane
-contract plane
-integration plane
-reliability plane
-observability plane
-delivery plane
-system-design validation plane
-```
+This document defines how framework components must be designed, completed, composed, exported, tested, and promoted into reusable platform capabilities.
 
 A component is not finished because it has folders.
 
-A component is finished only when it solves a real platform problem through a stable public boundary, strong internal
-behavior, testable adapters, failure handling, diagnostics, documentation, and operational proof.
-
-This document is a hard governance rule for AvaX component design.
+A component is finished only when it solves a real problem through a stable public boundary, strong internal behavior, failure handling, diagnostics, documentation, and operational proof.
 
 ---
 
 ## 2. Core Philosophy
 
-AvaX components are not decorative modules.
-
-AvaX components are reusable platform muscles.
+Components are not decorative modules.
 
 A component must have a clear reason to exist:
 
@@ -66,7 +44,7 @@ A component must have a clear reason to exist:
 What problem does this component solve?
 Who owns this behavior?
 What public API does it expose?
-What internal runtime behavior does it protect?
+What internal behavior does it protect?
 How is it configured?
 How does it fail?
 How is it observed?
@@ -83,177 +61,17 @@ Internal machinery may be powerful, but it must stay behind the component bounda
 
 ---
 
-## 3. Platform Plane Model
+## 3. Component Completion Standard
 
-AvaX is not only a component collection.
-
-AvaX must be organized around platform planes.
-
-### 3.1 Runtime Plane
-
-Owns application boot, runtime lifecycle, request scope, worker lifecycle, runtime adapters, state reset, shutdown, and
-runtime safety.
-
-Examples:
-
-```text
-BootApplication
-HandleIncomingHttp
-RunConsoleCommand
-RunWorkerJob
-OpenRequestScope
-CloseRequestScope
-ResetApplicationState
-VerifyRuntimeSafety
-```
-
-### 3.2 Control Plane
-
-Owns runtime visibility, health, readiness, liveness, status, diagnostics, and operator-facing introspection.
-
-Examples:
-
-```text
-ReadApplicationStatus
-ReadRuntimeStatus
-ReadHealth
-ReadReadiness
-ReadLiveness
-ReadRouteStatus
-ReadContainerStatus
-ReadQueueStatus
-```
-
-### 3.3 Contract Plane
-
-Owns public API compatibility, endpoint compatibility, DTO compatibility, event compatibility, command compatibility,
-schema generation,
-versioning, deprecation, and breaking-change detection.
-
-Examples:
-
-```text
-DescribeHttpApi
-DescribeCommandSchema
-DescribeEventSchema
-BuildOpenApiSchema
-DetectBreakingPublicApiChange
-ValidatePublicApiCompatibility
-```
-
-### 3.4 Integration Plane
-
-Owns controlled communication with external infrastructure and external services.
-
-Examples:
-
-```text
-ObjectStorage
-SearchIndex
-MessageBroker
-StreamProcessor
-WebhookGateway
-PaymentGateway
-NotificationGateway
-TranscodingGateway
-RecommendationGateway
-CdnInvalidator
-```
-
-Integration components must never be only interfaces. They must include failure behavior, local/fake adapters,
-configuration schema, health checks, diagnostics, tests, and observability.
-
-### 3.5 Reliability Plane
-
-Owns resilience primitives and safety patterns used across runtime, integration, queue, workflow, and distributed-system
-behavior.
-
-Examples:
-
-```text
-Retry
-Backoff
-Timeout
-CircuitBreaker
-Bulkhead
-Fallback
-DeadLetter
-Idempotency
-Lock
-Lease
-Outbox
-Inbox
-Saga
-Backpressure
-LoadShedding
-```
-
-### 3.6 Observability Plane
-
-Owns logs, metrics, traces, audit events, runtime timelines, correlation IDs, trace IDs, spans, telemetry exporters, and
-sensitive-data redaction.
-
-Examples:
-
-```text
-RecordMetric
-RecordLog
-StartTrace
-FinishTrace
-RecordAuditEvent
-ExportTelemetry
-ReadRuntimeTimeline
-```
-
-### 3.7 Delivery Plane
-
-Owns build, compile, warmup, release verification, smoke checks, rollback posture, benchmark evidence, and
-production-readiness proof.
-
-Examples:
-
-```text
-CompileApplication
-CompileRoutes
-CompileContainer
-BuildManifest
-VerifyRelease
-RunSmokeChecks
-WriteEvidenceReport
-ReadRollbackPlan
-```
-
-### 3.8 System-Design Validation Plane
-
-Owns capacity models, load models, consistency models, sharding models, failure models, architecture tests, simulations,
-and reference architectures.
-
-Examples:
-
-```text
-ValidateCapacityModel
-SimulateCacheOutage
-SimulateDuplicateMessage
-ValidateConsistencyBoundary
-RunArchitectureTest
-WriteTradeoffReport
-```
-
-This plane must validate behavior, not merely store examples.
-
----
-
-## 4. Component Completion Standard
-
-A platform engine is finished only when it has all of the following:
+A component is finished only when it has all of the following:
 
 ```text
 1. public API
-2. internal runtime behavior
+2. internal behavior
 3. fake/local implementation
 4. production implementation boundary
 5. configuration schema
-6. health/doctor check
+6. health check
 7. failure model
 8. retry/timeout/circuit/backoff policy when external I/O exists
 9. observability events
@@ -264,8 +82,6 @@ A platform engine is finished only when it has all of the following:
 14. documentation
 15. operator diagnostics
 ```
-
-This is the difference between an interface and a platform muscle.
 
 A component that exposes only an interface is not complete.
 
@@ -279,55 +95,9 @@ A component that cannot be diagnosed by an operator is not platform-ready.
 
 ---
 
-## 5. Hard Execution Law
+## 4. Canonical Component Filesystem Law
 
-V1 must be green before V2 or V3 implementation.
-
-Do not implement GraphQL, integration ports, SystemDesign suite, background supervisor, transcoding gateway,
-recommendation gateway, or system-design simulations while any of these are RED:
-
-```text
-taxonomy
-autoload
-namespace integrity
-tests
-PHPStan/Psalm
-runtime safety
-component completion
-public surface integrity
-```
-
-Planning may continue.
-
-Architecture notes may continue.
-
-Design documents may continue.
-
-Implementation waits for Kernel Green.
-
-Kernel Green means:
-
-```text
-component taxonomy is canonical
-autoload is clean
-namespaces match ownership
-tests load and target canonical classes
-static analysis is green or honestly baselined
-runtime safety is proven
-public surface does not leak internals
-component completion rules are enforceable
-```
-
-No agent may bypass this law by calling new feature work "preparation", "scaffolding", "harmless foundation", or "
-future-proofing".
-
-If it creates production code for V2/V3 behavior, it waits for Kernel Green.
-
----
-
-## 6. Canonical Component Filesystem Law
-
-Every production AvaX component must follow one canonical filesystem shape.
+Every production component must follow one canonical filesystem shape.
 
 The component root must make ownership obvious.
 
@@ -344,10 +114,7 @@ System/
   Foundation/
 ```
 
-This is the canonical component shape.
-
-No other top-level `System/` folders are allowed unless a component-specific governance document explicitly justifies
-them.
+No other top-level `System/` folders are allowed unless a component-specific governance document explicitly justifies them.
 
 The default shape is:
 
@@ -355,34 +122,6 @@ The default shape is:
 components/
   <Area>/
     <Component>/
-      System/
-        PublicSurface/
-        Flows/
-        Capabilities/
-        Configuration/
-        Foundation/
-```
-
-Example:
-
-```text
-components/
-  Application/
-    Cache/
-      System/
-        PublicSurface/
-        Flows/
-        Capabilities/
-        Configuration/
-        Foundation/
-```
-
-Example:
-
-```text
-components/
-  DataStack/
-    Database/
       System/
         PublicSurface/
         Flows/
@@ -411,20 +150,20 @@ Which small primitives support it?
 
 ---
 
-## 6.1 Required and Conditional Folders
+## 4.1 Required and Conditional Folders
 
 Not every canonical folder is mandatory in every component.
 
 A folder exists only when it has real responsibility.
 
-| Folder           |                       Status | Use When                                                                       |
-|------------------|-----------------------------:|--------------------------------------------------------------------------------|
-| `System/`        |                     Required | Every production component must have one system root.                          |
-| `Capabilities/`  | Required for real components | The component owns reusable behavior, mechanisms, or platform muscle.          |
-| `PublicSurface/` |                  Conditional | The component exposes stable user-facing or cross-component API.               |
-| `Flows/`         |                  Conditional | The component owns end-to-end behavior.                                        |
-| `Configuration/` |                  Conditional | The component can be assembled, registered, configured, booted, or integrated. |
-| `Foundation/`    |                     Optional | The component needs tiny neutral local primitives.                             |
+| Folder           | Status                 | Use When                                                                       |
+|------------------|------------------------|--------------------------------------------------------------------------------|
+| `System/`        | Required               | Every production component must have one system root.                          |
+| `Capabilities/`  | Required for real components | The component owns reusable behavior, mechanisms, or platform muscle.     |
+| `PublicSurface/` | Conditional            | The component exposes stable user-facing or cross-component API.               |
+| `Flows/`         | Conditional            | The component owns end-to-end behavior.                                        |
+| `Configuration/` | Conditional            | The component can be assembled, registered, configured, booted, or integrated. |
+| `Foundation/`    | Optional               | The component needs tiny neutral local primitives.                             |
 
 A component with no `Capabilities/` is usually not a real component.
 
@@ -432,16 +171,15 @@ A component with only folders and no behavior is not a component.
 
 A component with only interfaces is not a platform muscle.
 
-A component with only `PublicSurface/` and no internal behavior is a façade without an engine.
+A component with only `PublicSurface/` and no internal behavior is a facade without an engine.
 
 ---
 
-## 6.2 PublicSurface Rule
+## 4.2 PublicSurface Rule
 
 `PublicSurface/` contains stable public API entrypoints.
 
-It is required only when the component exposes something external users or other components are allowed to call
-directly.
+It is required only when the component exposes something external users or other components are allowed to call directly.
 
 Allowed:
 
@@ -452,23 +190,12 @@ PublicSurface/
   CacheTtl.php
 ```
 
-Allowed:
-
-```text
-PublicSurface/
-  Database.php
-  Query.php
-  Schema.php
-  Migrations.php
-```
-
 Forbidden:
 
 ```text
 PublicSurface/
   BuildContainer.php
   ResolveDependencies.php
-  SwooleRequestAdapter.php
   InternalRegistry.php
   RuntimeStateStore.php
   WorkerLoop.php
@@ -482,7 +209,7 @@ It MUST NOT instantiate services or objects other than simple value objects/DTOs
 
 It MUST delegate all real logic to injectable `Flows/` or `Capabilities/`.
 
-**Status:** MANDATORY  
+**Status:** MANDATORY
 **Severity:** BLOCKER
 
 A public surface class must not contain:
@@ -501,7 +228,7 @@ If `PublicSurface/` grows large, the component is leaking internals.
 
 ---
 
-## 6.3 Flows Rule
+## 4.3 Flows Rule
 
 `Flows/` contains end-to-end behavior owned by the component.
 
@@ -560,8 +287,7 @@ EventProcessor
 CommandHandler
 ```
 
-A flow may contain local value objects, events, decisions, and small helpers only if they belong exclusively to that
-flow.
+A flow may contain local value objects, events, decisions, and small helpers only if they belong exclusively to that flow.
 
 Do not extract flow-local concepts into shared capabilities too early.
 
@@ -569,7 +295,7 @@ Shared last.
 
 ---
 
-## 6.4 Capabilities Rule
+## 4.4 Capabilities Rule
 
 `Capabilities/` contains reusable behavior owned by the component.
 
@@ -642,7 +368,7 @@ The folder must explain what the system does, not which pattern is being used.
 
 ---
 
-## 6.5 Configuration Rule
+## 4.5 Configuration Rule
 
 `Configuration/` contains assembly, registration, bootstrapping, configuration schema, and dependency wiring.
 
@@ -678,32 +404,24 @@ It does not own domain or runtime behavior.
 
 If a file performs actual behavior, it belongs in `Flows/` or `Capabilities/`.
 
----
-
-## 6.5.1 Configuration/Builders Rule
+### 4.5.1 Configuration/Builders Rule
 
 A component MAY have a `System/Configuration/Builders/` folder.
 
-This folder is allowed only for classes that assemble configuration-time object graphs, runtime defaults, dependency
-graphs, or component runtime packages.
+This folder is allowed only for classes that assemble configuration-time object graphs, runtime defaults, dependency graphs, or component runtime packages.
 
 `Builders/` is not a generic folder for any class that "builds something".
 
-### Purpose
+**Purpose:** `System/Configuration/Builders/` exists to keep dependency assembly out of runtime execution code.
 
-`System/Configuration/Builders/` exists to keep dependency assembly out of runtime execution code.
-
-Builder classes in this folder answer questions like:
+Builder classes answer questions like:
 
 - How is this component assembled?
 - Which default dependencies are registered?
 - Which runtime object graph is created?
 - How are user options converted into component runtime configuration?
-- How are ServiceProvider bindings grouped without bloating the ServiceProvider?
 
-### Allowed in Configuration/Builders
-
-Allowed examples:
+**Allowed in Configuration/Builders:**
 
 ```text
 BuildApplicationRuntime
@@ -723,11 +441,7 @@ These classes may instantiate infrastructure dependencies because they are part 
 
 They must remain deterministic, explicit, and testable.
 
-### Forbidden in Configuration/Builders
-
-Do NOT place runtime behavior here.
-
-Forbidden examples:
+**Forbidden in Configuration/Builders:**
 
 ```text
 BuildSqlQuery
@@ -742,21 +456,14 @@ BuildEmailMessage
 
 These belong in `System/Capabilities/`, because they create runtime results or execute component behavior.
 
-### Boundary Rule
-
-Use this distinction:
+**Boundary Rule:**
 
 ```text
-Configuration/Builders/
-= builds the component/runtime/dependency graph
-
-Capabilities/
-= performs runtime behavior or creates runtime results
+Configuration/Builders/ = builds the component/runtime/dependency graph
+Capabilities/           = performs runtime behavior or creates runtime results
 ```
 
-### Naming Rule
-
-Builder class names must say exactly what they assemble.
+**Naming Rule:** Builder class names must say exactly what they assemble.
 
 Avoid vague names:
 
@@ -778,87 +485,13 @@ BuildDatabaseRuntime
 ConfigureCacheStores
 ```
 
-### Public API Rule
+**Public API Rule:** `Configuration/Builders/` is internal assembly machinery. It must not be used as the public developer API unless explicitly designed as a configuration DSL.
 
-`Configuration/Builders/` is internal assembly machinery.
-
-It must not be used as the public developer API unless explicitly designed as a configuration DSL.
-
-If a class is a user-facing fluent configuration DSL, name it clearly:
-
-```text
-ConfigureAuth
-ConfigureCache
-ConfigureRouter
-```
-
-If a class is internal assembly, name it as an action:
-
-```text
-BuildAuthRuntime
-RegisterAuthDefaults
-AssembleRouterRuntime
-```
-
-### Large Builder Warning
-
-Any builder over 300 lines must be reviewed for responsibility split.
-
-If a builder does all of these:
-
-- collects user options
-- creates default dependencies
-- wires runtime services
-- creates runtime objects
-- owns fallback behavior
-- contains many `?? new` fallbacks
-
-then it must be split.
-
-Recommended split:
-
-```text
-Configuration/
-  ConfigureAuth.php              // user-facing fluent DSL
-  AuthServiceProvider.php        // provider entrypoint
-  Builders/
-    RegisterAuthDefaults.php     // default bindings
-    BuildAuthRuntime.php         // runtime graph
-    AssembleAuthCapabilities.php // capability graph
-```
-
-A large builder must not become a hidden container.
-
-### 6.5.2 Container Ownership Rule — Cross-Reference
-
-For the complete Container Ownership Rule, including:
-
-- When DI/container is mandatory vs when direct `new` is allowed
-- Builder placement rule (Configuration/Builders vs Capabilities)
-- Runtime composition leak rule
-- Factory class precision (result vs graph assembly)
-- Path/context-based enforcement
-- Clock default binding
-- Examples canonical style
-
-See:
-
-```text
-.agents/how-to/how-to-dependency-injection.md — Section 6: Container Ownership Rule
-.agents/how-to/how-to-runtime-composition.md — Full runtime composition law
-```
-
-Key principle for component design:
-
-```text
-Configuration/Builders/ assembles the system.
-Capabilities/ creates runtime results.
-Runtime execution code must not assemble dependencies.
-```
+**Large Builder Warning:** Any builder over 300 lines must be reviewed for responsibility split. A large builder must not become a hidden container.
 
 ---
 
-## 6.6 Foundation Rule
+## 4.6 Foundation Rule
 
 `Foundation/` contains tiny neutral primitives used locally by the component.
 
@@ -900,7 +533,7 @@ Foundation must not become `Common/`.
 
 ---
 
-## 6.7 Forbidden Top-Level System Folders
+## 4.7 Forbidden Top-Level System Folders
 
 The following folders are forbidden as default top-level folders inside `System/`:
 
@@ -946,8 +579,7 @@ They encourage dumping grounds.
 They weaken screaming architecture.
 ```
 
-If one of these words is truly the domain language of a specific component, it must be justified in that component's
-governance document.
+If one of these words is truly the domain language of a specific component, it must be justified in that component's governance document.
 
 No default use.
 
@@ -955,9 +587,7 @@ No automatic scaffolding.
 
 No "just in case" folders.
 
----
-
-## 6.7.1 Concept Words Are Not Folder Names
+### 4.7.1 Concept Words Are Not Folder Names
 
 Some words in this document describe architecture responsibilities, not filesystem names.
 
@@ -1005,11 +635,9 @@ The filesystem must still say flow or capability.
 
 ---
 
-## 6.8 Use Case Translation Rule
+## 4.8 Use Case Translation Rule
 
-AvaX does not use `UseCases/` as a default folder.
-
-In AvaX vocabulary, a use case is represented as a `Flow`.
+Use cases are represented as `Flow`s, not as a `UseCases/` folder.
 
 A flow owns one complete user, system, runtime, or platform action.
 
@@ -1048,7 +676,7 @@ Use Capability when behavior is reusable across multiple flows.
 
 ---
 
-## 6.9 Flow vs Capability Rule
+## 4.9 Flow vs Capability Rule
 
 Use a `Flow` when:
 
@@ -1075,7 +703,7 @@ Extract to `Capability` only after reuse is honest.
 
 ---
 
-## 6.10 Exported Capability Rule
+## 4.10 Exported Capability Rule
 
 `ExportedCapabilities` is a concept, not a required folder.
 
@@ -1112,7 +740,7 @@ Export is a decision.
 
 ---
 
-## 6.11 Internal System Rule
+## 4.11 Internal System Rule
 
 `InternalSystem` is a concept, not a folder.
 
@@ -1150,7 +778,7 @@ Internals stay private.
 
 ---
 
-## 6.12 Diagnostics Rule
+## 4.12 Diagnostics Rule
 
 Diagnostics are capabilities, not a mandatory root folder.
 
@@ -1180,12 +808,11 @@ Diagnostics/
 
 Diagnostics must say what they check, diagnose, or report.
 
-Operator diagnostics are required for platform-complete components, but the filesystem must still follow capability
-naming.
+Operator diagnostics are required for platform-complete components, but the filesystem must still follow capability naming.
 
 ---
 
-## 6.13 Tests Rule
+## 4.13 Tests Rule
 
 Tests normally live in the project test tree.
 
@@ -1226,7 +853,7 @@ Production code and tests must not be mixed without a clear reason.
 
 ---
 
-## 6.14 Docs Rule
+## 4.14 Docs Rule
 
 Documentation is required.
 
@@ -1254,25 +881,11 @@ docs/
     cache.md
 ```
 
-Allowed:
-
-```text
-EVIDENCE/
-  recovery-reports/
-```
-
-Do not create:
-
-```text
-System/
-  Docs/
-```
-
-unless the component is explicitly package-shaped and the docs are meant to ship with it.
+Do not create `System/Docs/` unless the component is explicitly package-shaped and the docs are meant to ship with it.
 
 ---
 
-## 6.15 Component README Rule
+## 4.15 Component README Rule
 
 Every serious component should have a short component README.
 
@@ -1286,7 +899,6 @@ The README must answer:
 
 ```text
 What problem does this component solve?
-Which platform plane does it belong to?
 What is the public surface?
 What flows does it own?
 What capabilities does it provide?
@@ -1303,10 +915,9 @@ It must not duplicate every implementation detail.
 
 ---
 
-## 6.16 Component Manifest Rule
+## 4.16 Component Manifest Rule
 
-Every reusable platform component should have a component manifest when it is mature enough to be composed by the
-framework.
+Every reusable platform component should have a component manifest when it is mature enough to be composed by the framework.
 
 The manifest is not a random metadata file.
 
@@ -1316,7 +927,6 @@ It should declare:
 
 ```text
 component name
-component plane
 public surface
 exported units
 required imports
@@ -1353,30 +963,30 @@ Do not create `Manifests/` as a dumping ground.
 
 ---
 
-## 6.17 Component Folder Decision Table
+## 4.17 Component Folder Decision Table
 
-| Folder           |               Required? | Rule                                                                |
-|------------------|------------------------:|---------------------------------------------------------------------|
-| `System/`        |                     yes | Every production component has one system root.                     |
-| `PublicSurface/` |             conditional | Use only for stable public API.                                     |
-| `Flows/`         |             conditional | Use for end-to-end behavior owned by the component.                 |
+| Folder           | Required?               | Rule                                                                |
+|------------------|-------------------------|---------------------------------------------------------------------|
+| `System/`        | yes                     | Every production component has one system root.                     |
+| `PublicSurface/` | conditional             | Use only for stable public API.                                     |
+| `Flows/`         | conditional             | Use for end-to-end behavior owned by the component.                 |
 | `Capabilities/`  | yes for real components | Use for reusable component muscle.                                  |
-| `Configuration/` |             conditional | Use for assembly, registration, config schema, and integration.     |
-| `Foundation/`    |                optional | Use only for tiny neutral local primitives.                         |
-| `Diagnostics/`   |                      no | Prefer exact diagnostic capabilities.                               |
-| `Adapters/`      |                      no | Use concrete boundary names.                                        |
-| `Contracts/`     |                      no | Prefer the real promise, e.g. Compatibility, PublicApi, CacheStore. |
-| `UseCases/`      |                      no | Use Flows instead.                                                  |
-| `Tests/`         |                      no | Prefer central test tree unless exporting a test kit.               |
-| `Docs/`          |                      no | Prefer component README, docs, or reports.                          |
-| `Domain/`        |                      no | DDD concepts live inside owning flows or capabilities.              |
-| `Services/`      |                      no | Use exact action names.                                             |
-| `Commands/`      |                      no | Use flow names.                                                     |
-| `Queries/`       |                      no | Use read capability names.                                          |
+| `Configuration/` | conditional             | Use for assembly, registration, config schema, and integration.     |
+| `Foundation/`    | optional                | Use only for tiny neutral local primitives.                         |
+| `Diagnostics/`   | no                      | Prefer exact diagnostic capabilities.                               |
+| `Adapters/`      | no                      | Use concrete boundary names.                                        |
+| `Contracts/`     | no                      | Prefer the real promise, e.g. Compatibility, PublicApi, CacheStore. |
+| `UseCases/`      | no                      | Use Flows instead.                                                  |
+| `Tests/`         | no                      | Prefer central test tree unless exporting a test kit.               |
+| `Docs/`          | no                      | Prefer component README, docs, or reports.                          |
+| `Domain/`        | no                      | DDD concepts live inside owning flows or capabilities.              |
+| `Services/`      | no                      | Use exact action names.                                             |
+| `Commands/`      | no                      | Use flow names.                                                     |
+| `Queries/`       | no                      | Use read capability names.                                          |
 
 ---
 
-## 7. Component Collaboration Rule
+## 5. Component Collaboration Rule
 
 Components may collaborate only through approved lanes:
 
@@ -1420,10 +1030,9 @@ Entanglement is forbidden.
 
 ---
 
-## 8. Export Rule
+## 6. Export Rule
 
-A component may export an event, value object, fake, implementation boundary, or reusable capability
-only when all of the following are true:
+A component may export an event, value object, fake, implementation boundary, or reusable capability only when all of the following are true:
 
 ```text
 [ ] it has a stable reason to exist
@@ -1442,7 +1051,7 @@ If these conditions are not true, the unit must remain internal.
 
 ---
 
-## 9. Import Rule
+## 7. Import Rule
 
 A component may import another component's exported capability only when:
 
@@ -1470,7 +1079,7 @@ Hidden imports are forbidden.
 
 ---
 
-## 10. Forbidden Collaboration
+## 8. Forbidden Collaboration
 
 The following is forbidden:
 
@@ -1500,9 +1109,9 @@ platform capability owned above both components
 
 ---
 
-## 11. Correct Collaboration Patterns
+## 9. Correct Collaboration Patterns
 
-### 11.1 Contract Dependency
+### 9.1 Contract Dependency
 
 Use when one component needs stable behavior from another component.
 
@@ -1513,7 +1122,7 @@ Queue depends on SerializerContract.
 Queue does not depend on JsonSerializer internals.
 ```
 
-### 11.2 Event Collaboration
+### 9.2 Event Collaboration
 
 Use when the producer should not know who reacts.
 
@@ -1525,7 +1134,7 @@ Observability records query timeline.
 Performance detects slow query.
 ```
 
-### 11.3 Message Collaboration
+### 9.3 Message Collaboration
 
 Use when work crosses async boundaries.
 
@@ -1537,7 +1146,7 @@ Notifications consumes InvoiceIssued.
 Analytics consumes InvoiceIssued.
 ```
 
-### 11.4 Framework Assembly
+### 9.4 Framework Assembly
 
 Use when multiple components must be wired together.
 
@@ -1548,7 +1157,7 @@ BuildApplication registers Router, Container, Cache, Events, Queue, Observabilit
 Components do not manually bootstrap each other.
 ```
 
-### 11.5 Higher-Level Flow Orchestration
+### 9.5 Higher-Level Flow Orchestration
 
 Use when several components are needed to complete one business or system flow.
 
@@ -1559,9 +1168,9 @@ HandleIncomingHttp uses Router, Container, Middleware, Validation, Response, Obs
 Router does not own the full HTTP lifecycle.
 ```
 
-### 11.6 External Boundary Implementation
+### 9.6 External Boundary Implementation
 
-Use when AvaX integrates with external infrastructure.
+Use when integrating with external infrastructure.
 
 Example:
 
@@ -1570,10 +1179,10 @@ ObjectStorage exposes a stable public storage promise.
 LocalObjectStorage provides local storage behavior.
 S3ObjectStorage provides S3-backed storage behavior.
 CheckObjectStorageHealth verifies reachability.
-MapObjectStorageFailure maps external failures into AvaX failures.
+MapObjectStorageFailure maps external failures into framework failures.
 ```
 
-### 11.7 Reliability Wrapper
+### 9.7 Reliability Wrapper
 
 Use when external I/O or unstable dependency exists.
 
@@ -1587,62 +1196,11 @@ External I/O without reliability policy is incomplete.
 
 ---
 
-## 12. Component Manifest Rule
-
-Every reusable component must declare a component manifest.
-
-The manifest should describe:
-
-```text
-component name
-component plane
-public surface
-exported contracts
-exported capabilities
-required imports
-optional imports
-events emitted
-events consumed
-messages published
-messages consumed
-configuration keys
-runtime-safety requirements
-resettable state
-health checks
-doctor checks
-operator diagnostics
-implementation compatibility tests (contract tests)
-failure tests
-provided fakes
-local implementations
-production implementation boundaries
-```
-
-Example:
-
-```php
-ComponentManifest::for('Cache')
-    ->plane('reliability')
-    ->exports(CacheContract::class)
-    ->exports(CacheStoreContract::class)
-    ->requires(Clock::class)
-    ->optionallyUses(Metrics::class)
-    ->emits(CacheHit::class)
-    ->emits(CacheMiss::class)
-    ->providesFake(FakeCache::class)
-    ->providesHealthCheck(CacheHealthCheck::class)
-    ->providesDoctorCheck(CacheDoctorCheck::class);
-```
-
-A component without a manifest is not fully platform-visible.
-
----
-
-## 13. Platform Engine Checklist
+## 10. Platform Engine Checklist
 
 Before a component is marked complete, it must answer every section below.
 
-### 13.1 Public Contract
+### 10.1 Public Contract
 
 ```text
 [ ] What is the public API?
@@ -1653,7 +1211,7 @@ Before a component is marked complete, it must answer every section below.
 [ ] What is a breaking change?
 ```
 
-### 13.2 Internal Runtime Behavior
+### 10.2 Internal Runtime Behavior
 
 ```text
 [ ] What flow owns the behavior?
@@ -1663,17 +1221,17 @@ Before a component is marked complete, it must answer every section below.
 [ ] What must remain deterministic for tests?
 ```
 
-### 13.3 External Boundary Implementations
+### 10.3 External Boundary Implementations
 
 ```text
 [ ] Is there a fake implementation?
 [ ] Is there a local implementation where useful?
 [ ] Is there a production implementation boundary?
 [ ] Are production implementations isolated from public API?
-[ ] Are production failures mapped into AvaX failures?
+[ ] Are production failures mapped into framework failures?
 ```
 
-### 13.4 Configuration
+### 10.4 Configuration
 
 ```text
 [ ] Is there a configuration schema?
@@ -1683,7 +1241,7 @@ Before a component is marked complete, it must answer every section below.
 [ ] Are secrets redacted?
 ```
 
-### 13.5 Health and Doctor
+### 10.5 Health and Doctor
 
 ```text
 [ ] Is there a health check?
@@ -1693,7 +1251,7 @@ Before a component is marked complete, it must answer every section below.
 [ ] Can the check run in CI and local mode?
 ```
 
-### 13.6 Failure Model
+### 10.6 Failure Model
 
 ```text
 [ ] What can fail?
@@ -1704,7 +1262,7 @@ Before a component is marked complete, it must answer every section below.
 [ ] Which failures must be audited?
 ```
 
-### 13.7 Reliability Policy
+### 10.7 Reliability Policy
 
 Required when external I/O exists:
 
@@ -1718,7 +1276,7 @@ Required when external I/O exists:
 [ ] idempotency behavior when duplicate execution is possible
 ```
 
-### 13.8 Observability
+### 10.8 Observability
 
 ```text
 [ ] What events are emitted?
@@ -1729,7 +1287,7 @@ Required when external I/O exists:
 [ ] Are sensitive values redacted?
 ```
 
-### 13.9 Tests
+### 10.9 Tests
 
 ```text
 [ ] contract tests
@@ -1741,7 +1299,7 @@ Required when external I/O exists:
 [ ] doctor/health tests
 ```
 
-### 13.10 Documentation
+### 10.10 Documentation
 
 ```text
 [ ] public usage documented
@@ -1754,19 +1312,11 @@ Required when external I/O exists:
 
 ---
 
-## 14. Runtime-Safety Rule
+## 11. Runtime-Safety Rule
 
 Every component must declare whether it is safe for long-lived runtimes.
 
-Long-lived runtimes include:
-
-```text
-FrankenPHP worker mode
-RoadRunner
-Swoole
-Workerman
-ReactPHP/Amp/Fiber-based runtimes
-```
+Long-lived runtimes include worker-mode servers, persistent process runtimes, and fiber-based execution environments.
 
 A component must document:
 
@@ -1794,7 +1344,7 @@ Runtime safety is not optional.
 
 ---
 
-## 15. External I/O Rule
+## 12. External I/O Rule
 
 Any component that talks to external systems must be treated as failure-prone.
 
@@ -1835,7 +1385,7 @@ An external I/O component without these is incomplete.
 
 ---
 
-## 16. Operator Diagnostics Rule
+## 13. Operator Diagnostics Rule
 
 Every platform engine must provide operator diagnostics.
 
@@ -1876,7 +1426,7 @@ Redis error.
 
 ---
 
-## 17. Contract Test Rule
+## 14. Contract Test Rule
 
 Every exported capability must provide at least one of:
 
@@ -1896,7 +1446,7 @@ If an implementation cannot pass the canonical compatibility tests, the deviatio
 
 ---
 
-## 18. Failure Test Rule
+## 15. Failure Test Rule
 
 Every component must test failure behavior.
 
@@ -1920,7 +1470,7 @@ It is wishful thinking.
 
 ---
 
-## 19. Reuse Promotion Rule
+## 16. Reuse Promotion Rule
 
 A unit may be promoted from internal to reusable only after it proves reuse.
 
@@ -1946,7 +1496,7 @@ Prefer honest internal ownership over vague global sharing.
 
 ---
 
-## 20. Dependency Direction Rule
+## 17. Dependency Direction Rule
 
 Allowed direction:
 
@@ -1971,7 +1521,7 @@ If direction is unclear, the design is not finished.
 
 ---
 
-## 21. Circular Dependency Rule
+## 18. Circular Dependency Rule
 
 Circular component dependency is forbidden.
 
@@ -2006,7 +1556,7 @@ Neutral foundation contract
 
 ---
 
-## 22. Naming Rule
+## 19. Naming Rule
 
 Component names must be banal, intuitive, predictive, and descriptive.
 
@@ -2053,7 +1603,7 @@ Function says exact action.
 
 ---
 
-## 23. Public Surface Rule
+## 20. Public Surface Rule
 
 PublicSurface must stay small.
 
@@ -2088,13 +1638,12 @@ If PublicSurface grows large, the component is probably leaking internals.
 
 ---
 
-## 24. Documentation Rule
+## 21. Documentation Rule
 
 Every component must document:
 
 ```text
 what problem it solves
-which platform plane it belongs to
 public API
 exported capabilities
 configuration
@@ -2114,13 +1663,12 @@ A component with stale documentation is not complete.
 
 ---
 
-## 25. Review Checklist
+## 22. Review Checklist
 
 A component design passes review only if:
 
 ```text
-[ ] it belongs to a clear platform plane
-[ ] it solves a concrete platform problem
+[ ] it solves a concrete problem
 [ ] it has one obvious ownership boundary
 [ ] public surface is small
 [ ] internal behavior is not exposed
@@ -2156,122 +1704,25 @@ It must not be marked production-ready.
 
 ---
 
-## 26. V1 / V2 / V3 Roadmap Discipline
+## 23. Large Unit Review Thresholds
 
-### V1: Production Kernel
+Large code is not automatically wrong, but it is automatically suspicious.
 
-V1 proves that AvaX is real.
-
-V1 owns:
+Mandatory review triggers:
 
 ```text
-taxonomy
-autoload
-namespace integrity
-tests
-static analysis
-runtime safety
-public surface integrity
-kernel boot
-HTTP kernel
-console kernel
-worker kernel minimum
-request scope
-state reset
-control plane minimum
-doctor minimum
-observability minimum
-golden path app
-production-readiness evidence
+Class over 300 lines:            mandatory responsibility review
+Method over 50 lines:            mandatory extraction or explanation review
+Constructor with 8+ dependencies: mandatory design review
+Builder over 300 lines:          BLOCKER until classified
+Test class over 500 lines:       mandatory test organization review
 ```
 
-### V2: Enterprise Platform Engine
-
-V2 builds platform engines.
-
-V2 owns:
-
-```text
-API contract engine
-integration engine
-reliability engine
-observability engine
-security/identity/tenancy engine
-queue/worker engine
-scheduler engine
-workflow/saga engine
-delivery engine
-```
-
-### V3: System-Design Framework
-
-V3 validates large-system behavior.
-
-V3 owns:
-
-```text
-capacity model
-load model
-latency budget
-availability target
-consistency model
-partitioning model
-sharding model
-replication model
-messaging model
-projection model
-failure model
-simulation runner
-architecture tests
-reference architectures
-tradeoff reports
-```
-
-V2 and V3 are not backlog dreams.
-
-They are planned engine layers with explicit contracts, failure models, diagnostics, tests, examples, and executable
-proof.
+Threshold trigger requires documented decision. No large unit may be called GREEN without review decision.
 
 ---
 
-## 27. Final Law
-
-AvaX components must not become a pile of folders.
-
-AvaX components must become platform muscles.
-
-Concepts are not folders.
-
-Responsibilities must be translated into flow and capability names.
-
-A component is complete only when it has:
-
-```text
-public API
-behavior
-external implementation boundary
-configuration
-failure model
-reliability policy
-observability
-tests
-runtime safety
-diagnostics
-examples
-documentation
-```
-
-Interfaces are cheap.
-
-Platform muscles are proven.
-
-Build muscles.
-
----
-
-## Completion Language
-
-### Component Status Definitions
+## 24. Completion Language
 
 A component **MUST NOT** be marked **production-complete** unless:
 
@@ -2294,101 +1745,6 @@ A component **MUST NOT** be marked **production-complete** unless:
 
 A component **MUST** be marked **draft** if any of the above are missing.
 
-A component **MUST** be marked **experimental** if it's not proven in production.
+A component **MUST** be marked **experimental** if it is not proven in production.
 
 A component **MUST** be marked **production-ready** only when all items above are satisfied.
-
-## 28. Component Status Ownership Rule
-
-### Status
-
-**MANDATORY**
-**Severity:** HIGH
-
-### Rule
-
-Every component must have an explicit status before production readiness claims.
-
-### Allowed Statuses
-
-```text
-ACTIVE_GREEN
-ACTIVE_YELLOW
-ROADMAP
-SCAFFOLD
-LABS_ONLY
-EVIDENCE_ONLY
-PURE_FOUNDATION
-TEST_ONLY
-DEPRECATED
-```
-
-### Required Fields
-
-Every status entry MUST include:
-
-| Field                          | Required          |
-|--------------------------------|-------------------|
-| component path                 | yes               |
-| status                         | yes               |
-| owner                          | yes               |
-| reason                         | yes               |
-| production autoload decision   | yes               |
-| ServiceProvider requirement    | yes when ACTIVE   |
-| health/doctor requirement      | yes               |
-| test requirement               | yes               |
-| security review requirement    | yes when relevant |
-| performance review requirement | yes when relevant |
-| V5.9 blocking decision         | yes when relevant |
-
-A component with no status MUST NOT be silently treated as ACTIVE_GREEN.
-
-Gates must use component status ownership. A ROADMAP/SCAFFOLD/LABS_ONLY component MUST NOT leak into production runtime
-autoload unless explicitly justified.
-
----
-
-## 29. Large Unit Review Thresholds
-
-Large code is not automatically wrong, but it is automatically suspicious.
-
-Mandatory review triggers:
-
-```text
-Class over 300 lines:            mandatory responsibility review
-Method over 50 lines:            mandatory extraction or explanation review
-Constructor with 8+ dependencies: mandatory design review
-PublicSurface over 150 lines:    mandatory behavior leak review
-Builder over 300 lines:          BLOCKER until classified
-ServiceProvider over 250 lines:  mandatory split review
-Test class over 500 lines:       mandatory test organization review
-```
-
-Threshold trigger requires documented decision. No large unit may be called GREEN without review decision.
-
----
-
-### Stage Completion Language
-
-A stage **MUST NOT** be marked GREEN unless:
-
-- All MANDATORY rules pass
-- All tests pass
-- PHPStan passes (no errors)
-- Component completion criteria are met
-- Component status entries are current for all production components
-- No BLOCKER/HIGH issue remains unresolved
-- Every deferred MEDIUM issue has owner, reason, and next action
-
-A stage **MUST** be YELLOW if:
-
-- Validation passes but component completion incomplete
-- MEDIUM/HIGH findings remain deferred
-- Component status entries are incomplete
-
-A stage **MUST** be RED if:
-
-- Tests fail
-- PHPStan fails with errors
-- Component violates mandatory design rules
-- Component status is missing for an ACTIVE production component

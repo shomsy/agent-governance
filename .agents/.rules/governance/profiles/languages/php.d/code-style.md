@@ -2,7 +2,7 @@
 
 ## Status
 
-**MANDATORY** - This document defines non-negotiable code style rules for AvaX.
+**MANDATORY** - This document defines non-negotiable code style rules for PHP projects.
 
 ## Normative Language
 
@@ -69,32 +69,15 @@ public function __construct(private readonly QueryBuilder $queryBuilder) {}
 
 ## Rule: Nullable Type Format
 
-**Status:** MANDATORY  
+**Status:** RECOMMENDED  
 **Scope:** All PHP code  
-**Severity:** HIGH  
-**Enforcement:** PHPStan, Rector
+**Severity:** LOW  
+**Enforcement:** Project-level preference
 
-### Requirement
+### Recommendation
 
-Nullable types **MUST** be written as `Type|null`, not `?Type`.
-
-```php
-// GOOD
-public function findById(int $id): object|null
-public function getName(): string|null
-
-// BAD
-public function findById(int $id): ?object
-public function getName(): ?string
-```
-
-### GREEN Criteria
-
-- No `?Type` format anywhere in code
-
-### RED Criteria
-
-- Any `?string`, `?int`, `?object`, etc. in type declarations
+Nullable types are clearer when written as `Type|null` rather than `?Type`.
+Projects may adopt either style consistently; the key is uniformity within a codebase.
 
 ---
 

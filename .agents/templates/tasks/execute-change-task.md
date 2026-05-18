@@ -210,16 +210,22 @@ BEFORE returning success, you MUST run:
 
 2. **Tests** (if exists):
    ```bash
-   npm test
-   # or
-   pytest
+   # Ecosystem-specific examples:
+   # Node.js:  npm test
+   # PHP:      vendor/bin/phpunit
+   # Python:   pytest
+   # Go:       go test ./...
+   <test-command>
    ```
 
 3. **Linter** (if configured):
    ```bash
-   npm run lint
-   # or
-   ruff check src/
+   # Ecosystem-specific examples:
+   # Node.js:  npm run lint
+   # PHP:      vendor/bin/phpstan analyse
+   # Python:   ruff check src/
+   # Go:       golangci-lint run
+   <lint-command>
    ```
 
 Include validation results in `metadata.validation_run` and `metadata.tests_passed`.

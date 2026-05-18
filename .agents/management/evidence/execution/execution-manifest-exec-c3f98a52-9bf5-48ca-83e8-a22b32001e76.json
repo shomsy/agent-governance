@@ -1,0 +1,114 @@
+{
+  "execution_id": "exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+  "delegation_id": "deleg-e1709205-3e8c-48e7-b3a9-ef33ec621fa0",
+  "nonce": "055e661f-359d-40b6-a2b1-a757b88e9301",
+  "task": "concurrent-2",
+  "trust_tier": "READ_ONLY",
+  "domain_scope": "security",
+  "lifecycle_state": "REPLAYABLE",
+  "lifecycle_history": [
+    {
+      "state": "CREATED",
+      "timestamp": 1779143325.50514
+    },
+    {
+      "state": "PLANNED",
+      "timestamp": 1779143325.507311
+    },
+    {
+      "state": "EXECUTING",
+      "timestamp": 1779143325.6709368
+    },
+    {
+      "state": "VALIDATING",
+      "timestamp": 1779143325.6743975
+    },
+    {
+      "state": "REPLAYABLE",
+      "timestamp": 1779143326.159269
+    }
+  ],
+  "capability_token": {
+    "token_id": "token-exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+    "lease_duration_sec": 600,
+    "max_memory_mb": 512,
+    "allowed_tools": [
+      "view_file",
+      "search_web",
+      "write_to_file",
+      "replace_file_content"
+    ],
+    "allowed_scopes": [
+      "security"
+    ],
+    "trust_tier": "READ_ONLY",
+    "issued_at": 1779143325.5055635,
+    "signature": "b742afa224209aae3c4055b21663e5db583e6c278ba2baea1bab24e5b6fb6bc9"
+  },
+  "authority_lineage": {
+    "initiator": "Operator",
+    "parent_token_id": "operator-root",
+    "capability_signature": "b742afa224209aae3c4055b21663e5db583e6c278ba2baea1bab24e5b6fb6bc9"
+  },
+  "environment_snapshot": {
+    "os": "linux",
+    "python_version": "3.13.7",
+    "frozen_timestamp": 1779143326.1593075,
+    "env_vars_sanitized": true
+  },
+  "context_package": {
+    "domain_rules_loaded": [
+      ".agents/.rules/governance/security/README.md",
+      ".agents/.rules/governance/security/authentication-and-session-security.md",
+      ".agents/.rules/governance/security/ci-cd-and-supply-chain-security.md",
+      ".agents/.rules/governance/security/owasp-web-and-api-baseline.md",
+      ".agents/.rules/governance/security/secrets-and-key-management.md",
+      ".agents/.rules/governance/security/secure-development-lifecycle.md",
+      ".agents/.rules/governance/security/security-operating-model.md",
+      ".agents/.rules/governance/security/threat-modeling-and-abuse-case-policy.md",
+      ".agents/.rules/governance/security/tool-and-plugin-capability-isolation.md",
+      ".agents/.rules/governance/security/vulnerability-and-incident-response.md"
+    ],
+    "dependency_checksums": {
+      "file_count": 3924,
+      "aggregate_hash": "b8b5927043c7e50a31141ac87b79448907266c7c37c44076512754c92be0cc29"
+    }
+  },
+  "mutation_journal": {
+    "journal_id": "journal-exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+    "execution_id": "exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+    "mutations": {
+      "created": [],
+      "modified": [],
+      "deleted": []
+    },
+    "symlinks_created": [],
+    "violations_detected": [],
+    "rollback_executed": false
+  },
+  "replay_contract": {
+    "contract_id": "replay-exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+    "execution_id": "exec-c3f98a52-9bf5-48ca-83e8-a22b32001e76",
+    "nonce": "055e661f-359d-40b6-a2b1-a757b88e9301",
+    "payload_command": "echo c2",
+    "expected_exit_code": 0,
+    "expected_mutation_count": 0,
+    "original_checksum": "e7a6969b02e9dfaaba24bbb77f499bf85e3f440f05d362a555e39e77121d10d9"
+  },
+  "telemetry": {
+    "total_duration_ms": 654.1297435760498,
+    "command_execution_duration_ms": 3.0095577239990234,
+    "governance_resolution_overhead_ms": 651.1201858520508,
+    "context_expansion_budget_bytes": 106,
+    "memory_usage_mb": 12.5,
+    "lease_expired_during_execution": false,
+    "sanitized_env_vars_removed": 0,
+    "sandbox_mode": "shell_false",
+    "danger_class": "SAFE",
+    "danger_reason": "Command appears safe (read-only, no dangerous patterns)"
+  },
+  "hmac_seal": "cf17650da29ac6ddaa8601e0aad04da5e7bd608f161d31353fffa39d470a8cfb",
+  "key_id": "efde8a481324",
+  "sealed_at": 1779143326.1593924,
+  "seal_algorithm": "HMAC-SHA256"
+}

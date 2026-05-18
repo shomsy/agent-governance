@@ -2,12 +2,11 @@
 
 ## Status
 
-**MANDATORY** - This document defines non-negotiable security rules for AvaX.
+**MANDATORY** - This document defines non-negotiable security rules for framework projects.
 
 ## Normative Language
 
-The words **MUST**, **MUST NOT**, **REQUIRED**, **MANDATORY**, **SHOULD**, **SHOULD NOT**, **MAY**, **FORBIDDEN**, *
-*BLOCKER**, **HIGH**, **MEDIUM**, **LOW** are governance keywords.
+The words **MUST**, **MUST NOT**, **REQUIRED**, **MANDATORY**, **SHOULD**, **SHOULD NOT**, **MAY**, **FORBIDDEN**, **BLOCKER**, **HIGH**, **MEDIUM**, **LOW** are governance keywords.
 
 - **MUST / REQUIRED / MANDATORY**: non-negotiable rule.
 - **MUST NOT / FORBIDDEN**: prohibited pattern.
@@ -23,9 +22,9 @@ The words **MUST**, **MUST NOT**, **REQUIRED**, **MANDATORY**, **SHOULD**, **SHO
 
 ## 1. Status of This Document
 
-This document is part of the AvaX governance system.
+This document is part of the governance system.
 
-It defines how security must be designed, implemented, reviewed, tested, observed, and proven across AvaX.
+It defines how security must be designed, implemented, reviewed, tested, observed, and proven.
 
 This document applies to:
 
@@ -61,28 +60,6 @@ This document is a design law.
 Security must shape the design before code exists.
 
 Security must be proven before production-ready claims are made.
-
-The core AvaX law still wins:
-
-```text
-folder says flow or capability
-unit says responsibility
-function says exact action
-```
-
-Security rules must follow that law.
-
-Security must not create vague folders such as:
-
-```text
-Security/
-  Services/
-  Managers/
-  Helpers/
-  Utils/
-  Guards/
-  Stuff/
-```
 
 Security behavior must be named by what it protects or what action it performs.
 
@@ -121,7 +98,7 @@ Capabilities/
 
 ## 2. Security Thesis
 
-AvaX must be secure by default.
+A system must be secure by default.
 
 Risk must be explicit.
 
@@ -159,7 +136,7 @@ security verification as evidence
 
 These references are guidance.
 
-AvaX governance remains the project-specific source of truth.
+Project governance remains the source of truth.
 
 If an external standard is stricter for a specific project, the stricter rule wins.
 
@@ -793,7 +770,7 @@ type is ambiguous
 encoding is invalid
 identifier format is invalid
 array shape is unexpected
-unknown fields are forbidden
+unknown fields are forbidden when policy requires strict input
 file extension and MIME type disagree
 URL is not allowed
 redirect target is unsafe
@@ -1738,8 +1715,6 @@ Audit events must be tamper-aware where required by project policy.
 
 ## 30. Runtime Security Rule
 
-AvaX targets long-lived runtime readiness.
-
 Long-lived runtimes make state leaks dangerous.
 
 Runtime security rules:
@@ -2223,92 +2198,7 @@ Incident response cannot depend on reading raw secrets or exposing private data.
 
 ---
 
-## 46. V1 / V2 / V3 Security Discipline
-
-### 46.1 V1 Security Minimum
-
-V1 must prove:
-
-```text
-autoload and runtime do not expose unsafe debug behavior
-PublicSurface does not leak internals
-request state does not leak in long-lived runtime model
-config secrets are redacted
-database query logging redacts bindings by default
-HTTP kernel has safe error output
-doctor checks do not expose secrets
-```
-
-### 46.2 V2 Security Expansion
-
-V2 must prove:
-
-```text
-authentication
-authorization
-session security
-token security
-tenant isolation if tenancy exists
-queue/message security
-external integration security
-API compatibility/security boundary
-operator control plane security
-```
-
-### 46.3 V3 Security Expansion
-
-V3 must validate system-design security risks:
-
-```text
-abuse resistance
-resource exhaustion
-cross-service authorization
-message replay
-event compatibility
-multi-region secret/config behavior
-failure simulations
-security architecture tests
-```
-
-V2 and V3 security implementation remains locked until active stage allows it.
-
-Planning may continue.
-
----
-
-## 47. Existing Code Recovery Rule
-
-When recovering code from `avax-backup.txt`, `Framework.txt`, `Components.txt`, or git history, security must be
-revalidated.
-
-Old code is not automatically safe.
-
-Recovered code must be checked for:
-
-```text
-raw input usage
-missing authorization
-raw SQL
-unsafe filesystem access
-secret logging
-debug output
-weak token handling
-unsafe session behavior
-unsafe deserialization
-runtime state leakage
-old namespace bypasses
-test-only code in production path
-```
-
-Old behavior is evidence.
-
-Current governance is the target.
-
-Security tests are the judge.
-
----
-
-## 48. Final Security Law
+## 46. Final Security Law
 
 Security is not a layer added at the end.
 
@@ -2336,15 +2226,13 @@ Configuration can be an attack surface.
 
 AI-generated code is untrusted until proven.
 
-AvaX must fail closed, redact by default, expose only what is necessary, and prove security with tests and evidence.
-
 If security makes the design clearer and safer, it belongs.
 
 If security is hidden in vague helpers, it failed.
 
 ---
 
-## 51. Security Must Scream Rule
+## 47. Security Must Scream Rule
 
 ### Status
 
@@ -2396,7 +2284,7 @@ explicit stage-blocking decision
 
 ---
 
-## 52. Security Review Trigger Rule
+## 48. Security Review Trigger Rule
 
 ### Status
 
@@ -2462,7 +2350,7 @@ Security review cannot be skipped silently.
 
 ---
 
-## 53. Security Commit Block Rule
+## 49. Security Commit Block Rule
 
 ### Status
 
@@ -2513,7 +2401,7 @@ A GREEN commit with unresolved security issue is forbidden.
 
 ---
 
-## 54. Security and Performance Trigger Cross-Rule
+## 50. Security and Performance Trigger Cross-Rule
 
 Security review MUST be triggered by changes to: user input, authentication, authorization, session, cookies, CSRF,
 CORS, encryption, hashing, secrets, filesystem I/O, HTTP client/server, serialization/deserialization, database query
@@ -2528,80 +2416,3 @@ models, graph compilation, or runtime scope creation/closing.
 
 If triggered, review evidence must include why security/performance is relevant, what was checked, result, remaining
 risk, and blocking decision. If not triggered, review must say why.
-
----
-
-## 55. Critical Quality Signal Rule
-
-### Status
-
-**MANDATORY**
-**Severity:** HIGH (escalates to BLOCKER — see below)
-
-### Severity Escalation
-
-Default severity is HIGH.
-
-Escalates to **BLOCKER** when the issue threatens:
-
-```text
-security
-data integrity
-runtime safety
-long-lived worker safety
-truth/evidence integrity
-public API compatibility
-dependency graph correctness
-rollback/recovery safety
-```
-
-Examples that MUST be BLOCKER when active:
-
-```text
-exploitable security issue
-data corruption risk
-request state stored in singleton
-unresolved runtime composition leak in active runtime
-fake GREEN
-gate PASS with RED content
-mandatory gate scans zero active files
-hidden fallback dependency in runtime
-missing required dependency discovered in business/runtime code
-service locator in business/runtime code
-```
-
-### Rule
-
-The review MUST loudly flag anything that threatens security, data integrity, runtime safety, long-lived worker safety,
-dependency graph correctness, public API compatibility, static analysis baseline, test reliability, performance hot
-paths, observability of failures, rollback/recovery safety, container verification, request scope isolation, tenant
-isolation, state reset safety, or failure boundary correctness.
-
-The following must not pass silently:
-
-```text
-hidden fallback construction
-runtime service assembly
-service locator usage in business code
-missing dependency checks in business or runtime code
-mutable static state without reset proof
-request state stored in singleton
-fake ServiceProvider
-fake PublicSurface
-broad try/catch swallowing errors
-broad PHPStan ignores
-weak tests
-assertTrue(true)
-evidence claiming GREEN while validation says otherwise
-gate PASS with RED content
-mandatory gate with zero scanned files
-fake compatibility shim
-duplicate canonical concepts
-large builders acting as hidden containers
-examples showing non-canonical style
-```
-
-### Core Principle
-
-If it can create a security hole, corrupt data, hide a runtime failure, break long-lived workers, or fake correctness,
-it must scream in review.

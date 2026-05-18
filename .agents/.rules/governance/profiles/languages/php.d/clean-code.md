@@ -117,126 +117,6 @@ These are the baseline rules that override author-specific preferences unless ex
 - "Manager", "Helper", "Utils", "Stuff", "Data", "Info", "Processor", "Handler" SHOULD be rejected unless they describe
   a real boundary and not a naming failure.
 
-### 5.4.1 Intent-First Fluent API Rule
-
-**Status:** MANDATORY  
-**Scope:** All AvaX production code, especially PublicSurface, Flows, Runtime, Router, Request, Response, Queue,
-Container, Events, Cache, Config, DataTransfer, Metadata, and orchestration code.  
-**Severity:** HIGH in production flow/orchestration code, MEDIUM in internal capabilities, LOW in tests.  
-**Enforcement:** Manual review, grep for nested `from()` chains
-
-#### Requirement
-
-AvaX call sites **MUST** read like **intent**, not like **internal plumbing**.
-
-The caller **MUST** express what it wants to happen.
-
-The receiving boundary **MUST** own normalization, wrapping, conversion, defaults, and internal value-object
-construction.
-
-Call sites **MUST NOT** expose nested conversion, wrapping, or value-object construction chains unless the construction
-itself is the responsibility of that code.
-
-```php
-// BAD - violates MUST NOT
-$this->runtime->context()->finishRequest(
-    runtimeResult: RuntimeResult::fromResponse(
-        runtimeResponse: RuntimeResponse::fromPsrResponse(response: $response),
-    ),
-);
-
-// GOOD - call site reads like intent
-$this->runtime->context()->finishRequest($response);
-```
-
-A call site **MUST** answer:
-
-```text
-What is happening?
-```
-
-**NOT:**
-
-```text
-How many internal objects are required to make it happen?
-```
-
-#### Boundary Responsibility
-
-The boundary method **MUST** accept the most natural input for the caller and normalize internally.
-
-Examples:
-
-```php
-$context->finishRequest($response);
-$queue->dispatch($job);
-$router->get('/users/{id}', $handler);
-$cache->remember('users.active', $ttl, $callback);
-$metadata->compile($className);
-$request->input('email');
-$response->json($payload);
-```
-
-The internal layer **MAY** still use strict value objects, factories, metadata models, DTOs, enums, and adapters, but
-those
-details **MUST** stay behind the boundary.
-
-#### Allowed Exception
-
-Verbose construction is **ALLOWED ONLY** when the construction itself is the purpose of the code.
-
-For example, inside a factory, compiler, mapper, serializer, or normalizer:
-
-```php
-return RuntimeResult::fromResponse(
-    RuntimeResponse::fromPsrResponse($response),
-);
-```
-
-But **NOT** in ordinary flow/orchestration code.
-
-#### Review Smell
-
-Any chain like this **MUST** be reviewed:
-
-```php
-A::from(B::from(C::from($value)))
-```
-
-#### GREEN Criteria
-
-- Call sites are intent-first and readable
-- Internal conversion is hidden behind boundary methods
-- Tests prove accepted natural inputs are normalized correctly
-
-#### YELLOW Criteria
-
-- Nested construction exists in internal capability code but is documented and low-risk
-- Factory/mapper/compiler code uses explicit construction (allowed)
-
-#### RED Criteria
-
-- Nested construction exists in PublicSurface, Runtime, Flow, or orchestration code
-- Call site exposes internal mechanics that make the action unclear
-
-#### Review Smell
-
-If a flow contains this pattern:
-
-```php
-Something::from(
-    OtherThing::from(
-        ThirdThing::from(...)
-    )
-)
-```
-
-ask:
-
-Can this be replaced by a fluent boundary method?
-
-Usually the answer should be yes.
-
 ### 5.5 Function design
 
 - Each function SHOULD do one coherent thing.
@@ -579,20 +459,6 @@ Public value objects and configuration objects must not leak mutable internal st
 
 Arrays crossing public boundaries must be copied, normalized, or converted into immutable/value-safe structures when
 mutation would be dangerous.
-
-#### AvaX Interpretation
-
-Bloch has priority in:
-
-- `PublicSurface/`
-- value objects
-- configuration objects
-- reusable component APIs
-- framework primitives
-- public events and messages
-- any API where misuse would be expensive
-
-Bloch must not be over-applied to tiny internal flow-local code.
 
 ---
 
@@ -1561,8 +1427,6 @@ service locator usage in business code
 missing dependency checks in business or runtime code
 mutable static state without reset proof
 request state stored in singleton
-fake ServiceProvider
-fake PublicSurface
 broad try/catch swallowing errors
 broad PHPStan ignores
 weak tests
@@ -1593,13 +1457,11 @@ Mandatory review triggers:
 Class over 300 lines:            mandatory responsibility review
 Method over 50 lines:            mandatory extraction or explanation review
 Constructor with 8+ dependencies: mandatory design review
-PublicSurface over 150 lines:    mandatory behavior leak review
 Builder over 300 lines:          BLOCKER until classified as one of:
                                  - user-facing configuration DSL
                                  - configuration graph builder
                                  - capability runtime-result builder
                                  - invalid hidden container
-ServiceProvider over 250 lines:  mandatory split review
 Test class over 500 lines:       mandatory test organization review
 ```
 

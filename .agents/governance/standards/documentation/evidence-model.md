@@ -99,4 +99,39 @@ stateDiagram-v2
 ### C. Stale Evidence Mitigation
 - If `verify-governance.sh` detects that the active evidence is `STALE` (due to time or Git drift), it will trigger a warning. If running in strict CI/CD gate mode, it will exit with a non-zero code to block the build, forcing the execution agent to re-validate and generate fresh active evidence.
 
+---
+
+## 5. Finding Evidence
+
+### A. Finding Decision Registry
+
+Scanner-detected findings are resolved through a machine-verifiable decision
+registry stored at:
+
+`.agents/management/evidence/indexes/finding-decisions.json`
+
+Each decision record links to supporting evidence via `evidenceRefs`, which
+point to files in `.agents/management/evidence/validation/` or `reviews/`.
+
+Finding decisions are machine evidence, NOT human dashboard content. They must
+not appear in `EVIDENCE/`.
+
+### B. Scanner Output Categories
+
+The finding lifecycle defines five scanner output categories:
+
+| Category | Meaning | Typical Exit |
+|---|---|---|
+| `RED_ACTIVE` | Finding detected, no valid decision | non-zero |
+| `YELLOW_ACCEPTED` | Finding has ACCEPTED_EXCEPTION decision | 0 or warning |
+| `YELLOW_DEFERRED` | Finding has DEFERRED/SCAFFOLD_DEFERRED decision | 0 or warning |
+| `INFO_FALSE_POSITIVE` | Finding has FALSE_POSITIVE/TOOLING_BUG decision | 0 |
+| `GREEN_FIXED` | Finding has FIXED decision with evidence | 0 |
+
+### C. No Markdown-Only Closure
+
+A Markdown summary stating that a finding is "accepted" or "deferred" does NOT
+close the finding. Closure requires an entry in the finding-decisions registry.
+See `.agents/governance/standards/review/recursive-review-contract.md`.
+
 *No offload recommended for this step.*
