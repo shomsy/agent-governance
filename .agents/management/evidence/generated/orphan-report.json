@@ -1,0 +1,165 @@
+{
+  "orphans": [
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-12fc04fa",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-12fc04fa.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-7b53a0a0",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-7b53a0a0.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "race-exec-39e0292e",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-race-exec-39e0292e.json.pre-repair"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-66252869",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-66252869.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-46af048d-457b-4cef-9929-3c713d1b6d67",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-46af048d-457b-4cef-9929-3c713d1b6d67.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-9f96aee7",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-9f96aee7.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-80960711-d724-40ed-b6a7-7c5f3eeb03c9",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-80960711-d724-40ed-b6a7-7c5f3eeb03c9.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-b18d263b",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-b18d263b.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-d8e848d5-6378-4a7c-af6a-36e40700f249",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-d8e848d5-6378-4a7c-af6a-36e40700f249.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-8c769fa9-2fa1-4ecb-8cc4-b206d5ccda26",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-8c769fa9-2fa1-4ecb-8cc4-b206d5ccda26.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-7acd8f9f-8652-4cd9-adb6-40d9ac29c3b0",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-7acd8f9f-8652-4cd9-adb6-40d9ac29c3b0.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "chaos-target-47cf2fba",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-chaos-target-47cf2fba.json.pre-chaos"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-74cd1679-b570-4dd7-aa2b-7ee7c1e983b9",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-74cd1679-b570-4dd7-aa2b-7ee7c1e983b9.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-328b277d-5131-411a-8bce-544dc7e185b1",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-328b277d-5131-411a-8bce-544dc7e185b1.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-bcaefd82-d7fa-4164-92db-f458bb1e4c90",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-bcaefd82-d7fa-4164-92db-f458bb1e4c90.json"
+    },
+    {
+      "type": "manifest_not_in_chain",
+      "execution_id": "exec-68c363db-5342-4af7-8643-f51b50e354b2",
+      "file": "/home/shomsy/projects/agent-harness/.agents/management/evidence/execution/execution-manifest-exec-68c363db-5342-4af7-8643-f51b50e354b2.json"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-2591e443-730c-44dc-b8e3-57fdc063e9aa"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-b08498f2-3e80-4d6f-a1a0-efc2a2d01ea0"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-02b118db-7c1c-456d-8f21-d27a745b40f6"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-f39394ff-1237-4531-a471-0f134279d589"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-8416dd53-a2a2-46be-8ac0-a1727b941419"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-e761c779-3e02-48e5-9d0a-21045b9b9cc9"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-907a7ad2-a304-443a-b84c-a842f7d05965"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-b168063c-83bd-48e5-b0b4-960c5b051fa3"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-4a10bf1f-c161-4d1f-a79e-a286586afe5c"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-8ad5410e-6cbd-4c81-ab8d-2a252eeb72b7"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-350c095c-5d5f-4290-bcbf-58887d214f7c"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-ad94246f-279b-4566-91f2-7cbcbd7fdff4"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-559a252a-038c-4bf9-895e-a8960aea189a"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-f6b1bd3e-1b8e-4a8f-ac9a-ca5165444f45"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-7fad58cd-8236-4160-9e40-0422d9829a04"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-d389177a-7b69-477c-895f-23c9e25765cf"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-f0461fc3-d52d-4750-8360-705efdd35693"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-ea44ba57-b674-4170-add3-c3c697f6edb4"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-de81136f-793d-448a-8df9-dc6dcaabc851"
+    },
+    {
+      "type": "approval_without_execution",
+      "execution_id": "exec-f943b482-4a30-471e-9149-a85e3b430e5c"
+    }
+  ],
+  "count": 36
+}
