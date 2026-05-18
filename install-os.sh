@@ -11,6 +11,7 @@ set -euo pipefail
 #   --repository-profile=NAME Select repository kind (e.g., governance-source)
 #   --project-type=NAME      Select project type (e.g., api-service, web-app)
 #   --repo-kind=NAME         Same as --repository-profile
+#   --project-name=NAME      Set project name for contract generation
 #   --platform=NAME          Generate platform adapter (claude, cursor, codex, gemini, all)
 #   --dry-run                Simulate changes without writing to disk
 #   --validate               Validate existing installation
@@ -72,6 +73,7 @@ IS_ADOPT=false
 IS_MIGRATION=false
 IS_FORCE=false
 PRUNE_EVIDENCE=false
+PROJECT_NAME=""
 
 # --- Transaction Safety State Variables ---
 TX_DIR="/tmp/harness-tx-$$"
@@ -166,6 +168,49 @@ format_code_list() {
 
 escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
+}
+
+# Normalize a project name to a filesystem-safe slug.
+# Converts to lowercase, replaces non-alphanumeric with hyphens, collapses
+# consecutive hyphens, strips leading/trailing hyphens.
+normalize_slug() {
+    local raw="$1"
+    local slug
+    slug=$(echo "$raw" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]/-/g' -e 's/--*/-/g' -e 's/^-//;s/-$//')
+    printf '%s' "$slug"
+}
+
+# Auto-detect project name from config files or directory basename.
+# Resolution order: --project-name flag → composer.json name → package.json name → directory basename
+detect_project_name() {
+    # 1. Explicit --project-name flag wins
+    if [ -n "$PROJECT_NAME" ]; then
+        normalize_slug "$PROJECT_NAME"
+        return
+    fi
+
+    # 2. Try composer.json
+    if [ -f "$TARGET_DIR/composer.json" ]; then
+        local name
+        name=$(python3 -c "import json,sys; d=json.load(open('$TARGET_DIR/composer.json')); print(d.get('name','').split('/')[-1])" 2>/dev/null || echo "")
+        if [ -n "$name" ]; then
+            normalize_slug "$name"
+            return
+        fi
+    fi
+
+    # 3. Try package.json
+    if [ -f "$TARGET_DIR/package.json" ]; then
+        local name
+        name=$(python3 -c "import json,sys; d=json.load(open('$TARGET_DIR/package.json')); print(d.get('name','').split('/')[-1])" 2>/dev/null || echo "")
+        if [ -n "$name" ]; then
+            normalize_slug "$name"
+            return
+        fi
+    fi
+
+    # 4. Fall back to directory basename
+    basename "$TARGET_DIR"
 }
 
 # Ensure directory exists idempotently. Only records in TX if newly created.
@@ -467,6 +512,7 @@ PROFILE SELECTION:
   --language=NAME          Language profile (e.g., php, typescript, go)
   --framework=NAME         Framework profile (e.g., laravel, nextjs, react)
   --project-type=NAME      Project type (e.g., api-service, web-app, cli)
+  --project-name=NAME      Project name for local contract (e.g., avax, my-app)
   --repo-kind=NAME         Repository kind (e.g., governance-source)
   --repository-profile=    Alias for --repo-kind
 
@@ -730,6 +776,9 @@ for arg in "$@"; do
             die_invalid_profile "project type" "$TYPE" \
                 "$SCRIPT_DIR/.agents/.rules/governance/profiles/project-types"
         fi
+        ;;
+        --project-name=*)
+        PROJECT_NAME="${arg#*=}"
         ;;
         --platform=*)
         PLATFORM_FLAGS_EXPLICITLY_SET=true
@@ -1023,11 +1072,22 @@ sync_file() {
                     cp "$src_file" "$dest_file"
                 fi
             elif [ "$IS_ADOPT" = true ]; then
-                # Adopt mode: only update if target matches old baseline template
-                if [ "$drift_status" = "local_untouched" ] || [ "$drift_status" = "baseline_untouched" ]; then
-                    LIST_UPDATED+=("Updated Baseline (adopt fresh): $rel_path")
+                # Adopt mode: update baseline files from canonical source.
+                # Preserve only when destination has genuinely diverged from
+                # the canonical source (both src and dest changed independently).
+                if [ "$drift_status" = "both_diverged" ]; then
+                    LIST_PRESERVED+=("Preserved Baseline (locally modified): $rel_path")
+                    COUNT_PRESERVED=$((COUNT_PRESERVED + 1))
+                    LIST_CONFLICTS+=("Conflict: $rel_path (locally modified baseline, drift: $drift_status)")
+                    COUNT_CONFLICTS=$((COUNT_CONFLICTS + 1))
+                    LIST_MANUAL+=("Review baseline drift in $rel_path (drift: $drift_status)")
+                    journal_entry "conflict_baseline" "$rel_path (drift: $drift_status)"
+                else
+                    # baseline_changed, local_untouched, baseline_untouched, or unknown:
+                    # update from canonical source
+                    LIST_UPDATED+=("Updated Baseline ($drift_status): $rel_path")
                     COUNT_UPDATED=$((COUNT_UPDATED + 1))
-                    journal_entry "updated_baseline_adopt" "$rel_path"
+                    journal_entry "updated_baseline_adopt" "$rel_path (drift: $drift_status)"
 
                     if [ "$DRY_RUN" = false ]; then
                         ensure_directory "$(dirname "$TX_DIR/backups/$rel_path")"
@@ -1035,13 +1095,6 @@ sync_file() {
                         TX_UPDATED_FILES+=("$rel_path")
                         cp "$src_file" "$dest_file"
                     fi
-                else
-                    LIST_PRESERVED+=("Preserved Baseline (locally modified): $rel_path")
-                    COUNT_PRESERVED=$((COUNT_PRESERVED + 1))
-                    LIST_CONFLICTS+=("Conflict: $rel_path (locally modified baseline, drift: $drift_status)")
-                    COUNT_CONFLICTS=$((COUNT_CONFLICTS + 1))
-                    LIST_MANUAL+=("Review baseline drift in $rel_path (drift: $drift_status)")
-                    journal_entry "conflict_baseline" "$rel_path (drift: $drift_status)"
                 fi
             else
                 LIST_PRESERVED+=("Preserved Baseline (no upgrade trigger): $rel_path")
@@ -1391,8 +1444,14 @@ install_agents_contract() {
     ARCH_PROFILE_VALUE="$(format_code_list "${ARCH_PROFILES[@]}")"
     PROJECT_TYPE_VALUE="$(format_code_list "${PROJECT_TYPES[@]}")"
 
+    # Resolve project contract reference
+    local project_slug
+    project_slug="$(detect_project_name)"
+    local project_contract_ref=".agents/how-to/how-to-write-${project_slug}.md"
+
     local target_agents_tmp="/tmp/AGENTS.md.tmp.sed.$$"
     sed \
+        -e "s|__AGENTS_PROJECT_CONTRACT__|$project_contract_ref|" \
         -e "s|__AGENTS_REPOSITORY_PROFILES__|$(escape_sed_replacement "$REPOSITORY_PROFILE_VALUE")|" \
         -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
         -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
@@ -1422,6 +1481,103 @@ install_core_utilities() {
         [ -f "$TARGET_DIR/merge-files.sh" ] && chmod +x "$TARGET_DIR/merge-files.sh" 2>/dev/null || true
         [ -f "$TARGET_DIR/verify-governance.sh" ] && chmod +x "$TARGET_DIR/verify-governance.sh" 2>/dev/null || true
     fi
+}
+
+# =============================================================================
+# PHASE 12B: PROJECT-LOCAL CONTRACT GENERATION
+# =============================================================================
+install_project_contract() {
+    # Detect project name if not already resolved
+    local project_slug
+    project_slug="$(detect_project_name)"
+
+    local contract_file=".agents/how-to/how-to-write-${project_slug}.md"
+
+    # Skip if project contract already exists
+    if [ -f "$TARGET_DIR/$contract_file" ]; then
+        echo "  Project contract already exists: $contract_file (skipping generation)"
+        return 0
+    fi
+
+    # Check template exists
+    local template_src="$SCRIPT_DIR/scaffolds/templates/how-to-write-project.md"
+    if [ ! -f "$template_src" ]; then
+        echo "  WARNING: Project contract template not found at $template_src"
+        echo "  Skipping project-local contract generation."
+        return 0
+    fi
+
+    echo "Generating project-local contract: $contract_file"
+
+    # Determine language and project type for template substitution
+    local primary_language="php"
+    local project_type="framework"
+    if [ ${#SELECTED_LANGUAGES[@]} -gt 0 ]; then
+        primary_language="${SELECTED_LANGUAGES[0]}"
+    fi
+    if [ ${#PROJECT_TYPES[@]} -gt 0 ]; then
+        project_type="${PROJECT_TYPES[0]}"
+    fi
+
+    local project_display
+    project_display="$(echo "$project_slug" | sed -e 's/-/ /g' -e 's/\b\(.\)/\u\1/g')"
+
+    if [ "$DRY_RUN" = false ]; then
+        ensure_directory "$TARGET_DIR/.agents/how-to"
+
+        local generated_file="$TARGET_DIR/$contract_file"
+        sed \
+            -e "s/__PROJECT_NAME__/${project_display}/g" \
+            -e "s/__PRIMARY_LANGUAGE__/${primary_language}/g" \
+            -e "s/__PROJECT_TYPE__/${project_type}/g" \
+            "$template_src" > "$generated_file"
+
+        TX_CREATED_FILES+=("$contract_file")
+        LIST_CREATED+=("Created (project contract): $contract_file")
+        COUNT_CREATED=$((COUNT_CREATED + 1))
+        journal_entry "created_project_contract" "$contract_file"
+
+        echo "  Generated: $contract_file"
+    else
+        echo "  [DRY RUN] Would create: $contract_file"
+        LIST_CREATED+=("Would create (project contract): $contract_file")
+        COUNT_CREATED=$((COUNT_CREATED + 1))
+    fi
+}
+
+# =============================================================================
+# PHASE 12C: GOVERNANCE INDEX
+# =============================================================================
+install_governance_index() {
+    local scaffold_src="$SCRIPT_DIR/scaffolds/agents-skeleton/GOVERNANCE_INDEX.md"
+    if [ ! -f "$scaffold_src" ]; then
+        echo "  WARNING: GOVERNANCE_INDEX scaffold not found"
+        return 0
+    fi
+
+    echo "Installing GOVERNANCE_INDEX.md..."
+
+    local tmp_gi="/tmp/GOVERNANCE_INDEX.md.tmp.$$"
+    local project_slug
+    project_slug="$(detect_project_name)"
+    local project_contract_ref=".agents/how-to/how-to-write-${project_slug}.md"
+
+    local LANGUAGE_VALUE FRAMEWORK_VALUE REPOSITORY_PROFILE_VALUE PROJECT_TYPE_VALUE
+    LANGUAGE_VALUE="$(format_code_list "${SELECTED_LANGUAGES[@]}")"
+    FRAMEWORK_VALUE="$(format_code_list "${SELECTED_FRAMEWORKS[@]}")"
+    REPOSITORY_PROFILE_VALUE="$(format_code_list "${SELECTED_REPOSITORY_PROFILES[@]}")"
+    PROJECT_TYPE_VALUE="$(format_code_list "${PROJECT_TYPES[@]}")"
+
+    sed \
+        -e "s|__AGENTS_PROJECT_CONTRACT__|\`$project_contract_ref\`|" \
+        -e "s|__AGENTS_LANGUAGES__|$(escape_sed_replacement "$LANGUAGE_VALUE")|" \
+        -e "s|__AGENTS_FRAMEWORKS__|$(escape_sed_replacement "$FRAMEWORK_VALUE")|" \
+        -e "s|__AGENTS_PROJECT_TYPES__|$(escape_sed_replacement "$PROJECT_TYPE_VALUE")|" \
+        -e "s|__AGENTS_REPOSITORY_PROFILES__|$(escape_sed_replacement "$REPOSITORY_PROFILE_VALUE")|" \
+        "$scaffold_src" > "$tmp_gi"
+
+    sync_file "$tmp_gi" ".agents/GOVERNANCE_INDEX.md" "false"
+    rm -f "$tmp_gi"
 }
 
 # =============================================================================
@@ -1574,6 +1730,12 @@ migrate_evidence
 
 # Step 6: Root AGENTS.md contract
 install_agents_contract
+
+# Step 6b: Project-local contract (Layer 4)
+install_project_contract
+
+# Step 6c: Governance index
+install_governance_index
 
 # Step 7: Core utilities
 install_core_utilities
