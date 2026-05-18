@@ -1382,6 +1382,31 @@ install_skeleton() {
 }
 
 # =============================================================================
+# PHASE 8b: SKILLS RUNTIME BINARIES
+# =============================================================================
+# Copies executable runtime tools from .agents/skills/bin/ so they propagate
+# to child repos. These live outside .rules because they are execution
+# substrate, not governance rules.
+install_skills_runtime() {
+    local src_base="$SCRIPT_DIR/.agents/skills/bin"
+    local dest_base=".agents/skills/bin"
+
+    if [ ! -d "$src_base" ]; then
+        return 0
+    fi
+
+    echo "Installing skills runtime binaries..."
+    while IFS= read -r src_file; do
+        local rel_path="${src_file#$src_base/}"
+        # Skip compiled bytecode
+        case "$rel_path" in
+            __pycache__/*|*.pyc|*.pyo) continue ;;
+        esac
+        sync_file "$src_file" "$dest_base/$rel_path" "true"
+    done < <(find "$src_base" -type f)
+}
+
+# =============================================================================
 # PHASE 9: WORKSPACE DIRECTORIES (Idempotent)
 # =============================================================================
 ensure_workspace_directories() {
@@ -1752,6 +1777,9 @@ install_baseline_rules
 
 # Step 3: Skeleton workspace
 install_skeleton
+
+# Step 3b: Skills runtime binaries
+install_skills_runtime
 
 # Step 4: Workspace directories (idempotent)
 ensure_workspace_directories
