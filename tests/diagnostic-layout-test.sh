@@ -35,15 +35,15 @@ echo "=== Diagnostic Layout Tests ==="
 
 # Test 1: Adopted layout detection
 TMPDIR_ADOPTED=$(mktemp -d)
-mkdir -p "$TMPDIR_ADOPTED/.agents/.rules/skills/bin"
-mkdir -p "$TMPDIR_ADOPTED/.agents/.rules/governance"
+mkdir -p "$TMPDIR_ADOPTED/.agents/skills/bin"
+mkdir -p "$TMPDIR_ADOPTED/.agents/governance"
 mkdir -p "$TMPDIR_ADOPTED/.agents/management"
 mkdir -p "$TMPDIR_ADOPTED/.agents/business-logic"
 mkdir -p "$TMPDIR_ADOPTED/.agents/language-specific"
 mkdir -p "$TMPDIR_ADOPTED/EVIDENCE"
 touch "$TMPDIR_ADOPTED/AGENTS.md"
 touch "$TMPDIR_ADOPTED/EVIDENCE/CURRENT.md"
-touch "$TMPDIR_ADOPTED/.agents/.rules/skills/bin/test.py"
+touch "$TMPDIR_ADOPTED/.agents/skills/bin/test.py"
 
 json=$(python3 "$DIAGNOSE" "$TMPDIR_ADOPTED" --json 2>&1)
 assert_json_field "$json" "detected_layout" "adopted" "Adopted layout detected"
@@ -77,8 +77,8 @@ rm -rf "$TMPDIR_LEGACY"
 
 # Test 3: Adopted layout takes precedence when both exist
 TMPDIR_BOTH=$(mktemp -d)
-mkdir -p "$TMPDIR_BOTH/.agents/.rules/skills/bin"
-mkdir -p "$TMPDIR_BOTH/.agents/.rules/governance"
+mkdir -p "$TMPDIR_BOTH/.agents/skills/bin"
+mkdir -p "$TMPDIR_BOTH/.agents/governance"
 mkdir -p "$TMPDIR_BOTH/.agents/skills/bin"
 mkdir -p "$TMPDIR_BOTH/.agents/governance"
 mkdir -p "$TMPDIR_BOTH/.agents/management"
@@ -87,7 +87,7 @@ mkdir -p "$TMPDIR_BOTH/.agents/language-specific"
 mkdir -p "$TMPDIR_BOTH/EVIDENCE"
 touch "$TMPDIR_BOTH/AGENTS.md"
 touch "$TMPDIR_BOTH/EVIDENCE/CURRENT.md"
-touch "$TMPDIR_BOTH/.agents/.rules/skills/bin/test.py"
+touch "$TMPDIR_BOTH/.agents/skills/bin/test.py"
 touch "$TMPDIR_BOTH/.agents/skills/bin/test.py"
 
 json=$(python3 "$DIAGNOSE" "$TMPDIR_BOTH" --json 2>&1)
@@ -105,8 +105,8 @@ rm -rf "$TMPDIR_BOTH"
 
 # Test 4: Human-readable output shows layout
 TMPDIR_HR=$(mktemp -d)
-mkdir -p "$TMPDIR_HR/.agents/.rules/skills/bin"
-mkdir -p "$TMPDIR_HR/.agents/.rules/governance"
+mkdir -p "$TMPDIR_HR/.agents/skills/bin"
+mkdir -p "$TMPDIR_HR/.agents/governance"
 mkdir -p "$TMPDIR_HR/.agents/management"
 mkdir -p "$TMPDIR_HR/.agents/business-logic"
 mkdir -p "$TMPDIR_HR/.agents/language-specific"

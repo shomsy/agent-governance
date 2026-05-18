@@ -14,9 +14,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DICT_DIR="$PROJECT_ROOT/.agents/.rules/governance/framework-dictionary"
-DIAGNOSE="$PROJECT_ROOT/.agents/.rules/skills/bin/agent-harness-diagnose.py"
-VALIDATE="$PROJECT_ROOT/.agents/.rules/skills/bin/validate-dictionary.py"
+DICT_DIR="$PROJECT_ROOT/.agents/governance/framework-dictionary"
+DIAGNOSE="$PROJECT_ROOT/.agents/skills/bin/agent-harness-diagnose.py"
+VALIDATE="$PROJECT_ROOT/.agents/skills/bin/validate-dictionary.py"
 
 PASS=0
 FAIL=0
@@ -111,8 +111,8 @@ echo ""
 echo "Test 6: Legitimate component directory names recognized"
 # Create a temp project with known-good structure
 TMPDIR=$(mktemp -d)
-mkdir -p "$TMPDIR/.agents/.rules/governance/framework-dictionary"
-cp "$DICT_DIR/index.json" "$TMPDIR/.agents/.rules/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
 mkdir -p "$TMPDIR/components/API/Contracts"
 mkdir -p "$TMPDIR/components/DeveloperTools/Diagnostics"
 mkdir -p "$TMPDIR/components/Operations/Events"
@@ -151,8 +151,8 @@ rm -rf "$TMPDIR"
 echo ""
 echo "Test 7: Forbidden fake abstractions are rejected"
 TMPDIR=$(mktemp -d)
-mkdir -p "$TMPDIR/.agents/.rules/governance/framework-dictionary"
-cp "$DICT_DIR/index.json" "$TMPDIR/.agents/.rules/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
 mkdir -p "$TMPDIR/src/Helpers"
 mkdir -p "$TMPDIR/src/Utils"
 touch "$TMPDIR/AGENTS.md"
@@ -187,8 +187,8 @@ rm -rf "$TMPDIR"
 echo ""
 echo "Test 8: Context-aware evaluation (Support in tests/)"
 TMPDIR=$(mktemp -d)
-mkdir -p "$TMPDIR/.agents/.rules/governance/framework-dictionary"
-cp "$DICT_DIR/index.json" "$TMPDIR/.agents/.rules/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
 mkdir -p "$TMPDIR/tests/Support"
 touch "$TMPDIR/AGENTS.md"
 mkdir -p "$TMPDIR/.agents/management/evidence/generated"
@@ -221,8 +221,8 @@ rm -rf "$TMPDIR"
 echo ""
 echo "Test 9: Context-aware evaluation (Support in src/ should be flagged)"
 TMPDIR=$(mktemp -d)
-mkdir -p "$TMPDIR/.agents/.rules/governance/framework-dictionary"
-cp "$DICT_DIR/index.json" "$TMPDIR/.agents/.rules/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
 mkdir -p "$TMPDIR/src/Support"
 touch "$TMPDIR/AGENTS.md"
 mkdir -p "$TMPDIR/.agents/management/evidence/generated"
@@ -271,6 +271,173 @@ if python3 "$VALIDATE" "$TMPDIR" > /dev/null 2>&1; then
     fail "Malformed entry was not detected"
 else
     pass "Malformed entry correctly detected"
+fi
+rm -rf "$TMPDIR"
+
+# Test 11: V2 schema requires 'level' field on each term
+echo ""
+echo "Test 11: V2 schema requires 'level' field on each term"
+TMPDIR=$(mktemp -d)
+mkdir -p "$TMPDIR/php"
+cat > "$TMPDIR/index.json" << 'EOF'
+{
+  "version": "2.0.0",
+  "levels": {
+    "FOUNDATIONAL": "Universal concept",
+    "FRAMEWORK_STANDARD": "Framework term",
+    "CONTEXTUAL": "Narrow context only",
+    "LEGACY_ALLOWED": "Historical",
+    "DISCOURAGED": "Avoid"
+  },
+  "terms": {
+    "NoLevelTerm": {
+      "classification": "test",
+      "ecosystem": ["php"],
+      "allowed_contexts": ["test"],
+      "forbidden_misuse": ["bad"],
+      "references": ["https://example.com"]
+    }
+  },
+  "total_terms": 1,
+  "ecosystems": ["php"]
+}
+EOF
+cat > "$TMPDIR/php/no-level-term.md" << 'EOF'
+# Term
+NoLevelTerm
+# Classification
+test
+# Purpose
+test
+# Why Allowed
+test
+# Allowed Contexts
+- test
+# Forbidden Misuse
+- bad
+# Ecosystem References
+- https://example.com
+# Allowed Patterns
+- NoLevelTerm
+# Forbidden Patterns
+- NoLevelTermUtil
+EOF
+
+if python3 "$VALIDATE" "$TMPDIR" > /dev/null 2>&1; then
+    fail "Missing 'level' field was not detected"
+else
+    pass "Missing 'level' field correctly detected"
+fi
+rm -rf "$TMPDIR"
+
+# Test 12: Anti-cargo-cult detection — compound fake names are rejected
+echo ""
+echo "Test 12: Anti-cargo-cult detection (compound fake names)"
+TMPDIR=$(mktemp -d)
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/src/ServiceProviderManager"
+mkdir -p "$TMPDIR/src/RepositoryServiceFactory"
+touch "$TMPDIR/AGENTS.md"
+mkdir -p "$TMPDIR/.agents/management/evidence/generated"
+
+RESULT=$(python3 "$DIAGNOSE" "$TMPDIR" --json 2>/dev/null || true)
+CARGO=$(echo "$RESULT" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    naming = d.get('checks', {}).get('naming_compliance', {})
+    violations = naming.get('violations', [])
+    anti_cargo = naming.get('anti_cargo_cult', [])
+    violation_paths = [v.get('path', '') for v in violations]
+    cargo_paths = [c.get('path', '') for c in anti_cargo]
+    has_sp_manager = any('ServiceProviderManager' in p for p in violation_paths + cargo_paths)
+    has_repo_factory = any('RepositoryServiceFactory' in p for p in violation_paths + cargo_paths)
+    if has_sp_manager and has_repo_factory:
+        print('PASS')
+    else:
+        print('FAIL')
+except:
+    print('ERROR')
+" 2>/dev/null || echo "ERROR")
+
+if [ "$CARGO" = "PASS" ]; then
+    pass "Cargo-cult compound names (ServiceProviderManager, RepositoryServiceFactory) detected"
+else
+    fail "Cargo-cult compound names not detected"
+fi
+rm -rf "$TMPDIR"
+
+# Test 13: V2 levels are reported in output
+echo ""
+echo "Test 13: V2 levels reported in diagnostic output"
+TMPDIR=$(mktemp -d)
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
+mkdir -p "$TMPDIR/components/Test/Daemon"
+touch "$TMPDIR/AGENTS.md"
+mkdir -p "$TMPDIR/.agents/management/evidence/generated"
+
+RESULT=$(python3 "$DIAGNOSE" "$TMPDIR" --json 2>/dev/null || true)
+LEVELS=$(echo "$RESULT" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    naming = d.get('checks', {}).get('naming_compliance', {})
+    allowed = naming.get('dictionary_exceptions', [])
+    levels_found = set()
+    for a in allowed:
+        if 'Daemon' in a.get('name', ''):
+            levels_found.add(a.get('level', ''))
+    if 'FOUNDATIONAL' in levels_found:
+        print('PASS')
+    else:
+        print('FAIL')
+except:
+    print('ERROR')
+" 2>/dev/null || echo "ERROR")
+
+if [ "$LEVELS" = "PASS" ]; then
+    pass "Dictionary term includes level (FOUNDATIONAL) in output"
+else
+    fail "Level not properly reported in output"
+fi
+rm -rf "$TMPDIR"
+
+# Test 14: Path constraints — allowed_paths match
+echo ""
+echo "Test 14: Path constraints (allowed_paths match)"
+TMPDIR=$(mktemp -d)
+mkdir -p "$TMPDIR/.agents/governance/framework-dictionary"
+cp "$DICT_DIR/index.json" "$TMPDIR/.agents/governance/framework-dictionary/"
+# Daemon in a path that matches **/Daemon/** pattern
+mkdir -p "$TMPDIR/framework/System/Capabilities/Daemon"
+touch "$TMPDIR/AGENTS.md"
+mkdir -p "$TMPDIR/.agents/management/evidence/generated"
+
+RESULT=$(python3 "$DIAGNOSE" "$TMPDIR" --json 2>/dev/null || true)
+PATH_MATCH=$(echo "$RESULT" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    naming = d.get('checks', {}).get('naming_compliance', {})
+    violations = naming.get('violations', [])
+    allowed = naming.get('dictionary_exceptions', [])
+    violation_paths = [v.get('path', '') for v in violations]
+    has_daemon_violation = any('Daemon' in p for p in violation_paths)
+    has_daemon_allowed = any('Daemon' in a.get('name', '') for a in allowed)
+    if has_daemon_allowed and not has_daemon_violation:
+        print('PASS')
+    else:
+        print('FAIL')
+except:
+    print('ERROR')
+" 2>/dev/null || echo "ERROR")
+
+if [ "$PATH_MATCH" = "PASS" ]; then
+    pass "Daemon in allowed path correctly allowed via path constraints"
+else
+    fail "Daemon in allowed path incorrectly flagged"
 fi
 rm -rf "$TMPDIR"
 

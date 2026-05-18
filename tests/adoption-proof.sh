@@ -83,7 +83,7 @@ echo "✅ PROOF 2 PASSED: Safe adoption provisions clean structure successfully.
 echo "🧪 PROOF 3: Upgrade Integrity & Local Preservation..."
 
 # 1. Modify a baseline rule file in .rules/ to simulate manual corruption or drift
-echo "tampered rule content" >> "$AVAX_DIR/.agents/.rules/governance/core/bootstrap/agent-bootstrap.md"
+echo "tampered rule content" >> "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md"
 
 # 2. Create a local custom overlay in .agents/governance/
 mkdir -p "$AVAX_DIR/.agents/governance/core/bootstrap"
@@ -105,7 +105,7 @@ echo "## Custom Local Rule Additions" >> "$AVAX_DIR/AGENTS.md"
 
 # Verify that:
 # - The tampered baseline rule in .rules/ has been RESET (no "tampered" text remains)
-if grep -q "tampered rule content" "$AVAX_DIR/.agents/.rules/governance/core/bootstrap/agent-bootstrap.md"; then
+if grep -q "tampered rule content" "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md"; then
     echo "❌ FAILURE: Stale/tampered baseline rule was not reset during upgrade!"
     exit 1
 fi
@@ -131,7 +131,7 @@ echo "✅ PROOF 3 PASSED: Upgrade resets baseline (.rules) but preserves local r
 echo "🧪 PROOF 4: Testing Failure Fixtures & Stable Exit Codes..."
 
 # Test 4.A: Baseline manual mutation check
-echo "mutated rule" >> "$AVAX_DIR/.agents/.rules/governance/core/bootstrap/agent-bootstrap.md"
+echo "mutated rule" >> "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md"
 # Mock git repo to trigger git baseline check
 mkdir -p "$AVAX_DIR/.git"
 git -C "$AVAX_DIR" init >/dev/null 2>&1
@@ -140,7 +140,7 @@ git -C "$AVAX_DIR" config user.name "test"
 git -C "$AVAX_DIR" add -A
 git -C "$AVAX_DIR" commit -m "initial commit" >/dev/null 2>&1
 # Make a local change to rules to trigger mutation check
-echo "uncommitted change" >> "$AVAX_DIR/.agents/.rules/governance/core/bootstrap/agent-bootstrap.md"
+echo "uncommitted change" >> "$AVAX_DIR/.agents/governance/core/bootstrap/agent-bootstrap.md"
 
 set +e
 "$AVAX_DIR/verify-governance.sh" "$AVAX_DIR" > "$TEST_DIR/err_11_log.txt" 2>&1
@@ -154,7 +154,7 @@ fi
 echo "  - Check 4.A: Mutation check caught baseline edits with Exit Code 11."
 
 # Clean up baseline modification
-git -C "$AVAX_DIR" checkout -- .agents/.rules/governance/core/bootstrap/agent-bootstrap.md
+git -C "$AVAX_DIR" checkout -- .agents/governance/core/bootstrap/agent-bootstrap.md
 
 # Test 4.B: Invalid overlay path check
 mkdir -p "$AVAX_DIR/.agents/governance/bad_folder_name"
@@ -174,7 +174,7 @@ echo "  - Check 4.B: Unrecognized overlay path caught with Exit Code 15."
 # Test 4.C: Duplicate redundant rule override check
 # Create a local overlay identical to baseline
 mkdir -p "$AVAX_DIR/.agents/governance/core/quality"
-cp "$AVAX_DIR/.agents/.rules/governance/core/quality/quality-gates.md" "$AVAX_DIR/.agents/governance/core/quality/quality-gates.md"
+cp "$AVAX_DIR/.agents/governance/core/quality/quality-gates.md" "$AVAX_DIR/.agents/governance/core/quality/quality-gates.md"
 set +e
 "$AVAX_DIR/verify-governance.sh" "$AVAX_DIR" > "$TEST_DIR/err_18_log.txt" 2>&1
 CODE_18=$?
@@ -301,8 +301,8 @@ echo "🧪 PROOF 6: Testing AI Execution Substrate Sandbox & Replay..."
 
 TEST_BIN_DIR="$AVAX_DIR/.agents/skills/bin"
 if [ ! -f "$TEST_BIN_DIR/execution-substrate.py" ]; then
-    if [ -f "$AVAX_DIR/.agents/.rules/skills/bin/execution-substrate.py" ]; then
-        TEST_BIN_DIR="$AVAX_DIR/.agents/.rules/skills/bin"
+    if [ -f "$AVAX_DIR/.agents/skills/bin/execution-substrate.py" ]; then
+        TEST_BIN_DIR="$AVAX_DIR/.agents/skills/bin"
     fi
 fi
 

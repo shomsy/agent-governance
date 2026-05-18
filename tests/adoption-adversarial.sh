@@ -109,7 +109,7 @@ fi
 log "TEST 2: Partially upgraded repo (recovery from interrupted install)"
 t2_dir="$TEST_ROOT/interrupted-install"
 mkdir -p "$t2_dir/.agents/management/evidence/install-journal"
-mkdir -p "$t2_dir/.agents/.rules/governance/core"
+mkdir -p "$t2_dir/.agents/governance/core"
 mkdir -p "$t2_dir/src"
 
 # Simulate recovery marker from interrupted install
@@ -118,13 +118,13 @@ cat > "$t2_dir/.agents/management/evidence/install-journal/interrupted-fake.json
     "recovery": true,
     "install_version": "6.0.0",
     "target": "$t2_dir",
-    "created_files": [".agents/.rules/AGENTS.md"],
+    "created_files": [".agents/AGENTS.md"],
     "timestamp": "2026-01-01T00:00:00Z"
 }
 EOF
 
 # Partial baseline
-echo "old rules" > "$t2_dir/.agents/.rules/governance/core/test.md"
+echo "old rules" > "$t2_dir/.agents/governance/core/test.md"
 echo 'print("app")' > "$t2_dir/src/app.py"
 
 t2_log="$TEST_ROOT/t2.log"
@@ -207,12 +207,12 @@ fi
 # =============================================================================
 log "TEST 5: Dirty worktree with uncommitted changes"
 t5_dir="$TEST_ROOT/dirty-worktree"
-mkdir -p "$t5_dir/.agents/.rules/governance/core"
+mkdir -p "$t5_dir/.agents/governance/core"
 mkdir -p "$t5_dir/src"
 
 # Simulate locally modified baseline files (dirty worktree)
-echo "locally modified rule" > "$t5_dir/.agents/.rules/governance/core/quality-gates.md"
-echo "custom change" > "$t5_dir/.agents/.rules/AGENTS.md"
+echo "locally modified rule" > "$t5_dir/.agents/governance/core/quality-gates.md"
+echo "custom change" > "$t5_dir/.agents/AGENTS.md"
 echo 'print("dirty")' > "$t5_dir/src/app.py"
 
 t5_log="$TEST_ROOT/t5.log"
@@ -320,12 +320,12 @@ fi
 # =============================================================================
 log "TEST 9: Upgrade from existing baseline"
 t9_dir="$TEST_ROOT/upgrade-baseline"
-mkdir -p "$t9_dir/.agents/.rules/governance/core"
+mkdir -p "$t9_dir/.agents/governance/core"
 mkdir -p "$t9_dir/.agents/management/evidence/validation"
 mkdir -p "$t9_dir/src"
 
 # Simulate old baseline content
-echo "old baseline rule v5" > "$t9_dir/.agents/.rules/governance/core/test.md"
+echo "old baseline rule v5" > "$t9_dir/.agents/governance/core/test.md"
 echo 'print("app")' > "$t9_dir/src/app.py"
 touch "$t9_dir/.agents/management/evidence/validation/v5-check.txt"
 
