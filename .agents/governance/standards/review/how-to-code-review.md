@@ -191,6 +191,18 @@ For TODO or BUG closure, and for review-driven self-healing:
 4. map residual `medium` and `low` items into backlog explicitly
 5. close the item only when acceptance criteria, evidence, and gate results agree
 
+### No Markdown-Only Closure
+
+A finding detected by an automated tool is not closed when a Markdown summary
+or review note says "accepted" or "deferred." It is closed only when:
+
+- the detecting tool reports it resolved (exit code 0), or
+- a machine-verifiable decision record exists in
+  `.agents/management/evidence/indexes/finding-decisions.json`
+
+See `.agents/governance/standards/review/recursive-review-contract.md` for the
+full finding lifecycle contract.
+
 ## Required Output Shape
 
 A review should list:

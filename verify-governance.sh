@@ -16,6 +16,7 @@
 #   17 - ERR_UNRESOLVED_REF: References in AGENTS.md to non-existent profiles
 #   18 - ERR_DUPLICATE_RULE: Redundant identical overlay rule or duplicated evidence
 #   19 - ERR_CONTRADICTORY_TRUTH: Disagreement between CURRENT.md and STATUS.md
+#   20 - ERR_FINDING_LIFECYCLE: Finding lifecycle validation failed (RED_ACTIVE findings, expired decisions, invalid registry)
 
 set -euo pipefail
 
@@ -325,6 +326,35 @@ if [ -f "$CURRENT_MD" ]; then
     fi
 fi
 echo "✅ [KERNEL] Stale Evidence Audits Complete."
+
+# --- Check 12: Finding Lifecycle Closure ---
+echo "🔍 [KERNEL] Checking Finding Lifecycle Closure..."
+FINDING_TOOL="$BIN_DIR/finding_decisions.py"
+if [ -f "$FINDING_TOOL" ]; then
+    FINDING_OUTPUT=$(python3 "$FINDING_TOOL" --dir "$TARGET_DIR" validate 2>&1) || FINDING_RC=$?
+    FINDING_RC=${FINDING_RC:-0}
+    if [ "$FINDING_RC" -eq 2 ]; then
+        echo "❌ ERROR [ERR_FINDING_LIFECYCLE]: Finding lifecycle validation failed!"
+        echo "$FINDING_OUTPUT"
+        echo "💡 Remediation: Resolve RED_ACTIVE findings or add valid decisions to .agents/management/evidence/indexes/finding-decisions.json"
+        exit 20
+    elif [ "$FINDING_RC" -eq 1 ]; then
+        echo "⚠️  WARNING [FINDING_LIFECYCLE_WARNINGS]: Finding lifecycle has warnings"
+        echo "$FINDING_OUTPUT"
+    else
+        echo "✅ [KERNEL] Finding Lifecycle Closure Valid."
+    fi
+
+    # Check for expired decisions
+    EXPIRED_OUTPUT=$(python3 "$FINDING_TOOL" --dir "$TARGET_DIR" expire-check 2>&1) || EXPIRED_RC=$?
+    EXPIRED_RC=${EXPIRED_RC:-0}
+    if [ "$EXPIRED_RC" -gt 0 ]; then
+        echo "⚠️  WARNING [EXPIRED_FINDINGS]: Some finding decisions have expired"
+        echo "$EXPIRED_OUTPUT"
+    fi
+else
+    echo "ℹ️  INFO: finding_decisions.py not found — finding lifecycle not yet deployed"
+fi
 
 # --- Legacy and V4.1/V3 Integrity Gates ---
 if grep "Version: 1.1.0" "$TARGET_DIR/AGENTS.md" >/dev/null 2>&1; then

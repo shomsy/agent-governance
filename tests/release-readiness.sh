@@ -480,6 +480,34 @@ fi
 echo ""
 
 # ============================================================
+# Section 13: Finding Lifecycle Closure
+# ============================================================
+
+echo "--- Section 13: Finding Lifecycle Closure ---"
+
+if [ -f "$PROJECT_ROOT/.agents/skills/bin/finding_decisions.py" ]; then
+    run_test "finding_decisions.py py_compile" \
+        "python3 -m py_compile '$PROJECT_ROOT/.agents/skills/bin/finding_decisions.py'" \
+        "false"
+
+    run_test "finding_decisions.py validate" \
+        "python3 '$PROJECT_ROOT/.agents/skills/bin/finding_decisions.py' --dir '$PROJECT_ROOT' validate" \
+        "false"
+
+    run_test "finding_decisions.py expire-check" \
+        "python3 '$PROJECT_ROOT/.agents/skills/bin/finding_decisions.py' --dir '$PROJECT_ROOT' expire-check" \
+        "false"
+
+    run_test "finding-decision.schema.json exists" \
+        "test -f '$PROJECT_ROOT/.agents/config/schemas/finding-decision.schema.json'" \
+        "false"
+else
+    echo "  [SKIP] finding_decisions.py not found"
+fi
+
+echo ""
+
+# ============================================================
 # Summary
 # ============================================================
 

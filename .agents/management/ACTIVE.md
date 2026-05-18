@@ -32,7 +32,7 @@ flowchart LR
     end
 
     subgraph Verify["Verify / Review"]
-        V0["No active cards"]
+        V0["PHASE-18 | Finding Lifecycle Closure | updated 2026-05-19"]
     end
 
     Ready --> InProgress
