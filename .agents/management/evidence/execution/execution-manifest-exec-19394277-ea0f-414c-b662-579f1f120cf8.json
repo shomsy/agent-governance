@@ -1,0 +1,103 @@
+{
+  "execution_id": "exec-19394277-ea0f-414c-b662-579f1f120cf8",
+  "delegation_id": "deleg-e088222e-5304-419a-a05e-f41b759fae84",
+  "nonce": "1d9434a5-3eda-464d-85b1-2471de915bd5",
+  "task": "release-readiness-runtime",
+  "trust_tier": "READ_ONLY",
+  "domain_scope": "validation",
+  "lifecycle_state": "REPLAYABLE",
+  "lifecycle_history": [
+    {
+      "state": "CREATED",
+      "timestamp": 1779143326.2631004
+    },
+    {
+      "state": "PLANNED",
+      "timestamp": 1779143326.263694
+    },
+    {
+      "state": "EXECUTING",
+      "timestamp": 1779143326.4260476
+    },
+    {
+      "state": "VALIDATING",
+      "timestamp": 1779143326.4304125
+    },
+    {
+      "state": "REPLAYABLE",
+      "timestamp": 1779143326.924485
+    }
+  ],
+  "capability_token": {
+    "token_id": "token-exec-19394277-ea0f-414c-b662-579f1f120cf8",
+    "lease_duration_sec": 600,
+    "max_memory_mb": 512,
+    "allowed_tools": [
+      "view_file",
+      "search_web",
+      "write_to_file",
+      "replace_file_content"
+    ],
+    "allowed_scopes": [
+      "validation"
+    ],
+    "trust_tier": "READ_ONLY",
+    "issued_at": 1779143326.2635887,
+    "signature": "693f416df9205030601fbaeb01cd8592e15ba32b339e87801ece55afafbede40"
+  },
+  "authority_lineage": {
+    "initiator": "Operator",
+    "parent_token_id": "operator-root",
+    "capability_signature": "693f416df9205030601fbaeb01cd8592e15ba32b339e87801ece55afafbede40"
+  },
+  "environment_snapshot": {
+    "os": "linux",
+    "python_version": "3.13.7",
+    "frozen_timestamp": 1779143326.9245281,
+    "env_vars_sanitized": true
+  },
+  "context_package": {
+    "domain_rules_loaded": [],
+    "dependency_checksums": {
+      "file_count": 3924,
+      "aggregate_hash": "b8b5927043c7e50a31141ac87b79448907266c7c37c44076512754c92be0cc29"
+    }
+  },
+  "mutation_journal": {
+    "journal_id": "journal-exec-19394277-ea0f-414c-b662-579f1f120cf8",
+    "execution_id": "exec-19394277-ea0f-414c-b662-579f1f120cf8",
+    "mutations": {
+      "created": [],
+      "modified": [],
+      "deleted": []
+    },
+    "symlinks_created": [],
+    "violations_detected": [],
+    "rollback_executed": false
+  },
+  "replay_contract": {
+    "contract_id": "replay-exec-19394277-ea0f-414c-b662-579f1f120cf8",
+    "execution_id": "exec-19394277-ea0f-414c-b662-579f1f120cf8",
+    "nonce": "1d9434a5-3eda-464d-85b1-2471de915bd5",
+    "payload_command": "echo runtime-verified",
+    "expected_exit_code": 0,
+    "expected_mutation_count": 0,
+    "original_checksum": "4c460a97ef5cbd445a3736d3c288d1cd2df2749736d40d803683d42c0abf572f"
+  },
+  "telemetry": {
+    "total_duration_ms": 661.3855361938477,
+    "command_execution_duration_ms": 3.89862060546875,
+    "governance_resolution_overhead_ms": 657.4869155883789,
+    "context_expansion_budget_bytes": 106,
+    "memory_usage_mb": 12.5,
+    "lease_expired_during_execution": false,
+    "sanitized_env_vars_removed": 0,
+    "sandbox_mode": "shell_false",
+    "danger_class": "SAFE",
+    "danger_reason": "Command appears safe (read-only, no dangerous patterns)"
+  },
+  "hmac_seal": "6a758315461feccf2fff46b1f9d9a910fb3ffcde4d3024378b12f9b4b90e7991",
+  "key_id": "efde8a481324",
+  "sealed_at": 1779143326.9246154,
+  "seal_algorithm": "HMAC-SHA256"
+}

@@ -1,35 +1,35 @@
 {
-  "execution_id": "exec-ee6e673c-02dd-43ca-b555-059eedc31116",
-  "delegation_id": "deleg-4e8a727a-9498-404a-bdea-bbbe351b3e40",
-  "nonce": "26e237ba-d992-4998-9bbb-65eed5646df4",
-  "task": "replay-test",
+  "execution_id": "exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
+  "delegation_id": "deleg-21f96dc0-df65-4827-a5db-adaf64aea35a",
+  "nonce": "d3638ae4-3106-4f1a-ad96-3189f1586f0d",
+  "task": "concurrent-2",
   "trust_tier": "READ_ONLY",
   "domain_scope": "security",
   "lifecycle_state": "REPLAYABLE",
   "lifecycle_history": [
     {
       "state": "CREATED",
-      "timestamp": 1779142277.2293668
+      "timestamp": 1779143703.457389
     },
     {
       "state": "PLANNED",
-      "timestamp": 1779142277.2299778
+      "timestamp": 1779143703.4584963
     },
     {
       "state": "EXECUTING",
-      "timestamp": 1779142277.396343
+      "timestamp": 1779143703.6287274
     },
     {
       "state": "VALIDATING",
-      "timestamp": 1779142277.4003966
+      "timestamp": 1779143703.633051
     },
     {
       "state": "REPLAYABLE",
-      "timestamp": 1779142277.8899446
+      "timestamp": 1779143704.1207137
     }
   ],
   "capability_token": {
-    "token_id": "token-exec-ee6e673c-02dd-43ca-b555-059eedc31116",
+    "token_id": "token-exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
     "lease_duration_sec": 600,
     "max_memory_mb": 512,
     "allowed_tools": [
@@ -42,18 +42,18 @@
       "security"
     ],
     "trust_tier": "READ_ONLY",
-    "issued_at": 1779142277.229921,
-    "signature": "92395022f238cb569d62e4a2d1c31446aca82465d5e56110e8685ea899918a26"
+    "issued_at": 1779143703.4582849,
+    "signature": "58db8bf6a327fb041490f4a2dd8b600f95737269affe958e4eec3017d16f490f"
   },
   "authority_lineage": {
     "initiator": "Operator",
     "parent_token_id": "operator-root",
-    "capability_signature": "92395022f238cb569d62e4a2d1c31446aca82465d5e56110e8685ea899918a26"
+    "capability_signature": "58db8bf6a327fb041490f4a2dd8b600f95737269affe958e4eec3017d16f490f"
   },
   "environment_snapshot": {
     "os": "linux",
     "python_version": "3.13.7",
-    "frozen_timestamp": 1779142277.889986,
+    "frozen_timestamp": 1779143704.1207628,
     "env_vars_sanitized": true
   },
   "context_package": {
@@ -71,12 +71,12 @@
     ],
     "dependency_checksums": {
       "file_count": 3924,
-      "aggregate_hash": "5cdcc81f5425bfc30cb162125149076d426d2f7cb891cde297b2c9be4f9ec8e6"
+      "aggregate_hash": "d95e6fdfef9f47b79e776ae3280ce93032964e39f2d98ccd12f0d4cbf35259bf"
     }
   },
   "mutation_journal": {
-    "journal_id": "journal-exec-ee6e673c-02dd-43ca-b555-059eedc31116",
-    "execution_id": "exec-ee6e673c-02dd-43ca-b555-059eedc31116",
+    "journal_id": "journal-exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
+    "execution_id": "exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
     "mutations": {
       "created": [],
       "modified": [],
@@ -87,18 +87,18 @@
     "rollback_executed": false
   },
   "replay_contract": {
-    "contract_id": "replay-exec-ee6e673c-02dd-43ca-b555-059eedc31116",
-    "execution_id": "exec-ee6e673c-02dd-43ca-b555-059eedc31116",
-    "nonce": "26e237ba-d992-4998-9bbb-65eed5646df4",
-    "payload_command": "echo replayable",
+    "contract_id": "replay-exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
+    "execution_id": "exec-5c48e8b3-7c5d-414d-b937-ef4c87e87bfb",
+    "nonce": "d3638ae4-3106-4f1a-ad96-3189f1586f0d",
+    "payload_command": "echo c2",
     "expected_exit_code": 0,
     "expected_mutation_count": 0,
-    "original_checksum": "2a568b0cbba56016ccc79c5407cbb2d1c3ae6c0a7bf4d8ecbe36a5b4db7c2063"
+    "original_checksum": "e7a6969b02e9dfaaba24bbb77f499bf85e3f440f05d362a555e39e77121d10d9"
   },
   "telemetry": {
-    "total_duration_ms": 660.578727722168,
-    "command_execution_duration_ms": 3.6025047302246094,
-    "governance_resolution_overhead_ms": 656.9762229919434,
+    "total_duration_ms": 663.3255481719971,
+    "command_execution_duration_ms": 3.880023956298828,
+    "governance_resolution_overhead_ms": 659.4455242156982,
     "context_expansion_budget_bytes": 106,
     "memory_usage_mb": 12.5,
     "lease_expired_during_execution": false,
@@ -107,8 +107,8 @@
     "danger_class": "SAFE",
     "danger_reason": "Command appears safe (read-only, no dangerous patterns)"
   },
-  "hmac_seal": "57a6580007c58bb73b8eb81ca5a64f94ebf7938614cfe4c951a21487a03bc364",
-  "key_id": "53f803ae020f",
-  "sealed_at": 1779142277.8900702,
+  "hmac_seal": "9e202c3f62f3cb2dc9ada404c6bc094414bc21e5cab888048fefbb7436e1d352",
+  "key_id": "efde8a481324",
+  "sealed_at": 1779143704.1208565,
   "seal_algorithm": "HMAC-SHA256"
 }

@@ -1,7 +1,7 @@
 {
-  "execution_id": "exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
-  "delegation_id": "deleg-4b567c36-fbc5-4baf-9ec6-1f62d5493228",
-  "nonce": "b4e48c72-c2b9-41fb-a8db-4629bb9a0e5c",
+  "execution_id": "exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
+  "delegation_id": "deleg-f3b1e124-9b25-47be-b015-b6cd1d344ab7",
+  "nonce": "c94a3726-db5b-4d61-babd-0b8c99c4cb26",
   "task": "chain-test-1",
   "trust_tier": "READ_ONLY",
   "domain_scope": "security",
@@ -9,27 +9,27 @@
   "lifecycle_history": [
     {
       "state": "CREATED",
-      "timestamp": 1779142278.4888022
+      "timestamp": 1779143321.21103
     },
     {
       "state": "PLANNED",
-      "timestamp": 1779142278.4892507
+      "timestamp": 1779143321.2114542
     },
     {
       "state": "EXECUTING",
-      "timestamp": 1779142278.6514962
+      "timestamp": 1779143321.3798904
     },
     {
       "state": "VALIDATING",
-      "timestamp": 1779142278.6553454
+      "timestamp": 1779143321.3845162
     },
     {
       "state": "REPLAYABLE",
-      "timestamp": 1779142279.1439228
+      "timestamp": 1779143321.8774543
     }
   ],
   "capability_token": {
-    "token_id": "token-exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
+    "token_id": "token-exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
     "lease_duration_sec": 600,
     "max_memory_mb": 512,
     "allowed_tools": [
@@ -42,18 +42,18 @@
       "security"
     ],
     "trust_tier": "READ_ONLY",
-    "issued_at": 1779142278.4891486,
-    "signature": "ebce13e76e043c599a1a3b3f38283ffb3b8d197cb1407afc873115f20e98373e"
+    "issued_at": 1779143321.2113645,
+    "signature": "0d09b06f10ccd769262b669d2be6e19d44d6718c7497e2f1161144669867cb3a"
   },
   "authority_lineage": {
     "initiator": "Operator",
     "parent_token_id": "operator-root",
-    "capability_signature": "ebce13e76e043c599a1a3b3f38283ffb3b8d197cb1407afc873115f20e98373e"
+    "capability_signature": "0d09b06f10ccd769262b669d2be6e19d44d6718c7497e2f1161144669867cb3a"
   },
   "environment_snapshot": {
     "os": "linux",
     "python_version": "3.13.7",
-    "frozen_timestamp": 1779142279.143964,
+    "frozen_timestamp": 1779143321.8775532,
     "env_vars_sanitized": true
   },
   "context_package": {
@@ -71,12 +71,12 @@
     ],
     "dependency_checksums": {
       "file_count": 3924,
-      "aggregate_hash": "5cdcc81f5425bfc30cb162125149076d426d2f7cb891cde297b2c9be4f9ec8e6"
+      "aggregate_hash": "b8b5927043c7e50a31141ac87b79448907266c7c37c44076512754c92be0cc29"
     }
   },
   "mutation_journal": {
-    "journal_id": "journal-exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
-    "execution_id": "exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
+    "journal_id": "journal-exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
+    "execution_id": "exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
     "mutations": {
       "created": [],
       "modified": [],
@@ -87,18 +87,18 @@
     "rollback_executed": false
   },
   "replay_contract": {
-    "contract_id": "replay-exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
-    "execution_id": "exec-80eb54d7-9691-4aed-b324-57a63f9900eb",
-    "nonce": "b4e48c72-c2b9-41fb-a8db-4629bb9a0e5c",
+    "contract_id": "replay-exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
+    "execution_id": "exec-14712f93-ad70-4cb1-b2a5-49c99fe3d765",
+    "nonce": "c94a3726-db5b-4d61-babd-0b8c99c4cb26",
     "payload_command": "echo chain-1",
     "expected_exit_code": 0,
     "expected_mutation_count": 0,
     "original_checksum": "9b2775169e5e161470408764b2d58bb21c20f580d9cdc0e4d55f51536c8e8030"
   },
   "telemetry": {
-    "total_duration_ms": 655.1215648651123,
-    "command_execution_duration_ms": 3.395557403564453,
-    "governance_resolution_overhead_ms": 651.7260074615479,
+    "total_duration_ms": 666.4276123046875,
+    "command_execution_duration_ms": 4.160165786743164,
+    "governance_resolution_overhead_ms": 662.2674465179443,
     "context_expansion_budget_bytes": 106,
     "memory_usage_mb": 12.5,
     "lease_expired_during_execution": false,
@@ -107,8 +107,8 @@
     "danger_class": "SAFE",
     "danger_reason": "Command appears safe (read-only, no dangerous patterns)"
   },
-  "hmac_seal": "37feea8b2c8a8f9631e0f5130b7c64cd425d4442af36b7c8d9429c3b609c6f8e",
-  "key_id": "53f803ae020f",
-  "sealed_at": 1779142279.14405,
+  "hmac_seal": "686b55f19528b242b22889808acd32b2642fcad105dbf2d01c3b733897ebb294",
+  "key_id": "efde8a481324",
+  "sealed_at": 1779143321.8777392,
   "seal_algorithm": "HMAC-SHA256"
 }
