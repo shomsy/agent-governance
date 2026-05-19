@@ -3,10 +3,10 @@
   "title": "Finding Decision",
   "description": "Machine-verifiable decision record for a scanner-detected finding. Prevents Markdown-only closure anti-pattern.",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "id", "tool", "findingFingerprint", "decision",
-    "decisionSeverity", "classification", "reason",
+    "classification", "reason",
     "createdAt", "updatedAt", "status"
   ],
   "properties": {
@@ -21,8 +21,8 @@
     },
     "findingFingerprint": {
       "type": "string",
-      "pattern": "^[a-f0-9]{64}$",
-      "description": "SHA-256 of canonical fingerprint: tool:file:line:pattern"
+      "minLength": 1,
+      "description": "Stable fingerprint: SHA-256 hex or tool-specific format (e.g., avax:path:line:token)"
     },
     "file": {
       "type": "string",
@@ -39,7 +39,7 @@
     },
     "originalSeverity": {
       "type": "string",
-      "enum": ["critical", "high", "medium", "low", "info"],
+      "enum": ["critical", "high", "medium", "low", "info", "BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"],
       "description": "Severity as reported by the detecting tool"
     },
     "decision": {
@@ -51,13 +51,16 @@
         "FALSE_POSITIVE",
         "COMPOSITION_ROOT_ALLOWED",
         "SCAFFOLD_DEFERRED",
-        "TOOLING_BUG"
+        "TOOLING_BUG",
+        "INFO_ALLOWED",
+        "YELLOW_ACCEPTED",
+        "YELLOW_DEFERRED"
       ],
       "description": "Resolution decision type"
     },
     "decisionSeverity": {
       "type": "string",
-      "enum": ["RED", "YELLOW", "INFO", "GREEN"],
+      "enum": ["RED", "YELLOW", "INFO", "GREEN", "critical", "high", "medium", "low", "info"],
       "description": "Severity after decision is applied"
     },
     "classification": {
@@ -70,12 +73,11 @@
     },
     "owner": {
       "type": ["string", "null"],
-      "description": "Person or role who approved this decision"
+      "description": "Person or role responsible for this decision"
     },
     "expiry": {
       "type": ["string", "null"],
-      "format": "date-time",
-      "description": "ISO-8601 expiry date. Null for permanent decisions."
+      "description": "ISO-8601 expiry date, 'never', or trigger condition (e.g., 'on SCAFFOLD→ACTIVE promotion')"
     },
     "mitigation": {
       "type": ["string", "null"],
@@ -86,7 +88,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Paths to supporting evidence files in .agents/management/evidence/"
+      "description": "Paths to supporting evidence files"
     },
     "approvedBy": {
       "type": ["string", "null"],
@@ -94,12 +96,10 @@
     },
     "createdAt": {
       "type": "string",
-      "format": "date-time",
       "description": "ISO-8601 creation timestamp"
     },
     "updatedAt": {
       "type": "string",
-      "format": "date-time",
       "description": "ISO-8601 last update timestamp"
     },
     "status": {

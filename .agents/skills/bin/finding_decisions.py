@@ -36,11 +36,15 @@ VALID_DECISIONS = [
     "COMPOSITION_ROOT_ALLOWED",
     "SCAFFOLD_DEFERRED",
     "TOOLING_BUG",
+    # Legacy AvaX scanner formats
+    "INFO_ALLOWED",
+    "YELLOW_ACCEPTED",
+    "YELLOW_DEFERRED",
 ]
 
-VALID_DECISION_SEVERITIES = ["RED", "YELLOW", "INFO", "GREEN"]
+VALID_DECISION_SEVERITIES = ["RED", "YELLOW", "INFO", "GREEN", "critical", "high", "medium", "low", "info"]
 VALID_STATUSES = ["active", "expired", "revoked", "superseded"]
-VALID_ORIGINAL_SEVERITIES = ["critical", "high", "medium", "low", "info"]
+VALID_ORIGINAL_SEVERITIES = ["critical", "high", "medium", "low", "info", "BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"]
 
 REQUIRED_FIELDS = [
     "id", "tool", "findingFingerprint", "decision",
@@ -118,14 +122,15 @@ def validate_decision_schema(decision: dict, schema: dict | None) -> list[str]:
         if not re.match(r"^FD-[0-9]{8}-[0-9]{3}$", decision["id"]):
             errors.append(f"Invalid id format: {decision['id']} (expected FD-YYYYMMDD-NNN)")
 
-    # Check fingerprint format
+    # Check fingerprint format (SHA-256 or tool-specific like avax:path:line:token)
     if "findingFingerprint" in decision:
         import re
-        if not re.match(r"^[a-f0-9]{64}$", decision["findingFingerprint"]):
-            errors.append(f"Invalid findingFingerprint: not a SHA-256 hex string")
+        fp = decision["findingFingerprint"]
+        if not re.match(r"^[a-f0-9]{64}$", fp) and not fp.startswith("avax:") and ":" not in fp:
+            errors.append(f"Invalid findingFingerprint: {fp[:40]}... (must be SHA-256 hex or tool-specific format)")
 
-    # Check date-time fields
-    for field in ("createdAt", "updatedAt", "expiry"):
+    # Check date-time fields (allow non-date expiry like trigger conditions)
+    for field in ("createdAt", "updatedAt"):
         if field in decision and decision[field] is not None:
             try:
                 datetime.fromisoformat(decision[field].replace("Z", "+00:00"))
