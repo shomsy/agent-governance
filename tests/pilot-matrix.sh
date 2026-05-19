@@ -275,6 +275,11 @@ The project-local contract is:
 ENDINDEX
     fi
 
+    # 6b. Copy reusable baseline .agents/AGENTS.md
+    if [ -f "$HARNESS_SOURCE/AGENTS.md" ] && [ ! -f "$target/.agents/AGENTS.md" ]; then
+        cp "$HARNESS_SOURCE/AGENTS.md" "$target/.agents/AGENTS.md"
+    fi
+
     # 7. Create CURRENT.md in EVIDENCE
     if [ ! -f "$target/EVIDENCE/CURRENT.md" ]; then
         cat > "$target/EVIDENCE/CURRENT.md" <<ENDCURRENT
